@@ -1,0 +1,191 @@
+<?php
+
+namespace App\Imports;
+
+use App\Security_user;
+use App\User_body_mass;
+use App\Institution_student;
+use App\Import_mapping;
+use App\Area_administrative;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithStartRow;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+
+
+
+class UsersImport implements ToCollection , WithStartRow , WithValidation , WithHeadingRow , WithMultipleSheets
+{
+    use Importable;
+
+
+    /**
+    * @param array $row
+    *
+    * @return \Illuminate\Database\Eloquent\Model|null
+    */
+
+    public function startRow(): int
+    {
+        return 3;
+    }
+
+
+    public function headingRow(): int
+    {
+        return 2;
+    }
+
+    public function sheets(): array
+    {
+            return [
+                // Select by sheet index
+                1 => $this
+            ];
+    }
+
+
+    public static  function getUniqueOpenemisId($options = [])
+    {
+        $prefix = '';
+
+        $prefix =  DB::table('config_items')->where('code','=','openemis_id_prefix')->get();
+        $prefix = explode(",", $prefix);
+        $prefix = ($prefix[1] > 0) ? $prefix[0] : '';
+
+        $latest = Security_user::orderBy('id', 'DESC')
+            ->first();
+
+        if (is_array($latest)) {
+            $latestOpenemisNo = $latest['SecurityUser']['openemis_no'];
+        } else {
+            $latestOpenemisNo = $latest->openemis_no;
+        }
+        if (empty($prefix)) {
+            $latestDbStamp = $latestOpenemisNo;
+        } else {
+            $latestDbStamp = substr($latestOpenemisNo, strlen($prefix));
+        }
+
+        $currentStamp = time();
+        if ($latestDbStamp >= $currentStamp) {
+            $newStamp = $latestDbStamp + 1;
+        } else {
+            $newStamp = $currentStamp;
+        }
+
+        return $prefix . $newStamp;
+    }
+    
+
+    public function collection(Collection $rows)
+    {
+
+       
+      Validator::make($rows->toArray(), [
+            'full_name.*' => 'required',
+        ])->validate();
+
+        
+       $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
+       $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
+       $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
+
+       foreach ($rows as $row) {
+       
+            $genderId = $row['gender_code_mf'] == 'M' ? 1 : 2;
+
+            $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
+            $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
+            $academicYearID;
+
+            $date = \DateTime::createFromFormat("Y/m/d", $row['date_of_birth_ddmmyyyy']);
+            $identityNUmber = $row['identity_number'];
+            if($row['identity_type'] == 'BC'){
+                $identityNUmber = $BirthArea->id . '' . $row['identity_number'] . '' . substr($date->format("yy"), -2) . '' . $date->format("m");
+            }
+           
+            $openemis = $this::getUniqueOpenemisId();
+
+            $student =  Security_user::create([
+                'username'=> $openemis,
+                'openemis_no'=>$openemis,
+                'first_name'=> $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                'last_name' => genNameWithInitials($row['full_name']),
+                'gender_id' => $genderId,
+                'date_of_birth' => $date ,
+                'address'   => $row['address'],
+                'address_area_id'   => $AddressArea->id,
+                'birthplace_area_id' => $BirthArea->id,
+                'nationality_id' => $row['nationality'],
+                'identity_type_id' => $row['identity_type'],
+                'identity_number' => $identityNUmber ,
+                'created_user_id'=> 1,
+                'created'=> now(),
+                'is_student' => 1
+            ]); 
+
+            Institution_student::create([
+                'student_status_id' => 1,
+                'student_id' => $student->id,
+                'education_grade_id' => 1,
+                'academic_period_id' => 2,
+                'start_date' => '2019-01-01',
+                'start_year' => '2019',
+                'end_date' => '2019-12-31',
+                'end_year' => '2019',
+                'institution_id' => 80308,
+                'created_user_id'=> 1,
+                'created'=> now(),
+                'admission_id' => '4555'
+            ]);
+
+            $hight = $row[10]/100;
+
+            $bodyMass = ($row[11]) / pow($hight,2);
+
+            User_body_mass::create([
+                'height' => $row[10],
+                'weight' => $row[11],
+                'date' => now(),
+                'body_mass_index' => $bodyMass,
+                'academic_period_id' => 1,
+                'security_user_id' => $student->id,
+                'created_user_id' => 1,
+                'created' => now(),
+            ]);
+        }
+
+
+    }
+
+
+
+    public function rules(): array
+    {
+        return [
+            // '*.0' => 'required',
+            '*.student_idleave_as_blank_for_new_entries' => 'required' ,
+            '*.full_name' => 'required'
+            // '*.2' => 'required',
+            // '*.3' => 'required',
+            // '*.4' => 'required',
+             // Above is alias for as it always validates in batches
+            //  '*.1' => Rule::in(['patrick@maatwebsite.nl']),
+             
+            //  // Can also use callback validation rules
+            //  '0' => function($attribute, $value, $onFailure) {
+            //       if ($value !== 'Patrick Brouwers') {
+            //            $onFailure('Name is not Patrick Brouwers');
+            //       }
+            //   }
+        ];
+    }
+}
