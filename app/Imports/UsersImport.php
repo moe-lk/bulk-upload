@@ -7,6 +7,8 @@ use App\User_body_mass;
 use App\Institution_student;
 use App\Import_mapping;
 use App\Area_administrative;
+use App\Nationality;
+use App\Identity_type;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -91,26 +93,31 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
        $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
        $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
        $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
-       $configStudentBmi = Import_mapping::getSheetColumns('Student.Guardian');
-    //    dd($rows);            
+      
+
        $this->validateRow($rows);
 
        foreach ($rows as $row) {
-       
-            $genderId = $row['gender_code_mf'] == 'M' ? 1 : 2;
+
+            $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+            // $identityType = $row['identity_type'] == 'BC' ? 1 : 2;
 
             $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
+            $nationalityId = Nationality::where('name','like','%'.$row['nationality'].'%')->first();
+            $identityType = Identity_type::where('national_code','like','%'.$row['identity_type'].'%')->first();
+
 
             $date = \DateTime::createFromFormat("Y/m/d", $row['date_of_birth_ddmmyyyy']);
             $identityNUmber = $row['identity_number'];
-
             if($row['identity_type'] == 'BC'){
                 $identityNUmber = $BirthArea->id . '' . $row['identity_number'] . '' . substr($date->format("yy"), -2) . '' . $date->format("m");
             }
            
             $openemis = $this::getUniqueOpenemisId();
 
+
+            \Log::debug('Security_user');
             $student =  Security_user::create([
                 'username'=> $openemis,
                 'openemis_no'=>$openemis,
@@ -121,14 +128,15 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 'address'   => $row['address'],
                 'address_area_id'   => $AddressArea->id,
                 'birthplace_area_id' => $BirthArea->id,
-                'nationality_id' => $row['nationality'],
-                'identity_type_id' => $row['identity_type'],
+                'nationality_id' => $nationalityId->id,
+                'identity_type_id' => $identityType->id,
                 'identity_number' => $identityNUmber ,
                 'created_user_id'=> 1,
                 'created'=> now(),
                 'is_student' => 1
             ]); 
 
+             \Log::debug('Institution_student');
             Institution_student::create([
                 'student_status_id' => 1,
                 'student_id' => $student->id,
@@ -145,11 +153,12 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
             ]);
 
             // convert Meeter to CM
-            $hight = $row[10]/100;
+            $hight = $row['height']/100;
 
             //calculate BMI 
-            $bodyMass = ($row[11]) / pow($hight,2);
+            $bodyMass = ($row['weight']) / pow($hight,2);
 
+             \Log::debug('User_body_mass');
             User_body_mass::create([
                 'height' => $row['height'],
                 'weight' => $row['weight'],
@@ -167,39 +176,25 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
 
 
     public function validateRow($rows){
-        $messages = [
-            'required' => 'The :attribute field is required.',
-        ];
                 Validator::make($rows->toArray(), [
-            '*.full_name' => 'required',
-            '*.student_id_leave_as_blank_for_new_entries' => 'required',
-            '*.gender_mf' => 'required',
-            '*.date_of_birth_ddmmyyyy' => 'required|date',
-            '*.address' => 'required',
-            '*.address_area' => 'required',
-            '*.birth_registrar_office_as_in_birth_certificate' => 'required',
-            '*.nationality' => 'required',
-            '*.identity_type' => 'required',
-            '*.identity_number' => 'required',
-            '*.academic_period_id' => 'required',
-            '*.education_grade' => 'required',
-            '*.height' => 'required',
-            '*.weight' => 'required',
-            '*.admission_no' => 'required|numeric',
-            '*.education_grade' => 'required',
-            '*.start_date_ddmmyyyy' => 'required|date',
-            '*.option_*' => 'required',
-            '*.need_type' => 'required',
-            // '*.special_need_dificulty' => '',
-            // '*.institution_class' => '',
-            // '*.address_area' => ''
-
-            // '*.need_type' => ''
-
-
-
-
-            
+                '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
+                '*.gender_mf' => 'required',
+                '*.date_of_birth_ddmmyyyy' => 'required|date',
+                '*.address' => 'required',
+                '*.address_area' => 'required',
+                '*.birth_registrar_office_as_in_birth_certificate' => 'required',
+                '*.nationality' => 'required',
+                '*.identity_type' => 'required',
+                '*.identity_number' => 'required|unique:security_users,identity_type_id',
+                '*.academic_period' => 'required',
+                '*.education_grade' => 'required',
+                '*.height' => 'required',
+                '*.weight' => 'required',
+                '*.admission_no' => 'required',
+                '*.education_grade' => 'required',
+                '*.start_date_ddmmyyyy' => 'required|date',
+                '*.option_*' => 'required',
+                '*.need_type' => 'required',
         ])->validate();
 
     }
@@ -208,8 +203,8 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
     {
         return [
             // '*.0' => 'required',
-            '*.student_idleave_as_blank_for_new_entries' => Rule::in(['required']) ,
-            '*.full_name' => 'required'
+            // '*.student_idleave_as_blank_for_new_entries' => Rule::in(['required']) ,
+            // '*.full_name' => 'required'
             // '*.2' => 'required',
             // '*.3' => 'required',
             // '*.4' => 'required',

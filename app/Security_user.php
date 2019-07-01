@@ -88,4 +88,12 @@ class Security_user extends Model  {
      */
     protected $dates = ['date_of_birth', 'date_of_death', 'last_login', 'modified', 'created'];
 
+
+   public function rules()
+    {
+        return [
+            'identity_number' => 'unique:identity_type_id',
+        ];
+    }
+
 }
