@@ -87,16 +87,13 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
 
     public function collection(Collection $rows)
     {
-
-       
-      Validator::make($rows->toArray(), [
-            'full_name.*' => 'required',
-        ])->validate();
-
         
        $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
        $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
        $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
+       $configStudentBmi = Import_mapping::getSheetColumns('Student.Guardian');
+    //    dd($rows);            
+       $this->validateRow($rows);
 
        foreach ($rows as $row) {
        
@@ -104,10 +101,10 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
 
             $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
-            $academicYearID;
 
             $date = \DateTime::createFromFormat("Y/m/d", $row['date_of_birth_ddmmyyyy']);
             $identityNUmber = $row['identity_number'];
+
             if($row['identity_type'] == 'BC'){
                 $identityNUmber = $BirthArea->id . '' . $row['identity_number'] . '' . substr($date->format("yy"), -2) . '' . $date->format("m");
             }
@@ -147,14 +144,16 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 'admission_id' => '4555'
             ]);
 
+            // convert Meeter to CM
             $hight = $row[10]/100;
 
+            //calculate BMI 
             $bodyMass = ($row[11]) / pow($hight,2);
 
             User_body_mass::create([
-                'height' => $row[10],
-                'weight' => $row[11],
-                'date' => now(),
+                'height' => $row['height'],
+                'weight' => $row['weight'],
+                'date' => $row['date'],
                 'body_mass_index' => $bodyMass,
                 'academic_period_id' => 1,
                 'security_user_id' => $student->id,
@@ -167,12 +166,49 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
     }
 
 
+    public function validateRow($rows){
+        $messages = [
+            'required' => 'The :attribute field is required.',
+        ];
+                Validator::make($rows->toArray(), [
+            '*.full_name' => 'required',
+            '*.student_id_leave_as_blank_for_new_entries' => 'required',
+            '*.gender_mf' => 'required',
+            '*.date_of_birth_ddmmyyyy' => 'required|date',
+            '*.address' => 'required',
+            '*.address_area' => 'required',
+            '*.birth_registrar_office_as_in_birth_certificate' => 'required',
+            '*.nationality' => 'required',
+            '*.identity_type' => 'required',
+            '*.identity_number' => 'required',
+            '*.academic_period_id' => 'required',
+            '*.education_grade' => 'required',
+            '*.height' => 'required',
+            '*.weight' => 'required',
+            '*.admission_no' => 'required|numeric',
+            '*.education_grade' => 'required',
+            '*.start_date_ddmmyyyy' => 'required|date',
+            '*.option_*' => 'required',
+            '*.need_type' => 'required',
+            // '*.special_need_dificulty' => '',
+            // '*.institution_class' => '',
+            // '*.address_area' => ''
+
+            // '*.need_type' => ''
+
+
+
+
+            
+        ])->validate();
+
+    }
 
     public function rules(): array
     {
         return [
             // '*.0' => 'required',
-            '*.student_idleave_as_blank_for_new_entries' => 'required' ,
+            '*.student_idleave_as_blank_for_new_entries' => Rule::in(['required']) ,
             '*.full_name' => 'required'
             // '*.2' => 'required',
             // '*.3' => 'required',
@@ -188,4 +224,5 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
             //   }
         ];
     }
+    
 }

@@ -11,10 +11,10 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
-Route::get('importExport', 'ImportExport@importExportView');
+Route::get('/', 'ImportExport@importExportView');
 Route::get('downloadExcel/{type}', 'ImportExport@export');
 Route::post('importExcel', 'ImportExport@import');
