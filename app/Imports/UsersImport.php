@@ -9,8 +9,7 @@ use App\Import_mapping;
 use App\Area_administrative;
 use App\Nationality;
 use App\Identity_type;
-use Carbon\Carbon;
-use Maatwebsite\Excel\Concerns\ToModel;
+use App\Student_guardian;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
@@ -114,13 +113,14 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 $identityNUmber = $BirthArea->id . '' . $row['identity_number'] . '' . substr($date->format("yy"), -2) . '' . $date->format("m");
             }
            
-            $openemis = $this::getUniqueOpenemisId();
+            $openemisStudent = $this::getUniqueOpenemisId();
+
 
 
             \Log::debug('Security_user');
             $student =  Security_user::create([
-                'username'=> $openemis,
-                'openemis_no'=>$openemis,
+                'username'=> $openemisStudent,
+                'openemis_no'=>$openemisStudent,
                 'first_name'=> $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                 'last_name' => genNameWithInitials($row['full_name']),
                 'gender_id' => $genderId,
@@ -169,6 +169,108 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 'created_user_id' => 1,
                 'created' => now(),
             ]);
+
+            //import father's information
+            if(!empty($row['fathers_full_name'])){
+                $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
+                $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
+                $identityType = Identity_type::where('national_code','like','%'.$row['fathers_identity_type'].'%')->first();
+                $date = \DateTime::createFromFormat("Y/m/d", $row['fathers_date_of_birth_ddmmyyyy']);
+                $openemisFather = $this::getUniqueOpenemisId();
+                $father  =   Security_user::create([
+                        'username'=> $openemisFather,
+                        'openemis_no'=>$openemisFather,
+                        'first_name'=> $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                        'last_name' => genNameWithInitials($row['fathers_full_name']),
+                        'gender_id' => 1,
+                        'date_of_birth' => $date ,
+                        'address'   => $row['fathers_address'],
+                        'address_area_id'   => $AddressArea->id,
+                        'birthplace_area_id' => $BirthArea->id,
+                        'nationality_id' => $nationalityId->id,
+                        'identity_type_id' => $identityType->id,
+                        'identity_number' => $row['fathers_identity_number'] ,
+                        'created_user_id'=> 1,
+                        'created'=> now(),
+                        'is_guardian' => 1
+                ]);
+
+                Student_guardian::create([
+                    'student_id' => $student->id,
+                    'guardian_id' => $father->id,
+                    'guardian_relation_id' => 1,
+                    'created_user_id' => 1,
+                    'created' => now()
+                ]);
+            }
+
+            if(!empty($row['mothers_full_name'])){
+                $AddressArea = Area_administrative::where('name', 'like', '%'.$row['mothers_address_area'].'%')->first();
+                $nationalityId = Nationality::where('name','like','%'.$row['mothers_nationality'].'%')->first();
+                $identityType = Identity_type::where('national_code','like','%'.$row['mothers_identity_type'].'%')->first();
+                $date = \DateTime::createFromFormat("Y/m/d", $row['mothers_date_of_birth_ddmmyyyy']);
+                $openemisMother = $this::getUniqueOpenemisId();
+                $mother = Security_user::create([
+                        'username'=> $openemisMother,
+                        'openemis_no'=>$openemisMother,
+                        'first_name'=> $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                        'last_name' => genNameWithInitials($row['mothers_full_name']),
+                        'gender_id' => 2,
+                        'date_of_birth' => $date ,
+                        'address'   => $row['mothers_address'],
+                        'address_area_id'   => $AddressArea->id,
+                        'birthplace_area_id' => $BirthArea->id,
+                        'nationality_id' => $nationalityId->id,
+                        'identity_type_id' => $identityType->id,
+                        'identity_number' => $row['mothers_identity_number'] ,
+                        'created_user_id'=> 1,
+                        'created'=> now(),
+                        'is_guardian' => 1
+                ]);
+
+                Student_guardian::create([
+                    'student_id' => $student->id,
+                    'guardian_id' => $mother->id,
+                    'guardian_relation_id' => 2,
+                    'created_user_id' => 1,
+                    'created' => now()
+                ]);
+            }
+
+             if(!empty($row['guardians_full_name'])){
+                 $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
+                 $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
+                 $nationalityId = Nationality::where('name','like','%'.$row['guardians_nationality'].'%')->first();
+                 $identityType = Identity_type::where('national_code','like','%'.$row['guardians_identity_type'].'%')->first();
+                 $date = \DateTime::createFromFormat("Y/m/d", $row['guardians_date_of_birth_ddmmyyyy']);
+                 $openemisGuardian = $this::getUniqueOpenemisId();
+                 $guardian =  Security_user::create([
+                        'username'=> $openemisGuardian,
+                        'openemis_no'=>$openemisGuardian,
+                        'first_name'=> $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                        'last_name' => genNameWithInitials($row['guardians_full_name']),
+                        'gender_id' => $genderId,
+                        'date_of_birth' => $date ,
+                        'address'   => $row['guardians_address'],
+                        'address_area_id'   => $AddressArea->id,
+                        'birthplace_area_id' => $BirthArea->id,
+                        'nationality_id' => $nationalityId->id,
+                        'identity_type_id' => $identityType->id,
+                        'identity_number' => $row['guardians_identity_number'] ,
+                        'created_user_id'=> 1,
+                        'created'=> now(),
+                        'is_guardian' => 1
+                ]);
+
+                 Student_guardian::create([
+                     'student_id' => $student->id,
+                     'guardian_id' => $guardian->id,
+                     'guardian_relation_id' => 3,
+                     'created_user_id' => 1,
+                     'created' => now()
+                 ]);
+            }
+
         }
 
 
@@ -185,16 +287,20 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 '*.birth_registrar_office_as_in_birth_certificate' => 'required',
                 '*.nationality' => 'required',
                 '*.identity_type' => 'required',
-                '*.identity_number' => 'required|unique:security_users,identity_type_id',
+                '*.identity_number' =>  'required|unique:security_users,identity_number', //'required|unique:security_users,identity_type_id',
                 '*.academic_period' => 'required',
                 '*.education_grade' => 'required',
                 '*.height' => 'required',
                 '*.weight' => 'required',
                 '*.admission_no' => 'required',
-                '*.education_grade' => 'required',
                 '*.start_date_ddmmyyyy' => 'required|date',
                 '*.option_*' => 'required',
                 '*.need_type' => 'required',
+                '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
+                '*.fathers_identity_number' => 'unique:security_users,identity_number',
+                '*.mothers_identity_number' => 'unique:security_users,identity_number',
+                '*.guardians_identity_number' => 'unique:security_users,identity_number'
+
         ])->validate();
 
     }

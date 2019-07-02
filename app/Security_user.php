@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
 use App\Institution_student;
 use App\User_body_mass;
 
@@ -52,7 +53,6 @@ class Security_user extends Model  {
      */
     protected $hidden = [
         'password',
-        'username',
         'modified_user_id', 
         'middle_name', 
         'third_name', 
@@ -92,8 +92,18 @@ class Security_user extends Model  {
    public function rules()
     {
         return [
-            'identity_number' => 'unique:identity_type_id',
+                'identity_number' => [
+                    'required',
+                    'unique:security_users,identity_number',
+                ],
+            // 'identity_number' => 'unique:security_users,identity_number,NULL,id,identity_type_id,'.,
+            // 'identity_number' => 'unique:identity_type_id',
         ];
+    }
+
+
+    public function getAuthPassword(){
+        return $this->password;
     }
 
 }
