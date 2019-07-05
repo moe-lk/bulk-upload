@@ -1,26 +1,24 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User_body_mass extends Model  {
+class Education_grades_subject extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'user_body_masses';
-
-    public $timestamps = false;
+    protected $table = 'education_grades_subjects';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['date', 'height', 'weight', 'body_mass_index', 'comment', 'academic_period_id', 'security_user_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['education_grade_id', 'education_subject_id', 'hours_required', 'visible', 'auto_allocation', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -41,6 +39,11 @@ class User_body_mass extends Model  {
      *
      * @var array
      */
-    protected $dates = ['date', 'modified', 'created'];
+    protected $dates = ['modified', 'created'];
+
+
+    public function institutionGradeSubject(){
+        return $this->hasMany('App\Models\Institution_subject','education_grade_id','education_grade_id');
+    }
 
 }

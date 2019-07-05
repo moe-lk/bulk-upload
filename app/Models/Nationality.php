@@ -1,24 +1,24 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Identity_type extends Model  {
+class Nationality extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'identity_types';
+    protected $table = 'nationalities';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'validation_pattern', 'order', 'visible', 'editable', 'default', 'international_code', 'national_code', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['name', 'order', 'visible', 'editable', 'identity_type_id', 'default', 'international_code', 'national_code', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -39,6 +39,6 @@ class Identity_type extends Model  {
      *
      * @var array
      */
-    protected $dates = ['modified', 'created', 'modified', 'created'];
+    protected $dates = ['modified', 'created'];
 
 }

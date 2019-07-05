@@ -1,24 +1,24 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Area_administrative extends Model  {
+class Identity_type extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'area_administratives';
+    protected $table = 'identity_types';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['code', 'name', 'is_main_country', 'parent_id', 'lft', 'rght', 'area_administrative_level_id', 'order', 'visible', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['name', 'validation_pattern', 'order', 'visible', 'editable', 'default', 'international_code', 'national_code', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -39,6 +39,6 @@ class Area_administrative extends Model  {
      *
      * @var array
      */
-    protected $dates = ['modified', 'created'];
+    protected $dates = ['modified', 'created', 'modified', 'created'];
 
 }

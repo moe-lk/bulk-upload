@@ -1,24 +1,24 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Area extends Model  {
+class Institution_student_admission extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'areas';
+    protected $table = 'institution_student_admission';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['code', 'name', 'parent_id', 'lft', 'rght', 'area_level_id', 'order', 'visible', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['start_date', 'end_date', 'student_id', 'status_id', 'assignee_id', 'institution_id', 'academic_period_id', 'education_grade_id', 'institution_class_id', 'comment', 'modified_user_id', 'modified', 'created_user_id', 'created', 'admission_id'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -39,6 +39,6 @@ class Area extends Model  {
      *
      * @var array
      */
-    protected $dates = ['modified', 'created'];
+    protected $dates = ['modified', 'created', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created'];
 
 }

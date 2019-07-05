@@ -2,14 +2,22 @@
 
 namespace App\Imports;
 
-use App\Security_user;
-use App\User_body_mass;
-use App\Institution_student;
-use App\Import_mapping;
-use App\Area_administrative;
-use App\Nationality;
-use App\Identity_type;
-use App\Student_guardian;
+use App\Models\Institution_class_student;
+use App\Models\Institution_subject;
+use App\Models\Institution_subject_student;
+use App\Models\Security_user;
+use App\Models\User_body_mass;
+use App\Models\Institution_student;
+use App\Models\Import_mapping;
+use App\Models\Nationality;
+use App\Models\Identity_type;
+use App\Models\Student_guardian;
+use App\Models\Academic_period;
+use App\Models\Institution_class;
+use App\Models\Institution_class_grade;
+use App\Models\Area_administrative;
+//use App\Imports\StudentImport;
+//use App\Model\Institution_subject_student;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
@@ -19,12 +27,20 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\BeforeSheet;
+use Webpatser\Uuid\Uuid;
 
 
-
-class UsersImport implements ToCollection , WithStartRow , WithValidation , WithHeadingRow , WithMultipleSheets
+class UsersImport implements ToCollection , WithStartRow , WithValidation , WithHeadingRow , WithMultipleSheets , WithEvents
 {
     use Importable;
+
+    public function __construct()
+    {
+        $this->sheetNames = [];
+        $this->sheetData = [];
+    }
 
 
     /**
@@ -48,10 +64,25 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
     {
             return [
                 // Select by sheet index
+//                0 => $this->sheetData,
                 1 => $this
+
             ];
     }
 
+    public function registerEvents(): array
+    {
+        // TODO: Implement registerEvents() method.
+        return [
+            BeforeSheet::class => function(BeforeSheet $event){
+                $this->sheetNames[] = $event->getSheet()->getTitle();
+            }
+        ];
+    }
+
+    public  function array(array $array){
+        $this->sheetData[] = $array;
+    }
 
     public static  function getUniqueOpenemisId($options = [])
     {
@@ -89,22 +120,31 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
     public function collection(Collection $rows)
     {
         
-       $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
-       $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
-       $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
-      
+//       $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
+//       $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
+//       $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
 
-       $this->validateRow($rows);
+       $subjects =  getMatchingKeys($rows[0]) ;
+       $institution = 9909;
 
+
+
+       $institutionClass = Institution_class::where('name','like', $this->sheetNames[0])->where('institution_id','=',$institution)->first();
+       $institutionGrade = Institution_class_grade::where('institution_class_id','=',$institutionClass->id)->first();
+
+
+        $this->validateRow($rows);
        foreach ($rows as $row) {
 
             $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
             // $identityType = $row['identity_type'] == 'BC' ? 1 : 2;
 
-            $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
+//            $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
             $nationalityId = Nationality::where('name','like','%'.$row['nationality'].'%')->first();
             $identityType = Identity_type::where('national_code','like','%'.$row['identity_type'].'%')->first();
+            $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
+
 
 
             $date = \DateTime::createFromFormat("Y/m/d", $row['date_of_birth_ddmmyyyy']);
@@ -126,7 +166,7 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 'gender_id' => $genderId,
                 'date_of_birth' => $date ,
                 'address'   => $row['address'],
-                'address_area_id'   => $AddressArea->id,
+//                'address_area_id'   => $AddressArea->id,
                 'birthplace_area_id' => $BirthArea->id,
                 'nationality_id' => $nationalityId->id,
                 'identity_type_id' => $identityType->id,
@@ -140,13 +180,13 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
             Institution_student::create([
                 'student_status_id' => 1,
                 'student_id' => $student->id,
-                'education_grade_id' => 1,
-                'academic_period_id' => 2,
+                'education_grade_id' => $institutionGrade->education_grade_id,
+                'academic_period_id' => $academicPeriod->id,
                 'start_date' => '2019-01-01',
                 'start_year' => '2019',
                 'end_date' => '2019-12-31',
                 'end_year' => '2019',
-                'institution_id' => 80308,
+                'institution_id' => $institution,
                 'created_user_id'=> 1,
                 'created'=> now(),
                 'admission_id' => '4555'
@@ -271,9 +311,87 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                  ]);
             }
 
+
+
+            $student = Institution_class_student::create([
+                'student_id'  => $student->id,
+                'institution_class_id' => $institutionClass->id,
+                'education_grade_id' => $institutionGrade->education_grade_id,
+                'academic_period_id'=>$academicPeriod->id,
+                'institution_id' => $institution,
+                'student_status_id' => 1
+            ]);
+
+
+           //Option subject feed
+           $subjects = $this->setStudentOptionalSubject($subjects,$student,$row);
+
+           $mandatorySubject = Institution_subject::with(['institutionGradeSubject' => function($query) use ($student){
+               $query->where('auto_allocation','=',1)
+                   ->where('education_grade_id','=',$student->education_grade_id)
+                   ->where('education_subject_id','=',$student->education_subject_id);
+           }])
+               ->where('institution_id','=',$institution)
+               ->where('education_grade_id','=',$student->education_grade_id)->get()->toArray();
+
+
+           $subjects = array_merge_recursive($subjects,$mandatorySubject);
+           $subjects = array_unique($subjects,SORT_REGULAR);
+
+           $subjects = $this->setStudentSubjects($subjects,$student);
+           Institution_subject_student::insert((array) $subjects);
+
+
         }
 
+    }
 
+
+    /**
+     * @param $subjects
+     * @param $student
+     * @return array
+     * @throws \Exception
+     */
+    public  function  setStudentSubjects($subjects,$student){
+        $data = [];
+        foreach ($subjects as $subject){
+                $data[]  = [
+                    'id' => (string) Uuid::generate(4),
+                    'student_id' => $student->student_id,
+                    'institution_class_id' => $student->institution_class_id,
+                    'institution_subject_id' => $subject['id'],
+                    'institution_id' => $student->institution_id,
+                    'academic_period_id' => $student->academic_period_id,
+                    'education_subject_id' => $subject['education_subject_id'],
+                    'education_grade_id' => $student->education_grade_id,
+                    'student_status_id' => 1,
+                    'created_user_id' => 1,
+                    'created' => now()
+                ];
+
+        }
+        return $data;
+    }
+
+    public function setStudentOptionalSubject($subjects,$student,$row){
+        $data = [];
+        foreach ($subjects as $subject){
+            $subject = Institution_subject::with(['institutionGradeSubject' => function($query) use ($student){
+                $query->where('auto_allocation','=',0)
+                    ->where('education_grade_id','=',$student->education_grade_id)
+                    ->where('education_subject_id','=',$student->education_subject_id);
+                }])
+                ->where('name','=',$row[$subject])
+                ->where('institution_id','=',$student->institution_id)
+                ->where('education_grade_id','=',$student->education_grade_id)
+                ->where('academic_period_id','=',$student->academic_period_id)->get()->toArray();
+
+            if(!empty($subject))
+                $data[] = $subject[0];
+        }
+
+        return $data;
     }
 
 
@@ -283,7 +401,7 @@ class UsersImport implements ToCollection , WithStartRow , WithValidation , With
                 '*.gender_mf' => 'required',
                 '*.date_of_birth_ddmmyyyy' => 'required|date',
                 '*.address' => 'required',
-                '*.address_area' => 'required',
+//                '*.address_area' => 'required',
                 '*.birth_registrar_office_as_in_birth_certificate' => 'required',
                 '*.nationality' => 'required',
                 '*.identity_type' => 'required',

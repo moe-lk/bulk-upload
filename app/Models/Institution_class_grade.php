@@ -1,24 +1,25 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Base_Model;
 
-class Institution_class_student extends Model  {
+
+class Institution_class_grade extends Base_Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'institution_class_students';
+    protected $table = 'institution_class_grades';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['student_id', 'institution_class_id', 'education_grade_id', 'academic_period_id', 'institution_id', 'student_status_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['institution_class_id', 'education_grade_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -39,6 +40,6 @@ class Institution_class_student extends Model  {
      *
      * @var array
      */
-    protected $dates = ['date_of_birth', 'date_of_death', 'last_login', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created', 'modified', 'created'];
+    protected $dates = ['modified', 'created'];
 
 }

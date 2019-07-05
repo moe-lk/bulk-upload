@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Models;
+
+use function foo\func;
+use Illuminate\Database\Eloquent\Model;
+use Webpatser\Uuid\Uuid;
+
+class Institution_subject_student extends Model  {
+
+
+    public const CREATED_AT = 'created';
+    public const UPDATED_AT = 'modified';
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = 'institution_subject_students';
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = ['student_id', 'institution_class_id', 'institution_id', 'academic_period_id', 'education_subject_id', 'education_grade_id', 'total_mark', 'institution_subject_id', 'student_status_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+
+    /**
+     * The attributes excluded from the model's JSON form.
+     *
+     * @var array
+     */
+    protected $hidden = [];
+
+    /**
+     * The attributes that should be casted to native types.
+     *
+     * @var array
+     */
+    protected $casts = [];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = ['modified', 'created'];
+
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->id = (string) Uuid::generate(4);
+        });
+
+//        self::inserti(function (array $array){
+//            foreach ($array as $item) {
+//                $item->id = (string) Uuid::generate(4);
+//           }
+//        });
+
+    }
+
+    /**
+     * @param $inputs
+     * @return bool
+     *
+     *
+     */
+    public static function  isDuplicated($inputs){
+
+       $exists = self::where('student_id','=',$inputs['student_id'])
+           ->where('institution_subject_id','=',$inputs['institution_subject_id'])
+           ->where('education_subject_id','=',$inputs['education_subject_id'])->count();
+
+
+        return $exists ? true :false;
+    }
+
+}

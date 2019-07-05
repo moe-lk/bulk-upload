@@ -1,25 +1,24 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Webpatser\Uuid\Uuid;
 
-class Student_guardian extends Model  {
+class Institution_class extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'student_guardians';
+    protected $table = 'institution_classes';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['student_id', 'guardian_id', 'guardian_relation_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['name', 'no_of_students', 'class_number', 'total_male_students', 'total_female_students', 'staff_id', 'secondary_staff_id', 'institution_shift_id', 'institution_id', 'academic_period_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -41,17 +40,5 @@ class Student_guardian extends Model  {
      * @var array
      */
     protected $dates = ['modified', 'created'];
-
-
-    public $timestamps = false;
-
-    public static function boot()
-    {
-        parent::boot();
-        self::creating(function ($model) {
-            $model->id = (string) Uuid::generate(4);
-        });
-    }
-
 
 }

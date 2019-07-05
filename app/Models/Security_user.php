@@ -1,11 +1,11 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
-use App\Institution_student;
-use App\User_body_mass;
+use App\Models\Institution_student;
+use App\Models\User_body_mass;
 
 
 class Security_user extends Model  {
