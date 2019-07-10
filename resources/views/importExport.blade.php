@@ -1,9 +1,7 @@
-<html lang="en">
-<head>
-    <title>NEMIS-SIS Bulk data import</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" >
-</head>
-<body>
+@extends('layouts.app')
+
+
+@section('content')
     <div class="container">
         <div class="panel panel-default">
           <div class="panel-heading">
@@ -43,5 +41,4 @@
           </div>
         </div>
     </div>
-</body>
-</html>
+@endsection

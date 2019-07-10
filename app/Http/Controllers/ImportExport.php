@@ -16,6 +16,16 @@ class ImportExport extends Controller
 
     use Importable;
 
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
      /**
     * @return \Illuminate\Support\Collection
     */
