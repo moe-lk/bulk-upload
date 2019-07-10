@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Institution_class extends Model  {
 
+    public const CREATED_AT = 'created';
+    public const UPDATED_AT = 'modified';
+
+
     /**
      * The database table used by the model.
      *

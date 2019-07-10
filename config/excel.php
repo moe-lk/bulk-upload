@@ -42,7 +42,8 @@ return [
         ],
     ],
     'import' => [
-        'start_row' => 2
+        'start_row' => 2,
+        'chunk_size'=> 40
     ],
     'imports'            => [
 

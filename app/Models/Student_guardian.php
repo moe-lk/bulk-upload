@@ -3,9 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Base_Model;
 use Webpatser\Uuid\Uuid;
 
-class Student_guardian extends Model  {
+class Student_guardian extends Base_Model  {
+
+
+    public const CREATED_AT = 'created';
+
+    public const UPDATED_AT = 'modified';
+
 
     /**
      * The database table used by the model.
@@ -50,7 +57,19 @@ class Student_guardian extends Model  {
         parent::boot();
         self::creating(function ($model) {
             $model->id = (string) Uuid::generate(4);
+            $model->created_user_id = 1;
         });
+    }
+
+    public static function createStudentGuardian($student,$guardian){
+        $data = [
+            'student_id' => $student->id,
+            'guardian_id' => $guardian->id,
+            'guardian_relation_id' => $guardian->guardian_relation_id,
+            'created' => now(),
+            'created_user_id' => 1
+        ];
+        self::create($data);
     }
 
 

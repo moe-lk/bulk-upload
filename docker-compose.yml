@@ -2,14 +2,15 @@ version: '2'
 
 services:
   mariadb:
-    image: 'bitnami/mariadb:10.1'
+    build: ./db
     environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - MARIADB_USER=my_user
-      - MARIADB_DATABASE=openemis
-      - MARIADB_PASSWORD=my_password
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: openemis
+      MYSQL_USER: my_user
+      MYSQL_PASSWORD: my_password
     ports:
       - 3307:3306
+
   myapp:
     tty: true
     image: bitnami/laravel:5-debian-9
@@ -24,4 +25,19 @@ services:
       - 3000:3000
     volumes:
       - ./:/app
+  nsis-nginx:
+    build: ./nginx
+    container_name: nsis-nginx
+    ports:
+      - "8080:80"
+    links:
+      - nsis-php-fpm
+    restart: always
+  nsis-php-fpm:
+    build: ./php-fpm
+    volumes:
+      - ./php-fpm/app:/var/www/myapp
+      - ./php-fpm/php-ini-overrides.ini:/etc/php/7.1/fpm/conf.d/99-overrides.ini
+    container_name: nsis-php-fpm
+
     # privileged: true # Privileged mode could be required to run this container under Windows

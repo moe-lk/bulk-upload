@@ -11,6 +11,10 @@ class User_body_mass extends Model  {
      *
      * @var string
      */
+
+
+    Public const CREATED_AT = 'created';
+    Public const UPDATED_AT = 'modified';
     protected $table = 'user_body_masses';
 
     public $timestamps = false;
@@ -42,5 +46,15 @@ class User_body_mass extends Model  {
      * @var array
      */
     protected $dates = ['date', 'modified', 'created'];
+
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->created = now();
+        });
+    }
+
 
 }

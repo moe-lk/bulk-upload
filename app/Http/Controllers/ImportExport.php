@@ -39,6 +39,7 @@ class ImportExport extends Controller
     */
     public function import() 
     {
+        ini_set('max_execution_time', 600);
         // (new UsersImport)->import(request()->file('file'), null, \Maatwebsite\Excel\Excel::XLSX);
 
         $import = new UsersImport();

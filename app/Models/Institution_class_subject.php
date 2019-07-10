@@ -4,25 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_student_admission extends Model  {
-
-    public const CREATED_AT = 'created';
-
-    public const UPDATED_AT = 'modified';
+class Institution_class_subject extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'institution_student_admission';
+    protected $table = 'institution_class_subjects';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['start_date', 'end_date', 'student_id', 'status_id', 'assignee_id', 'institution_id', 'academic_period_id', 'education_grade_id', 'institution_class_id', 'comment', 'modified_user_id', 'modified', 'created_user_id', 'created', 'admission_id'];
+    protected $fillable = ['status', 'institution_class_id', 'institution_subject_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -43,6 +39,10 @@ class Institution_student_admission extends Model  {
      *
      * @var array
      */
-    protected $dates = ['modified', 'created', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created'];
+    protected $dates = ['modified', 'created'];
+
+    public function institutionClassSubject(){
+        return $this->hasMany('App\Models\Institution_subject','institution_class_id','institution_class_id');
+    }
 
 }

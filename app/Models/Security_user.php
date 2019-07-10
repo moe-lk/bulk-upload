@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
-use App\Models\Institution_student;
-use App\Models\User_body_mass;
+use App\Models\Base_Model;
 
 
-class Security_user extends Model  {
+class Security_user extends Base_Model  {
 
     /**
      * The database table used by the model.
@@ -100,6 +99,8 @@ class Security_user extends Model  {
             // 'identity_number' => 'unique:identity_type_id',
         ];
     }
+
+
 
 
     public function getAuthPassword(){
