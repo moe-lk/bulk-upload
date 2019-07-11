@@ -5,7 +5,6 @@ namespace App\Libraries\ShaHash;
 
 
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
-use Illuminate\Support\Facades\Log;
 
 class SHAHasher implements  HasherContract
 {
@@ -27,7 +26,7 @@ class SHAHasher implements  HasherContract
 
     public function needsRehash($hashedValue, array $options = [])
     {
-        return false;
+        return password_needs_rehash($hashedValue,$options);
     }
 
 

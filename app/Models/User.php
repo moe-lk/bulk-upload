@@ -63,6 +63,10 @@ class User extends Authenticatable  {
      */
     protected $dates = ['email_verified_at'];
 
+    public function roles(){
+        return $this->newBelongsToMany(Role::class);
+    }
+
 
 
 }

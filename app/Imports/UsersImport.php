@@ -18,6 +18,8 @@ use App\Models\Academic_period;
 use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -44,6 +46,8 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     {
         $this->sheetNames = [];
         $this->sheetData = [];
+        self::setIntitution();
+
     }
 
 
@@ -52,6 +56,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     *
     * @return \Illuminate\Database\Eloquent\Model|null
     */
+
+    public static function setIntitution(){
+
+
+        Log::info('authuser',[Auth::user()->id]);
+
+    }
 
     public function sheets(): array
     {
