@@ -14,7 +14,8 @@
                         </div>
                     @endif
 
-                    You are logged in!
+                    You are logged in! If you can't access to the bulk upload menu , then you are not given permission for do this.
+                    Please contact you School Coordinator and get access to your class room.
                 </div>
             </div>
         </div>

@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable  {
+
+
+class User extends Authenticatable   {
 
     /**
      * The database table used by the model.
@@ -63,10 +65,22 @@ class User extends Authenticatable  {
      */
     protected $dates = ['email_verified_at'];
 
-    public function roles(){
-        return $this->newBelongsToMany(Role::class);
+
+    public function permissions(){
+        return $this->hasMany('App\Models\Security_group_user','security_user_id','id')
+             ->where('security_group_users.security_role_id','=',5)
+             ->with(['security_group_institution','institution_staff','security_group'  , 'staff_class','institution_group' , 'roles']);
     }
 
+
+    public function institution_class_teacher(){
+        return $this->hasMany('App\Models\Institution_staff','staff_id','id')
+            ->with(['staff_class']);
+    }
+
+    public function teacher_classes(){
+        return $this->hasMany('App\Models\Institution_class','staff_id','id');
+    }
 
 
 }

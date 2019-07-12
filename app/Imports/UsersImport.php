@@ -46,8 +46,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     {
         $this->sheetNames = [];
         $this->sheetData = [];
-        self::setIntitution();
-
     }
 
 
@@ -57,12 +55,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     * @return \Illuminate\Database\Eloquent\Model|null
     */
 
-    public static function setIntitution(){
 
-
-        Log::info('authuser',[Auth::user()->id]);
-
-    }
 
     public function sheets(): array
     {
@@ -73,6 +66,8 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
         ];
     }
+
+
 
     public function batchSize(): int
     {
@@ -202,19 +197,18 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     }
 
 
+
+
+
     public function collection(Collection $rows)
     {
 
-//       $configStudentInfo = Import_mapping::getSheetColumns('Student.Info');
-//       $configStudentInstitution = Import_mapping::getSheetColumns('Student.Institution');
-//       $configStudentBmi = Import_mapping::getSheetColumns('Student.BMI');
-
-
-       $institution = 8553;
+       $institution = Auth::user()->security_group_users[0]->security_group_institution->institution_id;
 
 
 
-       $institutionClass = Institution_class::where('name','like', $this->sheetNames[0])->where('institution_id','=',$institution)->first();
+       $institutionClass = Auth::user()->security_group_users[0]->security_group_institution->staff_class;
+           //Institution_class::where('name','like', $this->sheetNames[0])->where('institution_id','=',$institution)->first();
 
 
 
@@ -223,12 +217,11 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
        $totalStudents = $totalMaleStudents + $totalFemaleStudents;
 
        if(($totalStudents + count($rows)) > $institutionClass->no_of_students){
-           return Redirect::back()->withErrors(['The number of students in '.$this->sheetNames[0].' is grater than student count.','Current Student count is '. $institutionClass->no_of_students.'.' ]);
+           return Redirect::back()->withErrors(['The number of students in '.$institutionClass->name.' is grater than student count.','Current Student count is '. $institutionClass->no_of_students.'.' ]);
        }
 
        $maleStudentsCount = 0;
        $femaleStudentsCount = 0;
-//       dd($this->sheetNames[0]);
 
        if(!empty($institutionClass)){
 

@@ -4,25 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_class extends Model  {
-
-    public const CREATED_AT = 'created';
-    public const UPDATED_AT = 'modified';
-
+class Security_role extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'institution_classes';
+    protected $table = 'security_roles';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'no_of_students', 'class_number', 'total_male_students', 'total_female_students', 'staff_id', 'secondary_staff_id', 'institution_shift_id', 'institution_id', 'academic_period_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['name', 'code', 'order', 'visible', 'security_group_id', 'modified_user_id', 'modified', 'created_user_id', 'created'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -45,9 +41,11 @@ class Institution_class extends Model  {
      */
     protected $dates = ['modified', 'created'];
 
-    public function class_teacher(){
-        return $this->belongsTo('App\Models\Security_group_user','staff_id','security_user_id');
+
+    public function securityUsers(){
+        return $this->belongsToMany(Security_group_user::class,'security_group_users','security_group_id','security_group_id');
     }
+
 
 
 }

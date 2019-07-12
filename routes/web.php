@@ -15,7 +15,7 @@
 //     return view('welcome');
 // });
 
-Route::get('/', 'ImportExport@importExportView');
+Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('downloadExcel/{type}', 'ImportExport@export');
 Route::post('importExcel', 'ImportExport@import');
 

@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+
+class classTeacher
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
+    public function handle($request, Closure $next , $role)
+    {
+//        dd($request->user()->permissions);
+        if ($request->user() && (!($request->user()->permissions->isEmpty()))  && $request->user()->permissions[0]->roles && $request->user()->permissions[0]->roles->code === $role) {
+            return $next($request);
+        }
+        return redirect('/login')->with('status', 'Your dont have access for upload data. Please get assign your to the class and try');;
+    }
+}

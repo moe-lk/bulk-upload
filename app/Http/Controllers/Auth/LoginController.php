@@ -46,6 +46,11 @@ class LoginController extends Controller
         $this->username = $this->findUsername();
     }
 
+    public function authorize($ability, $arguments = [])
+    {
+
+    }
+
     /**
      * @return string
      */
