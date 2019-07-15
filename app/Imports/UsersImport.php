@@ -37,6 +37,7 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\BeforeSheet;
+use PhpOffice\PhpSpreadsheet\Reader\Exception;
 use Webpatser\Uuid\Uuid;
 
 
@@ -125,37 +126,46 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
      */
     public function map($row): array
     {
-        $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
 
-        if(gettype($row['date_of_birth_ddmmyyyy']) == 'double'){
-            $row['date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_ddmmyyyy']);
-        }
+        try{
+            $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
 
-        if(gettype($row['date_ddmmyyyy']) == 'double'){
-            $row['date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_ddmmyyyy']);
-        }
+            if(gettype($row['date_of_birth_ddmmyyyy']) == 'double'){
+                $row['date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_ddmmyyyy']);
+            }
 
-        if(gettype($row['start_date_ddmmyyyy']) == 'double'){
-            $row['start_date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_ddmmyyyy']);
-        }
+            if(gettype($row['date_ddmmyyyy']) == 'double'){
+                $row['date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_ddmmyyyy']);
+            }
 
-        if(gettype($row['fathers_date_of_birth_ddmmyyyy']) == 'double'){
-            $row['fathers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_ddmmyyyy']);
-        }
+            if(gettype($row['start_date_ddmmyyyy']) == 'double'){
+                $row['start_date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_ddmmyyyy']);
+            }
 
-        if(gettype($row['mothers_date_of_birth_ddmmyyyy']) == 'double'){
-            $row['mothers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_ddmmyyyy']);
-        }
+            if(gettype($row['fathers_date_of_birth_ddmmyyyy']) == 'double'){
+                $row['fathers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_ddmmyyyy']);
+            }
 
-        if(gettype($row['guardians_date_of_birth_ddmmyyyy']) == 'double'){
-            $row['guardians_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_ddmmyyyy']);
-        }
+            if(gettype($row['mothers_date_of_birth_ddmmyyyy']) == 'double'){
+                $row['mothers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_ddmmyyyy']);
+            }
 
-        if($row['identity_type'] == 'BC'){
-            $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_ddmmyyyy']->format("yy"), -2) . '' . $row['date_of_birth_ddmmyyyy']->format("m");
+            if(gettype($row['guardians_date_of_birth_ddmmyyyy']) == 'double'){
+                $row['guardians_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_ddmmyyyy']);
+            }
+
+            if($row['identity_type'] == 'BC'){
+                $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_ddmmyyyy']->format("yy"), -2) . '' . $row['date_of_birth_ddmmyyyy']->format("m");
+            }
+
+
+        }catch (\Exception $e){
+            \Log::error('Import Error',[$e]);
+            Redirect::back()->withErrors(['Template is not valid, pleas upload the correct template']);
         }
 
         return $row;
+
     }
 
     public  function array(array $array){
@@ -212,13 +222,10 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     public function collection(Collection $rows)
     {
 
-       $institution = Auth::user()->permissions[0]->security_group_institution->institution_id;
-
-//       $this->validateClassRoom();
 
        $institutionClassId = Input::get('class');
        $institutionClass = Institution_class::find($institutionClassId);
-//       dd($institutionClass);
+       $institution = $institutionClass->institution_id;
 
        $totalMaleStudents = $institutionClass->total_male_students;
        $totalFemaleStudents = $institutionClass->total_female_students;
