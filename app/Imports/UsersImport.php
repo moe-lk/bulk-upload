@@ -19,8 +19,10 @@ use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Request;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -46,6 +48,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     {
         $this->sheetNames = [];
         $this->sheetData = [];
+        $this->request = new Request;
     }
 
 
@@ -199,18 +202,23 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
 
 
+    public function validateClassRoom(){
+        if(!empty(Auth::user()->permissions[0]->security_group_institution->staff_class)){
+            Redirect::back()->withErrors(['You don\' have classes to import data to any Class Rooms ']);
+        }
+    }
+
 
     public function collection(Collection $rows)
     {
 
-       $institution = Auth::user()->security_group_users[0]->security_group_institution->institution_id;
+       $institution = Auth::user()->permissions[0]->security_group_institution->institution_id;
 
+//       $this->validateClassRoom();
 
-
-       $institutionClass = Auth::user()->security_group_users[0]->security_group_institution->staff_class;
-           //Institution_class::where('name','like', $this->sheetNames[0])->where('institution_id','=',$institution)->first();
-
-
+       $institutionClassId = Input::get('class');
+       $institutionClass = Institution_class::find($institutionClassId);
+//       dd($institutionClass);
 
        $totalMaleStudents = $institutionClass->total_male_students;
        $totalFemaleStudents = $institutionClass->total_female_students;
@@ -555,8 +563,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
 
     public function validateRow($rows){
-
-
                 Validator::make($rows->toArray(), [
                 '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
                 '*.gender_mf' => 'required',
@@ -583,8 +589,5 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         ])->validate();
 
     }
-
-
-
 
 }

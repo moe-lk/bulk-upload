@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Exports\UsersExport;
 use App\Imports\UsersImport;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\Importable;
 
@@ -24,6 +25,7 @@ class ImportExport extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+
     }
 
      /**
@@ -31,7 +33,8 @@ class ImportExport extends Controller
     */
     public function importExportView()
     {
-       return view('importExport');
+        $classes = Auth::user()->permissions[0]->staff_class;
+       return view('importExport')->with('classes',$classes);
     }
 
 
@@ -43,28 +46,38 @@ class ImportExport extends Controller
     {
         return Excel::download(new UsersExport, 'users.xlsx');
     }
-   
+
+
+
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function import() 
+    public function import(Request $request)
     {
+
+            $request->validate([
+                'import_file' => 'required',
+                'class' => 'required'
+            ]);
+
         ini_set('max_execution_time', 600);
         // (new UsersImport)->import(request()->file('file'), null, \Maatwebsite\Excel\Excel::XLSX);
 
-        $import = new UsersImport();
-        try{
-            Excel::import($import,request()->file('import_file'));
-        }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $failures = $e->failures();
-            
-            foreach ($failures as $failure) {
-                $failure->row(); // row that went wrong
-                $failure->attribute(); // either heading key (if using heading row concern) or column index
-                $failure->errors(); // Actual error messages from Laravel validator
-                $failure->values(); // The values of the row that has failed.
+
+            $import = new UsersImport();
+            try{
+                Excel::import($import,request()->file('import_file'));
+            }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                $failures = $e->failures();
+
+                foreach ($failures as $failure) {
+                    $failure->row(); // row that went wrong
+                    $failure->attribute(); // either heading key (if using heading row concern) or column index
+                    $failure->errors(); // Actual error messages from Laravel validator
+                    $failure->values(); // The values of the row that has failed.
+                }
             }
-        }
+
            
         return back();
     }

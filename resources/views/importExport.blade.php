@@ -33,8 +33,13 @@
                         <p>{{ Session::get('success') }}</p>
                     </div>
                 @endif
- 
-                <input type="file" name="import_file" />
+                <select class="form-control" name="class">
+
+                    @foreach($classes as $item)
+                        <option value="{{$item->id}}">{{$item->name}}</option>
+                    @endforeach
+                </select>
+                <input type="file" name="import_file" required />
                 <button class="btn btn-primary">Import File</button>
             </form>
  
