@@ -13,12 +13,14 @@ class classTeacher
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, Closure $next , $role)
+    public function handle($request, Closure $next)
     {
 //        dd($request->user()->permissions);
-        if ($request->user() && (!($request->user()->permissions->isEmpty()))  && $request->user()->permissions[0]->roles && $request->user()->permissions[0]->roles->code === $role) {
+        if ($request->user() && (!($request->user()->permissions->isEmpty()))  && $request->user()->permissions[0]->roles &&  $request->user()->permissions[0]->roles->code === 'HOMEROOM_TEACHER') {
+            return $next($request);
+        }elseif($request->user() && (!($request->user()->principal->isEmpty()))  && $request->user()->principal[0]->roles &&  $request->user()->principal[0]->roles->code === 'PRINCIPAL'){
             return $next($request);
         }
-        return redirect('/login')->with('status', 'Your dont have access for upload data. Please get assign your to the class and try');;
+        return redirect('/login')->with('status', 'Your dont have access for upload data. Please get assign your to the class and try');
     }
 }

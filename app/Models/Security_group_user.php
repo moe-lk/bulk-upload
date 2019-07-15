@@ -67,7 +67,7 @@ class Security_group_user extends Model  {
 
     public function institution_group(){
         return $this->hasMany('App\Models\Security_group_institution','security_group_id','security_group_id')
-            ->with(['institution']);
+            ->with(['institution','institution_classes']);
     }
 
 
