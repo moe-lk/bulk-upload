@@ -17,7 +17,7 @@
 
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
-Route::get('downloadExcel/{type}', 'ImportExport@export');
+Route::get('downloadExcel', 'ImportExport@export');
 Route::post('importExcel', 'ImportExport@import');
 
 Auth::routes();

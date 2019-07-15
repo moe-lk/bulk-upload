@@ -2,13 +2,11 @@
 
 namespace App\Exports;
 
-use App\Security_user;
+use App\Models\Security_user;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
-use App\Import_mapping;
-use Illuminate\Support\Facades\Log;
+use App\Models\Import_mapping;
 
 
 class UsersExport implements FromCollection, WithHeadings
