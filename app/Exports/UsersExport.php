@@ -17,11 +17,15 @@ class UsersExport implements FromCollection, WithHeadings
 
     use Exportable;
 
-    private $fileName = 'users.xls';
-    
+    private $fileName =  'users.xls';
+
+    public function __construct()
+    {
+        $this->fileName = time().'_'. Auth::user()->id.'_'.'student_upload.xls';
+    }
 
 
-	public function headings(): array
+    public function headings(): array
     {
         $columns =  Import_mapping::where('model', '=', 'Student.Info')
         ->orderBy('order')
