@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
+use App\Models\Institution_class_subject;
 use App\Models\Institution_student_admission;
 use App\Models\Institution_subject;
 use App\Models\Institution_subject_student;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -43,7 +45,7 @@ use Webpatser\Uuid\Uuid;
 
 class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , WithMultipleSheets , WithEvents , WithMapping , WithBatchInserts
 {
-    use Importable;
+    use Importable , RegistersEventListeners;
 
     public function __construct()
     {
@@ -91,8 +93,11 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
     public function startRow(): int
     {
-        return 3;
+       return 1;
     }
+
+
+
 
 
     public function headingRow(): int
@@ -117,6 +122,20 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         return $this->sheetData;
     }
 
+
+    public static function beforeImport(BeforeImport $event)
+    {
+        $worksheet = $event->reader->getActiveSheet();
+        $highestRow = $worksheet->getHighestRow(); // e.g. 10
+
+        dd($highestRow);
+        if ($highestRow < 2) {
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(1, 'rows', [0 => 'Now enough rows!']);
+            $failures = [0 => $failure];
+            throw new ValidationException($error, $failures);
+        }
+    }
 
 
     /**
@@ -242,19 +261,9 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
 
            $institutionGrade = Institution_class_grade::where('institution_class_id','=',$institutionClass->id)->first();
-
-           $mandatorySubject = Institution_subject::with([
-               'institutionGradeSubject' => function($query) use ($institutionGrade){
-               $query->where('auto_allocation','=',1)
-                   ->where('education_grade_id','=',$institutionGrade->education_grade_id);
-                }])
-               ->join('education_grades_subjects','institution_subjects.education_subject_id' ,'=','education_grades_subjects.education_subject_id')
-               ->where('education_grades_subjects.auto_allocation','=',1)
-               ->where('institution_id','=',$institution)
-               ->where('education_grades_subjects.education_grade_id','=',$institutionGrade->education_grade_id)
-//               ->groupBy('education_subject_id')
+           $mandatorySubject = Institution_class_subject::with(['institutionMandatorySubject'])
+               ->where('institution_class_id','=',$institutionClass->id)
                ->get()->toArray();
-
            $subjects =  getMatchingKeys($rows[0]) ;
 
            $this->validateRow($rows);
@@ -531,10 +540,10 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                     'id' => (string) Uuid::generate(4),
                     'student_id' => $student->student_id,
                     'institution_class_id' => $student->institution_class_id,
-                    'institution_subject_id' => $subject['id'],
+                    'institution_subject_id' => $subject->institution_subject_id,
                     'institution_id' => $student->institution_id,
                     'academic_period_id' => $student->academic_period_id,
-                    'education_subject_id' => $subject['education_subject_id'],
+                    'education_subject_id' => $subject->institution_subject['education_subject_id'],
                     'education_grade_id' => $student->education_grade_id,
                     'student_status_id' => 1,
                     'created_user_id' => 1,
@@ -548,14 +557,12 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     public function setStudentOptionalSubject($subjects,$student,$row){
         $data = [];
         foreach ($subjects as $subject){
-                \Log::info('===================',[$subject]);
-                $subjectId = Institution_subject::with(['institutionGradeSubject' => function($query) use ($student){
+                $subjectId = Institution_class_subject::with(['institutionOptionalGradeSubject' => function($query) use ($student){
                     $query->where('auto_allocation','=',0)
                         ->where('education_grade_id','=',$student->education_grade_id)
                         ->where('education_subject_id','=',$student->education_subject_id);
                 }])
                     ->where('name','=',$row[$subject])
-                    ->join('education_grades_subjects','institution_subjects.education_subject_id' ,'=','education_grades_subjects.education_subject_id')
                     ->where('education_grades_subjects.auto_allocation','=',0)
                     ->where('institution_id','=',$student->institution_id)
                     ->where('education_grades_subjects.education_grade_id','=',$student->education_grade_id)

@@ -46,8 +46,19 @@ class Institution_subject extends Model  {
         return $this->belongsTo('App\Models\Education_grades_subject','education_grade_id','education_grade_id');
     }
 
+    public  function institutionOptionalGradeSubject(){
+        return $this->belongsTo('App\Models\Education_grades_subject','education_grade_id','education_grade_id')
+            ->where('education_grades_subjects.auto_allocation','=',0);;
+    }
+
+    public  function institutionMandatoryGradeSubject(){
+        return $this->belongsTo('App\Models\Education_grades_subject','education_grade_id','education_grade_id')
+            ->where('education_grades_subjects.auto_allocation','=',1);
+    }
+
+
     public  function institutionClassSubject(){
-        return $this->belongsTo('App\Models\Institution_class_subject','institution_class_id','institution_class_id');
+        return $this->hasMany('App\Models\Institution_class_subject','institution_class_id','id');
     }
 
 

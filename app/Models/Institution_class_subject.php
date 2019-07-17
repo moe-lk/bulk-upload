@@ -41,8 +41,13 @@ class Institution_class_subject extends Model  {
      */
     protected $dates = ['modified', 'created'];
 
-    public function institutionClassSubject(){
-        return $this->hasMany('App\Models\Institution_subject','institution_class_id','institution_class_id');
+    public function institutionMandatorySubject(){
+        return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id')->with(['institutionMandatoryGradeSubject']);
     }
+
+//    public function educationSubject(){
+//        return $this->hasManyThrough('App\Models\Education_grades_subject','App\Models\Institution_subject',
+//            'education_subject_id' ,'education_subject_id','institution_subject_id','');
+//    }
 
 }

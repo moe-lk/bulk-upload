@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\Base_Model;
-
+use Illuminate\Database\Eloquent\Model;
 
 class Institution_class_grade extends Base_Model  {
 
@@ -41,5 +40,10 @@ class Institution_class_grade extends Base_Model  {
      * @var array
      */
     protected $dates = ['modified', 'created'];
+
+    public function educationSubject(){
+        return $this->hasManyThrough('App\Models\Education_grades_subject','App\Models\Institution_subject',
+            'education_subject_id' ,'education_subject_id');
+    }
 
 }
