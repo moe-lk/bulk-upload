@@ -93,7 +93,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
     public function startRow(): int
     {
-       return 1;
+       return 3;
     }
 
 
@@ -123,20 +123,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     }
 
 
-    public static function beforeImport(BeforeImport $event)
-    {
-        $worksheet = $event->reader->getActiveSheet();
-        $highestRow = $worksheet->getHighestRow(); // e.g. 10
-
-        dd($highestRow);
-        if ($highestRow < 2) {
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(1, 'rows', [0 => 'Now enough rows!']);
-            $failures = [0 => $failure];
-            throw new ValidationException($error, $failures);
-        }
-    }
-
 
     /**
      * @param mixed $row
@@ -149,32 +135,32 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         try{
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
 
-            if(gettype($row['date_of_birth_ddmmyyyy']) == 'double'){
-                $row['date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_ddmmyyyy']);
+            if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double'){
+                $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['date_ddmmyyyy']) == 'double'){
-                $row['date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_ddmmyyyy']);
+            if(gettype($row['bmi_date_yyyy_mm_dd']) == 'double'){
+                $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
             }
 
-            if(gettype($row['start_date_ddmmyyyy']) == 'double'){
-                $row['start_date_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_ddmmyyyy']);
+            if(gettype($row['start_date_yyyy_mm_dd']) == 'double'){
+                $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
             }
 
-            if(gettype($row['fathers_date_of_birth_ddmmyyyy']) == 'double'){
-                $row['fathers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_ddmmyyyy']);
+            if(gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double'){
+                $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['mothers_date_of_birth_ddmmyyyy']) == 'double'){
-                $row['mothers_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_ddmmyyyy']);
+            if(gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double'){
+                $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['guardians_date_of_birth_ddmmyyyy']) == 'double'){
-                $row['guardians_date_of_birth_ddmmyyyy'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_ddmmyyyy']);
+            if(gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double'){
+                $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
             }
 
             if($row['identity_type'] == 'BC'){
-                $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_ddmmyyyy']->format("yy"), -2) . '' . $row['date_of_birth_ddmmyyyy']->format("m");
+                $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
             }
 
 
@@ -262,6 +248,9 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
            $institutionGrade = Institution_class_grade::where('institution_class_id','=',$institutionClass->id)->first();
            $mandatorySubject = Institution_class_subject::with(['institutionMandatorySubject'])
+               ->whereHas('institutionMandatorySubject',function ($query) use ($institutionGrade) {
+                   $query->where('education_grade_id','=',$institutionGrade->education_grade_id);
+                })
                ->where('institution_class_id','=',$institutionClass->id)
                ->get()->toArray();
            $subjects =  getMatchingKeys($rows[0]) ;
@@ -288,7 +277,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
 //                dd($row);
 
-               $date = $row['date_of_birth_ddmmyyyy'];
+               $date = $row['date_of_birth_yyyy_mm_dd'];
 
 
                $identityNUmber = $row['identity_number'];
@@ -311,15 +300,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                    'nationality_id' => $nationalityId->id,
                    'identity_type_id' => $identityType->id,
                    'identity_number' => $identityNUmber ,
-                   'created_user_id'=> 1,
-                   'created'=> now(),
                    'is_student' => 1
                ]);
 
 
                Institution_student_admission::create([
-                   'start_date' => $row['start_date_ddmmyyyy'],
-                   'start_year' => $row['start_date_ddmmyyyy']->format('Y'),
+                   'start_date' => $row['start_date_yyyy_mm_dd'],
+                   'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
                    'end_date' => $academicPeriod->end_date,
                    'end_year' =>  $academicPeriod->end_year,
                    'student_id' => $student->id,
@@ -331,7 +318,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                    'institution_class_id' => $institutionClass->id,
                    'comment' => 'Imported',
                    'admission_id' => $row['admission_no'],
-                   'created_user_id' => 1
                ]);
 
                \Log::debug('Institution_student');
@@ -340,33 +326,32 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                    'student_id' => $student->id,
                    'education_grade_id' => $institutionGrade->education_grade_id,
                    'academic_period_id' => $academicPeriod->id,
-                   'start_date' => $row['start_date_ddmmyyyy'],
-                   'start_year' => $row['start_date_ddmmyyyy']->format('Y'),
+                   'start_date' => $row['start_date_yyyy_mm_dd'],
+                   'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
                    'end_date' => $academicPeriod->end_date,
                    'end_year' =>  $academicPeriod->end_year,
                    'institution_id' => $institution,
-                   'created_user_id'=> 1,
-                   'created'=> now(),
                    'admission_id' => $row['admission_no']
                ]);
 
                // convert Meeter to CM
-               $hight = $row['height']/100;
+               $hight = $row['bmi_height']/100;
 
                //calculate BMI
-               $bodyMass = ($row['weight']) / pow($hight,2);
+               $bodyMass = ($row['bmi_weight']) / pow($hight,2);
 
 //            dd($row);
 
+               $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
+
                \Log::debug('User_body_mass');
                User_body_mass::create([
-                   'height' => $row['height'],
-                   'weight' => $row['weight'],
-                   'date' => $row['date_ddmmyyyy'],
+                   'height' => $row['bmi_height'],
+                   'weight' => $row['bmi_weight'],
+                   'date' => $row['bmi_date_yyyy_mm_dd'],
                    'body_mass_index' => $bodyMass,
-                   'academic_period_id' => 1,
-                   'security_user_id' => $student->id,
-                   'created_user_id' => 1
+                   'academic_period_id' => $bmiAcademic->id,
+                   'security_user_id' => $student->id
                ]);
 
                //import father's information
@@ -386,15 +371,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                            'first_name'=> $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                            'last_name' => genNameWithInitials($row['fathers_full_name']),
                            'gender_id' => 1,
-                           'date_of_birth' => $row['fathers_date_of_birth_ddmmyyyy'] ,
+                           'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'] ,
                            'address'   => $row['fathers_address'],
                            'address_area_id'   => $AddressArea->id,
                            'birthplace_area_id' => $BirthArea->id,
                            'nationality_id' => $nationalityId->id,
                            'identity_type_id' => $identityType->id,
                            'identity_number' => $row['fathers_identity_number'] ,
-                           'created_user_id'=> 1,
-                           'created'=> now(),
                            'is_guardian' => 1
                        ]);
                        $father['guardian_relation_id'] = 1;
@@ -423,15 +406,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                            'first_name'=> $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                            'last_name' => genNameWithInitials($row['mothers_full_name']),
                            'gender_id' => 2,
-                           'date_of_birth' => $row['mothers_date_of_birth_ddmmyyyy'] ,
+                           'date_of_birth' => $row['mothers_date_of_birth_yyyy_mm_dd'] ,
                            'address'   => $row['mothers_address'],
                            'address_area_id'   => $AddressArea->id,
                            'birthplace_area_id' => $BirthArea->id,
                            'nationality_id' => $nationalityId->id,
                            'identity_type_id' => $identityType->id,
                            'identity_number' => $row['mothers_identity_number'] ,
-                           'created_user_id'=> 1,
-                           'created'=> now(),
                            'is_guardian' => 1
                        ]);
                        $mother['guardian_relation_id'] = 1;
@@ -461,15 +442,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                            'first_name'=> $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                            'last_name' => genNameWithInitials($row['guardians_full_name']),
                            'gender_id' => $genderId,
-                           'date_of_birth' => $row['guardians_date_of_birth_ddmmyyyy'] ,
+                           'date_of_birth' => $row['guardians_date_of_birth_yyyy_mm_dd'] ,
                            'address'   => $row['guardians_address'],
                            'address_area_id'   => $AddressArea->id,
                            'birthplace_area_id' => $BirthArea->id,
                            'nationality_id' => $nationalityId->id,
                            'identity_type_id' => $identityType->id,
                            'identity_number' => $row['guardians_identity_number'] ,
-                           'created_user_id'=> 1,
-                           'created'=> now(),
                            'is_guardian' => 1
                        ]);
                        $guardian['guardian_relation_id'] = 1;
@@ -495,13 +474,14 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 
 
                //Option subject feed
-               $optionalSubjects = $this->setStudentOptionalSubject($subjects,$student,$row);
+               $optionalSubjects = $this->getStudentOptionalSubject($subjects,$student,$row,$institution);
 
                $allSubjects = array_merge_recursive($optionalSubjects,$mandatorySubject);
                if(!empty($allSubjects)){
 
                    $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                    $allSubjects = $this->setStudentSubjects($allSubjects,$student);
+//                   $allSubjects = array_unique($allSubjects,SORT_REGULAR);
 
                    Institution_subject_student::insert((array) $allSubjects);
                }
@@ -535,18 +515,22 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
      */
     public  function  setStudentSubjects($subjects,$student){
         $data = [];
+
         foreach ($subjects as $subject){
+            $educationSubjectId =  key_exists('institution_optional_subject',$subject) ? $subject['institution_optional_subject']['education_subject_id'] : $subject['institution_mandatory_subject']['education_subject_id'];
+
+
                 $data[]  = [
                     'id' => (string) Uuid::generate(4),
                     'student_id' => $student->student_id,
                     'institution_class_id' => $student->institution_class_id,
-                    'institution_subject_id' => $subject->institution_subject_id,
+                    'institution_subject_id' => $subject['institution_subject_id'],
                     'institution_id' => $student->institution_id,
                     'academic_period_id' => $student->academic_period_id,
-                    'education_subject_id' => $subject->institution_subject['education_subject_id'],
+                    'education_subject_id' => $educationSubjectId,
                     'education_grade_id' => $student->education_grade_id,
                     'student_status_id' => 1,
-                    'created_user_id' => 1,
+                    'created_user_id' => Auth::user()->id,
                     'created' => now()
                 ];
 
@@ -554,19 +538,19 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         return $data;
     }
 
-    public function setStudentOptionalSubject($subjects,$student,$row){
+    public function getStudentOptionalSubject($subjects,$student,$row,$institution){
         $data = [];
+
+
         foreach ($subjects as $subject){
-                $subjectId = Institution_class_subject::with(['institutionOptionalGradeSubject' => function($query) use ($student){
-                    $query->where('auto_allocation','=',0)
-                        ->where('education_grade_id','=',$student->education_grade_id)
-                        ->where('education_subject_id','=',$student->education_subject_id);
-                }])
-                    ->where('name','=',$row[$subject])
-                    ->where('education_grades_subjects.auto_allocation','=',0)
-                    ->where('institution_id','=',$student->institution_id)
-                    ->where('education_grades_subjects.education_grade_id','=',$student->education_grade_id)
-                    ->where('academic_period_id','=',$student->academic_period_id)->get()->toArray();
+
+            $subjectId = Institution_class_subject::with(['institutionOptionalSubject'])
+                ->whereHas('institutionOptionalSubject',function ($query) use ($row,$subject,$student){
+                $query->where('name','=',$row[$subject])
+                    ->where('education_grade_id','=',$student->education_grade_id);
+                })
+                ->where('institution_class_id','=',$student->institution_class_id)
+                ->get()->toArray();
                 if(!empty($subjectId))
                     $data[] = $subjectId[0];
 
@@ -580,7 +564,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                 Validator::make($rows->toArray(), [
                 '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
                 '*.gender_mf' => 'required',
-                '*.date_of_birth_ddmmyyyy' => 'required|date',
+                '*.date_of_birth_yyyy_mm_dd' => 'required|date',
                 '*.address' => 'required',
 //                '*.address_area' => 'required',
                 '*.birth_registrar_office_as_in_birth_certificate' => 'required',
@@ -589,14 +573,13 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                 '*.identity_number' =>  'required|unique:security_users,identity_number', //'required|unique:security_users,identity_type_id',
                 '*.academic_period' => 'required',
                 '*.education_grade' => 'required',
-                '*.height' => 'required',
-                '*.weight' => 'required',
-                '*.date_ddmmyyyy' => 'required|date',
+                '*.bmi_height' => 'required',
+                '*.bmi_weight' => 'required',
+                '*.bmi_date_yyyy_mm_dd' => 'required|date',
                 '*.admission_no' => 'required',
-                '*.start_date_ddmmyyyy' => 'required|date',
-                '*.option_*' => 'required',
+                '*.start_date_yyyy_mm_dd' => 'required|date',
                 '*.need_type' => 'required',
-//                '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
+                '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
                 '*.fathers_*' => 'required_without_all:*.guardians_*' ,
                 '*.mothers_*' => 'required_without_all:*.guardians_*'
 

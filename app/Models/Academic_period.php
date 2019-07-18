@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Academic_period extends Model  {
+class Academic_period extends Base_Model  {
 
     /**
      * The database table used by the model.

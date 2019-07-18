@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Base_Model extends Model{
 
@@ -16,7 +17,8 @@ class Base_Model extends Model{
     {
         parent::boot();
         self::creating(function ($model) {
-            $model->created_user_id = 1;
+            $model->created_user_id = Auth::user()->id;
+            $model->created = now();
         });
     }
 

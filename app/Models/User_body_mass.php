@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User_body_mass extends Model  {
+class User_body_mass extends Base_Model  {
 
     /**
      * The database table used by the model.
@@ -46,15 +46,6 @@ class User_body_mass extends Model  {
      * @var array
      */
     protected $dates = ['date', 'modified', 'created'];
-
-
-    public static function boot()
-    {
-        parent::boot();
-        self::creating(function ($model) {
-            $model->created = now();
-        });
-    }
 
 
 }

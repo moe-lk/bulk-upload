@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Webpatser\Uuid\Uuid;
 
 class Institution_class_student extends Model  {
@@ -52,7 +53,7 @@ class Institution_class_student extends Model  {
         parent::boot();
         self::creating(function ($model) {
             $model->id = (string) Uuid::generate(4);
-            $model->created_user_id = 1;
+            $model->created_user_id = Auth::user()->id;
             $model->created = now();
         });
     }
