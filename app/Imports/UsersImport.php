@@ -479,7 +479,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                $allSubjects = array_merge_recursive($optionalSubjects,$mandatorySubject);
                if(!empty($allSubjects)){
 
-                   $allSubjects = array_unique($allSubjects,SORT_REGULAR);
+                   $allSubjects = unique_multidim_array($allSubjects,'institution_subject_id');
                    $allSubjects = $this->setStudentSubjects($allSubjects,$student);
 //                   $allSubjects = array_unique($allSubjects,SORT_REGULAR);
 
