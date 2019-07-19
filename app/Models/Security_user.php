@@ -107,4 +107,8 @@ class Security_user extends Base_Model  {
         return $this->password;
     }
 
+    public function uploads(){
+       return $this->hasMany('App\Models\Upload');
+    }
+
 }

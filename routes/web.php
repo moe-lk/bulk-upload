@@ -23,3 +23,4 @@ Route::post('importExcel', 'ImportExport@import');
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
+Route::post('upload', 'FileController@upload')->name('upload');

@@ -15,7 +15,7 @@ class UserTable extends Migration
     {
         //
         Schema::table('security_users' , function(Blueprint $table){
-            $table->rememberToken();
+//            $table->rememberToken();
 //            $table->save();
         });
     }
@@ -28,5 +28,9 @@ class UserTable extends Migration
     public function down()
     {
         //
+        Schema::table('security_users' , function(Blueprint $table){
+            $table->dropRememberToken();
+//            $table->save();
+        });
     }
 }

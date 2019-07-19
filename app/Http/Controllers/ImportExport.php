@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Exports\UsersExport;
 use App\Imports\UsersImport;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\Importable;
 
@@ -67,6 +68,7 @@ class ImportExport extends Controller
 
             $import = new UsersImport();
             try{
+//                Storage::disk('sis-bulk-sheets')->put('test',request()->file('import_file'))
                 Excel::import($import,request()->file('import_file'));
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $failures = $e->failures();
