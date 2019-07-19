@@ -25,6 +25,7 @@ services:
       - 3000:3000
     volumes:
       - ./:/app
+    restart: always
   nsis-nginx:
     build: ./nginx
     container_name: nsis-nginx

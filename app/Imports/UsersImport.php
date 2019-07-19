@@ -227,6 +227,7 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     public function collection(Collection $rows)
     {
 
+        dd($rows);
 
        $institutionClassId = Input::get('class');
        $institutionClass = Institution_class::find($institutionClassId);

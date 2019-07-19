@@ -68,7 +68,7 @@ class ImportExport extends Controller
 
             $import = new UsersImport();
             try{
-//                Storage::disk('sis-bulk-sheets')->put('test',request()->file('import_file'))
+                $files = Storage::disk('sis-bulk-data-files')->allFiles();
                 Excel::import($import,request()->file('import_file'));
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $failures = $e->failures();
