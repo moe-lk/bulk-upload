@@ -8,7 +8,9 @@ use App\Models\Institution_class_subject;
 use App\Models\Institution_student_admission;
 use App\Models\Institution_subject;
 use App\Models\Institution_subject_student;
+use App\Models\Security_group;
 use App\Models\Security_user;
+use App\Models\User;
 use App\Models\User_body_mass;
 use App\Models\Institution_student;
 use App\Models\Import_mapping;
@@ -22,6 +24,8 @@ use App\Models\Area_administrative;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
@@ -47,9 +51,10 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
 {
     use Importable , RegistersEventListeners;
 
-    public function __construct()
+    public function __construct($file)
     {
         $this->sheetNames = [];
+        $this->file = $file;
         $this->sheetData = [];
         $this->request = new Request;
     }
@@ -87,6 +92,9 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         return [
             BeforeSheet::class => function(BeforeSheet $event){
                 $this->sheetNames[] = $event->getSheet()->getTitle();
+                if($event->getSheet()->getHighestRow() < $this->startRow()){
+                    Notification::send('email','No data imported');
+                }
             }
         ];
     }
@@ -227,19 +235,16 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
     public function collection(Collection $rows)
     {
 
-        dd($rows);
-
-       $institutionClassId = Input::get('class');
-       $institutionClass = Institution_class::find($institutionClassId);
+       $institutionClass = Institution_class::find($this->file['institution_class_id']);
        $institution = $institutionClass->institution_id;
 
        $totalMaleStudents = $institutionClass->total_male_students;
        $totalFemaleStudents = $institutionClass->total_female_students;
-       $totalStudents = $totalMaleStudents + $totalFemaleStudents;
 
-       if(($totalStudents + count($rows)) > $institutionClass->no_of_students){
-           return Redirect::back()->withErrors(['The number of students in '.$institutionClass->name.' is grater than student count.','Current Student count is '. $institutionClass->no_of_students.'.' ]);
-       }
+       $this->validateClass($rows);
+
+       $this->validateClassRoom($rows);
+
 
        $maleStudentsCount = 0;
        $femaleStudentsCount = 0;
@@ -270,7 +275,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                        break;
                }
 
-//            $AddressArea = Area_administrative::where('name', 'like', '%'.$row['address_area'].'%')->first();
                $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
                $nationalityId = Nationality::where('name','like','%'.$row['nationality'].'%')->first();
                $identityType = Identity_type::where('national_code','like','%'.$row['identity_type'].'%')->first();
@@ -562,9 +566,44 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
         return $data;
     }
 
+    public function validateClass($rows){
+
+        $institutionClass = Institution_class::find($this->file['institution_class_id']);
+        $institution = $institutionClass->institution_id;
+
+        $totalMaleStudents = $institutionClass->total_male_students;
+        $totalFemaleStudents = $institutionClass->total_female_students;
+        $totalStudents = $totalMaleStudents + $totalFemaleStudents;
+        $user = User::find($this->file['security_user_id']);
+        $exceededStudents = ($totalStudents + count($rows)) > $institutionClass->no_of_students;
+
+        switch ($exceededStudents){
+            case true:
+                $to_name = $user->email;
+                $to_email = 'nizarucsc@gmail.com';
+                $data = array('name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit on ". $institutionClass->name);
+
+                try{
+                    Mail::send('emails.mail', $data, function($message) use ($to_name, $to_email) {
+                        $message->to($to_email, $to_name)
+                            ->subject('SIS Bulk upload: Student count exceeded '. date('Y:m:d H:i:s'));
+                        $message->from('nsis.moe@gmail.com','NEMIS-SIS Bulk upload Service');
+                    });
+                    die();
+
+                }catch (\Exception $e){
+                    Log::error('Mail sending error to: '.'',[$e]);
+                }
+                return;
+            default:
+                return true;
+        }
+
+    }
 
     public function validateRow($rows){
-                Validator::make($rows->toArray(), [
+
+            return   Validator::make($rows->toArray(), [
                 '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
                 '*.gender_mf' => 'required',
                 '*.date_of_birth_yyyy_mm_dd' => 'required|date',
@@ -587,7 +626,6 @@ class UsersImport implements ToCollection , WithStartRow  , WithHeadingRow , Wit
                 '*.mothers_*' => 'required_without_all:*.guardians_*'
 
         ])->validate();
-
     }
 
 }

@@ -44,12 +44,11 @@ class ImportStudents extends Command
      */
     public function handle()
     {
-        $import = new UsersImport();
+
         try{
             $files = Upload::where('is_processed','=',0)->get()->toArray();
-
             foreach ($files as $file){
-                var_dump(extension_loaded ('zip'));
+                $import = new UsersImport($file);
                 $excelFile = storage_path().'/app/sis-bulk-data-files/'.$file['filename'];
 
                 Excel::import($import,$excelFile);
