@@ -15,9 +15,9 @@ class Base_Model extends Model{
 
     public static function boot()
     {
+
         parent::boot();
         self::creating(function ($model) {
-            $model->created_user_id = Auth::user()->id;
             $model->created = now();
         });
     }

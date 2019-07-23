@@ -53,7 +53,6 @@ class Institution_class_student extends Model  {
         parent::boot();
         self::creating(function ($model) {
             $model->id = (string) Uuid::generate(4);
-            $model->created_user_id = Auth::user()->id;
             $model->created = now();
         });
     }

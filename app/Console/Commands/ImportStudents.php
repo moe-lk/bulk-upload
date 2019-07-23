@@ -98,6 +98,7 @@ class ImportStudents extends Command
                 }
 
                 $objWriter = new \PHPExcel_Writer_Excel2007($reader);
+                Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
             }
 
@@ -112,7 +113,7 @@ class ImportStudents extends Command
                 case false:
                     $to_name = $user->first_name;
                     $to_email = $user->email;
-                    $data = array('name'=>$user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re upload it');
+                    $data = array('name'=>$user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re upload it http://localhost:3000/excel/'.$file['filename']);
 
                     try{
                         Mail::send('emails.mail', $data, function($message) use ($to_name, $to_email) {

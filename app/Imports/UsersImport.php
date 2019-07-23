@@ -234,6 +234,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $this->validateClass();
 
 
+        Log::info('row data:',[$row]);
         if(!empty($institutionClass)){
 
             $institutionGrade = Institution_class_grade::where('institution_class_id','=',$institutionClass->id)->first();
@@ -273,6 +274,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
 
 
+                //create students data
                 \Log::debug('Security_user');
                 $student =  Security_user::create([
                     'username'=> $openemisStudent,
@@ -287,7 +289,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'nationality_id' => $nationalityId->id,
                     'identity_type_id' => $identityType->id,
                     'identity_number' => $identityNUmber ,
-                    'is_student' => 1
+                    'is_student' => 1,
+                    'created_user_id' => $this->file['security_user_id']
                 ]);
 
 
@@ -305,7 +308,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'institution_class_id' => $institutionClass->id,
                     'comment' => 'Imported',
                     'admission_id' => $row['admission_no'],
+                    'created_user_id' => $this->file['security_user_id']
                 ]);
+
 
                 \Log::debug('Institution_student');
                 Institution_student::create([
@@ -318,16 +323,19 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'end_date' => $academicPeriod->end_date,
                     'end_year' =>  $academicPeriod->end_year,
                     'institution_id' => $institution,
-                    'admission_id' => $row['admission_no']
+                    'admission_id' => $row['admission_no'],
+                    'created_user_id' => $this->file['security_user_id']
                 ]);
+
+                //TODO insert special need
+
+
 
                 // convert Meeter to CM
                 $hight = $row['bmi_height']/100;
 
                 //calculate BMI
                 $bodyMass = ($row['bmi_weight']) / pow($hight,2);
-
-//            dd($row);
 
                 $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
 
@@ -338,7 +346,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'date' => $row['bmi_date_yyyy_mm_dd'],
                     'body_mass_index' => $bodyMass,
                     'academic_period_id' => $bmiAcademic->id,
-                    'security_user_id' => $student->id
+                    'security_user_id' => $student->id,
+                    'created_user_id' => $this->file['security_user_id']
                 ]);
 
                 //import father's information
@@ -365,7 +374,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType->id,
                             'identity_number' => $row['fathers_identity_number'] ,
-                            'is_guardian' => 1
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
                         ]);
                         $father['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$father);
@@ -400,7 +410,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType->id,
                             'identity_number' => $row['mothers_identity_number'] ,
-                            'is_guardian' => 1
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
                         ]);
                         $mother['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$mother);
@@ -436,7 +447,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType->id,
                             'identity_number' => $row['guardians_identity_number'] ,
-                            'is_guardian' => 1
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
                         ]);
                         $guardian['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$guardian);
@@ -456,7 +468,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'education_grade_id' => $institutionGrade->education_grade_id,
                     'academic_period_id'=>$academicPeriod->id,
                     'institution_id' => $institution,
-                    'student_status_id' => 1
+                    'student_status_id' => 1,
+                    'created_user_id' => $this->file['security_user_id']
                 ]);
 
 
@@ -517,7 +530,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'education_subject_id' => $educationSubjectId,
                     'education_grade_id' => $student->education_grade_id,
                     'student_status_id' => 1,
-                    'created_user_id' => Auth::user()->id,
+                    'created_user_id' => $this->file['security_user_id'],
                     'created' => now()
                 ];
 
@@ -586,18 +599,18 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
     public function rules(): array
     {
-        // TODO: Implement rules() method.
+        //TODO : not to make mandatory of guardian's NIC number
+        //TODO : validate age limit aginsed  the admission age
 
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|date',
             '*.address' => 'required',
-//                '*.address_area' => 'required',
             '*.birth_registrar_office_as_in_birth_certificate' => 'required',
             '*.nationality' => 'required',
             '*.identity_type' => 'required',
-            '*.identity_number' =>  'required|unique:security_users,identity_number', //'required|unique:security_users,identity_type_id',
+            '*.identity_number' =>  'required|unique:security_users,identity_number',
             '*.academic_period' => 'required',
             '*.education_grade' => 'required',
             '*.bmi_height' => 'required',
@@ -605,9 +618,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.bmi_date_yyyy_mm_dd' => 'required|date',
             '*.admission_no' => 'required',
             '*.start_date_yyyy_mm_dd' => 'required|date',
-            '*.need_type' => 'required',
-            '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
-            //TODO : not to make mandatory of guardian's NIC number
+//            '*.need_type' => 'required',
+//            '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
             '*.fathers_*' => 'required_without_all:*.guardians_*' ,
             '*.mothers_*' => 'required_without_all:*.guardians_*'
 
@@ -634,10 +646,28 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 '*.bmi_date_yyyy_mm_dd' => 'required|date',
                 '*.admission_no' => 'required',
                 '*.start_date_yyyy_mm_dd' => 'required|date',
-                '*.need_type' => 'required',
-                '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
-                '*.fathers_*' => 'required_without_all:*.guardians_*' ,
-                '*.mothers_*' => 'required_without_all:*.guardians_*'
+                '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
+                '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+                '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
+                '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
+                '*.fathers_nationality' => 'required_if:fathers_identity_number',
+                '*.fathers_identity_type' => 'required_if:fathers_identity_number',
+                '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
+                '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
+                '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+                '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
+                '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
+                '*.mothers_nationality' => "required_if:mothers_identity_number",
+                '*.mothers_identity_type' => "required_if:mothers_identity_number",
+                '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
+                '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
+                '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
+                '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
+                '*.guardians_address' => 'required_without:fathers_address,mothers_address',
+                '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
+                '*.guardians_nationality' => 'required_if:guardians_identity_number',
+                '*.guardians_identity_type' => 'required_if:guardians_identity_number',
+                '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
 
         ]);
 
