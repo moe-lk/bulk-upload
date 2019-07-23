@@ -40,7 +40,7 @@ function isEmpty($value){
     return $value['institution_optional_subject'] !== null;
 }
 
-function unique_multidim_array($array, $key) {
+function unique_multidim_array(array $array, $key) {
     $temp_array = array();
     $i = 0;
     $key_array = array();
@@ -49,6 +49,38 @@ function unique_multidim_array($array, $key) {
         if (!in_array($val[$key], $key_array)) {
             $key_array[$i] = $val[$key];
             $temp_array[$i] = $val;
+        }
+        $i++;
+    }
+    return $temp_array;
+}
+
+
+
+function merge_two_arrays($array1,$array2) {
+
+    $data = array();
+    $arrayAB = array_merge($array1,$array2);
+
+    foreach ($arrayAB as $value) {
+        dd($arrayAB);
+        $id = $value['row'];
+        if (!isset($data[$id])) {
+            $data[$id] = array();
+        }
+        $data[$id] = array_merge($data[$id],$value);
+    }
+    return $data;
+}
+
+
+function merge_error_by_row($errors,$key){
+    $temp_array = array();
+    $i = 0;
+
+    foreach($errors as $keys => $val) {
+        if (!in_array($val[$key], $temp_array)) {
+            $temp_array[$keys]['errors'][] = $val;
         }
         $i++;
     }
