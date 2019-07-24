@@ -37,7 +37,7 @@ class FileController extends Controller
 
 
     public function downloadTemplate(){
-        $file= storage_path().'/app/public/censusNo_className_sis_students_bulk_upload.xlsx';
+        $file= storage_path().'/app/public/censusNo_className_sis_students_bulk_upload_v1.xlsx';
         return Response::download($file);
     }
 }
