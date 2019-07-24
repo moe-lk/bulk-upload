@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Mail\StudentCountExceeded;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
@@ -23,6 +24,7 @@ use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
 use App\Models\Workflow_transition;
 use App\Rules\admissionAge;
+use function foo\func;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Request;
@@ -38,7 +40,9 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeSheet;
+use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 
@@ -94,6 +98,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 }
             },
+            AfterImportJob::class => function(AfterImportJob $event){
+                dd($event);
+            }
         ];
     }
 
@@ -554,16 +561,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         switch ($exceededStudents){
             case 1:
-                $to_name = $user->first_name;
-                $to_email = $user->email;
-                $data = array('name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit on ". $institutionClass->name);
-
                 try{
-                    Mail::send('emails.mail', $data, function($message) use ($to_name, $to_email) {
-                        $message->to($to_email, $to_name)
-                            ->subject('SIS Bulk upload: Student count exceeded '. date('Y:m:d H:i:s'));
-                        $message->from('nsis.moe@gmail.com','NEMIS-SIS Bulk upload Service');
-                    });
+                    $mailer = new StudentCountExceeded($user);
+                    $mailer->send();
                     Log::info('email-sent',[$this->file]);
 
                 }catch (\Exception $e){
