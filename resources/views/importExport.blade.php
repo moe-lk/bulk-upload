@@ -9,9 +9,8 @@
           </div>
           <div class="panel-body">
 
-            <a href="{{ url('downloadExcel/xls') }}"><button class="btn btn-success">Download Excel xls</button></a>
-            <a href="{{ url('downloadExcel/xlsx') }}"><button class="btn btn-success">Download Excel xlsx</button></a>
-            <a href="{{ url('downloadExcel/csv') }}"><button class="btn btn-success">Download CSV</button></a>
+{{--            <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Excel xls</button></a>--}}
+            <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Excel xlsx</button></a>
 
             <form style="border: 4px solid #a1a1a1;margin-top: 15px;padding: 10px;" action="{{ url('upload') }}" class="form-horizontal" method="post" enctype="multipart/form-data">
                 @csrf

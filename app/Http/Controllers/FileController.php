@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Upload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
@@ -32,5 +33,11 @@ class FileController extends Controller
         $upload->save();
 
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
+    }
+
+
+    public function downloadTemplate(){
+        $file= storage_path().'/app/public/censusNo_className_sis_students_bulk_upload.xlsx';
+        return Response::download($file);
     }
 }

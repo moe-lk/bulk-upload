@@ -17,26 +17,10 @@
 
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
-Route::get('downloadExcel', 'ImportExport@export');
+Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
 
 Auth::routes();
 
 Route::get('/home', 'HomeController@index')->name('home');
 Route::post('upload', 'FileController@upload')->name('upload');
-Route::get('excel/{filename}', function ($filename)
-{
-    $path = storage_path('sis-bulk-data-files/processed/' . $filename);
-
-    if (!File::exists($path)) {
-        abort(404);
-    }
-
-    $file = File::get($path);
-    $type = File::mimeType($path);
-
-    $response = Response::make($file, 200);
-    $response->header("Content-Type", $type);
-
-    return $response;
-});

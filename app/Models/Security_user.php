@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use App\Models\Base_Model;
+use Webpatser\Uuid\Uuid;
 
 
 class Security_user extends Base_Model  {
@@ -109,6 +110,14 @@ class Security_user extends Base_Model  {
 
     public function uploads(){
        return $this->hasMany('App\Models\Upload');
+    }
+
+    public static function boot()
+    {
+        parent::boot();
+        self::updating(function ($model) {
+            $model->created = now();
+        });
     }
 
 }

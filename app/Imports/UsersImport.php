@@ -21,6 +21,7 @@ use App\Models\Academic_period;
 use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
+use App\Models\Workflow_transition;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
@@ -300,13 +301,13 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'end_date' => $academicPeriod->end_date,
                     'end_year' =>  $academicPeriod->end_year,
                     'student_id' => $student->id,
-                    'status_id' => 1,
-                    'assignee_id' => 1,
+                    'status_id' => 124,
+                    'assignee_id' => $this->file['security_user_id'],
                     'institution_id' => $institution,
                     'academic_period_id' => $academicPeriod->id,
                     'education_grade_id' => $institutionGrade->education_grade_id,
                     'institution_class_id' => $institutionClass->id,
-                    'comment' => 'Imported',
+                    'comment' => 'Imported using bulk data upload',
                     'admission_id' => $row['admission_no'],
                     'created_user_id' => $this->file['security_user_id']
                 ]);
@@ -326,6 +327,15 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'admission_id' => $row['admission_no'],
                     'created_user_id' => $this->file['security_user_id']
                 ]);
+
+
+//
+//                Workflow_transition::create([
+//                    'comment' => 'On Auto Approve Student Admission during bulk upload',
+//                    'prev_workflow_step_name' => 'open',
+//                    'workflow_step_name' => 'Approved',
+//
+//                ]);
 
                 //TODO insert special need
 
@@ -380,7 +390,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         $father['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$father);
                     }else{
-                        Security_user::where('identity_number' , '=', $row['fathers_identity_number'])
+                        Security_user::where('id' , '=', $father->id)
                             ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$father);
@@ -395,6 +405,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['mothers_identity_number'])->first();
+
 
                     if(empty($mother)){
                         $mother = Security_user::create([
@@ -416,7 +427,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         $mother['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$mother);
                     }else{
-                        Security_user::where('identity_number' , '=', $row['mothers_identity_number'])
+                        Security_user::where('id' , '=', $mother->id)
                             ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
                         Student_guardian::createStudentGuardian($student,$mother);
@@ -453,7 +464,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         $guardian['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$guardian);
                     }else{
-                        Security_user::where('identity_number' , '=', $row['guardians_identity_number'])
+                        Security_user::where('id' , '=',  $guardian->id)
                             ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student,$guardian);
