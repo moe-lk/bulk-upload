@@ -178,6 +178,11 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\ShaHashServiceProvider::class,
 
+        /**
+         * Extended validation provider
+         */
+        App\Providers\ValidationExtensionServiceProvider::class,
+
     ],
 
     /*

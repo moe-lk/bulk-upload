@@ -22,45 +22,25 @@ use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
 use App\Models\Workflow_transition;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Input;
+use App\Rules\admissionAge;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
-use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Events\BeforeSheet;
-use Maatwebsite\Excel\Exporter;
-use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\Fakes\ExcelFake;
-use Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Validators\Failure;
-use PhpOffice\PhpSpreadsheet\Reader\Exception;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use Throwable;
 use Webpatser\Uuid\Uuid;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
 
 class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMultipleSheets , WithEvents , WithMapping , WithBatchInserts , WithValidation
 {
@@ -104,6 +84,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $this->worksheet = $event->getSheet();
                 $this->validateClass();
 
+
                 $worksheet = $event->getSheet();
                 $highestRow = $worksheet->getHighestRow(); // e.g. 10
                 if ($highestRow < 3) {
@@ -137,7 +118,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
      */
     public function map($row): array
     {
-
         try{
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
 
@@ -246,10 +226,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 ->where('institution_class_id','=',$institutionClass->id)
                 ->get()->toArray();
             $subjects =  getMatchingKeys($row) ;
-
-
-
-
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
                 switch ($row['gender_mf']){
                     case 'M':
@@ -328,14 +304,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-
-//
-//                Workflow_transition::create([
-//                    'comment' => 'On Auto Approve Student Admission during bulk upload',
-//                    'prev_workflow_step_name' => 'open',
-//                    'workflow_step_name' => 'Approved',
-//
-//                ]);
 
                 //TODO insert special need
 
@@ -616,7 +584,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
-            '*.date_of_birth_yyyy_mm_dd' => 'required|date',
+            '*.date_of_birth_yyyy_mm_dd' => 'admission_age:education_grade|date',
             '*.address' => 'required',
             '*.birth_registrar_office_as_in_birth_certificate' => 'required',
             '*.nationality' => 'required',
@@ -631,56 +599,38 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.start_date_yyyy_mm_dd' => 'required|date',
 //            '*.need_type' => 'required',
 //            '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
-            '*.fathers_*' => 'required_without_all:*.guardians_*' ,
-            '*.mothers_*' => 'required_without_all:*.guardians_*'
+//            '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
+//            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+//            '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
+//            '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
+//            '*.fathers_nationality' => 'required|fathers_identity_number',
+//            '*.fathers_identity_type' => 'required_with:fathers_identity_number',
+//            '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
+//            '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
+//            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+//            '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
+//            '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
+//            '*.mothers_nationality' => "required|mothers_identity_number",
+//            '*.mothers_identity_type' => "required_with:mothers_identity_number",
+//            '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
+//            '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
+//            '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
+//            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
+//            '*.guardians_address' => 'required_without:fathers_address,mothers_address',
+//            '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
+//            '*.guardians_nationality' => 'required|guardians_identity_number',
+//            '*.guardians_identity_type' => 'required_with:guardians_identity_number',
+//            '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
 
         ];
     }
 
 
-    public function validateRow($rows){
+    public function validateRow($row){
 
-           $validate = Validator::make($rows->toArray(), [
-                '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
-                '*.gender_mf' => 'required',
-                '*.date_of_birth_yyyy_mm_dd' => 'required|date',
-                '*.address' => 'required',
-//                '*.address_area' => 'required',
-                '*.birth_registrar_office_as_in_birth_certificate' => 'required',
-                '*.nationality' => 'required',
-                '*.identity_type' => 'required',
-                '*.identity_number' =>  'required|unique:security_users,identity_number', //'required|unique:security_users,identity_type_id',
-                '*.academic_period' => 'required',
-                '*.education_grade' => 'required',
-                '*.bmi_height' => 'required',
-                '*.bmi_weight' => 'required',
-                '*.bmi_date_yyyy_mm_dd' => 'required|date',
-                '*.admission_no' => 'required',
-                '*.start_date_yyyy_mm_dd' => 'required|date',
-                '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
-                '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-                '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
-                '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
-                '*.fathers_nationality' => 'required_if:fathers_identity_number',
-                '*.fathers_identity_type' => 'required_if:fathers_identity_number',
-                '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
-                '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
-                '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-                '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
-                '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
-                '*.mothers_nationality' => "required_if:mothers_identity_number",
-                '*.mothers_identity_type' => "required_if:mothers_identity_number",
-                '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
-                '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
-                '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
-                '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
-                '*.guardians_address' => 'required_without:fathers_address,mothers_address',
-                '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
-                '*.guardians_nationality' => 'required_if:guardians_identity_number',
-                '*.guardians_identity_type' => 'required_if:guardians_identity_number',
-                '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
+            $validate = Validator::make($row,[
 
-        ]);
+            ]);
 
         if($validate->fails()){
 //                return $validate->getMessageBag();
