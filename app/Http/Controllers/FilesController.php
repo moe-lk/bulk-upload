@@ -12,7 +12,17 @@ class FilesController extends Controller
 
     public function index()
     {
-        return Datatables::of(Upload::with(['classRoom'])->where('security_user_id','=',Auth::user()->id))->make(true);
+        return Datatables::of(Upload::with(['classRoom'])->where('security_user_id','=',Auth::user()->id))
+            ->editColumn('is_processed', function ($data) {
+                if ($data->is_processed === 1) {
+                    return "Success";
+                }elseif ($data->is_processed === 2){
+                    return "Failed";
+                }else{
+                    return "Pending";
+                };
+            })
+            ->make(true);
     }
 
     /**
