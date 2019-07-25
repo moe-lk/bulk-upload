@@ -6,11 +6,11 @@
           <h1>NEMIS - SIS Bulk data import</h1>
           </div>
           <div class="panel-body">
-              <iframe width="1200" height="450" frameborder="0" scrolling="no" src="https://onedrive.live.com/embed?resid=367F7CD71188D7DA%211012&authkey=%21AL4A-jLv8V-fhEI&em=2&wdAllowInteractivity=False&AllowTyping=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True"></iframe>
+{{--              <iframe width="1200" height="450" frameborder="0" scrolling="no" src="https://onedrive.live.com/embed?resid=367F7CD71188D7DA%211012&authkey=%21AL4A-jLv8V-fhEI&em=2&wdAllowInteractivity=False&AllowTyping=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True"></iframe>--}}
 
 
               {{--            <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Excel xls</button></a>--}}
-{{--            <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Excel xlsx</button></a>--}}
+            <a href="{{ url('downloadExcel') }}"><button class="btn btn-success"> Download Template</button></a>
             <form style="border: 4px solid #a1a1a1;margin-top: 15px;padding: 10px;" action="{{ url('upload') }}" class="form-horizontal" method="post" enctype="multipart/form-data">
                 @csrf
  

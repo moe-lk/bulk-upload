@@ -37,8 +37,18 @@ class FileController extends Controller
 
 
     public function downloadTemplate(){
-        $file= storage_path().'/app/public/censusNo_className_sis_students_bulk_upload_v1.xlsx';
-        return Response::download($file);
+        $filename = 'censusNo_className_sis_students_bulk_upload_v1.xlsx';
+        $file_path = storage_path() .'/app/public/'. $filename;;
+        if (file_exists($file_path))
+        {
+            return Response::download($file_path, $filename, [
+                'Content-Length: '. filesize($file_path)
+            ]);
+        }
+        else
+        {
+            return View::make('errors.404');
+        }
     }
 
 
