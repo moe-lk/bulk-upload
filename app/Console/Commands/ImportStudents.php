@@ -2,7 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\StudentImportSuccessMailController;
 use App\Imports\UsersImport;
+use App\Mail\StudentImportFailure;
+use App\Mail\StudentImportSuccess;
 use App\Models\Upload;
 use App\Models\User;
 use Cake\Log\Log;
@@ -56,8 +59,12 @@ class ImportStudents extends Command
             try {
 
                 $import = new UsersImport($file);
+                $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
                 Excel::import($import,$excelFile,'local');
+
+                //send success message
+                Mail::to($user->email)->send(new StudentImportSuccess($file));
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $success = false;
                 $failures = $e->failures();
@@ -100,51 +107,14 @@ class ImportStudents extends Command
                 $objWriter = new \PHPExcel_Writer_Excel2007($reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
+
+                //send email with errors
+                Mail::to($user->email)->send(new StudentImportFailure($file));
+
             }
-
-
             DB::table('uploads')
                 ->where('id',  $file['id'])
                 ->update(['is_processed' =>1]);
-            \Illuminate\Support\Facades\Log::info("Updated file". $file['filename']);
-
-            $user = User::find($file['security_user_id']);
-            switch ($success){
-                case false:
-                    $to_name = $user->first_name;
-                    $to_email = $user->email;
-                    $data = array('name'=>$user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re upload it http://localhost:3000/excel/'.$file['filename']);
-
-                    try{
-                        Mail::send('emails.mail', $data, function($message) use ($to_name, $to_email) {
-                            $message->to($to_email, $to_name)
-                                ->subject('SIS Bulk upload: Errors found '. date('Y:m:d H:i:s'));
-                            $message->from('nsis.moe@gmail.com','NEMIS-SIS Bulk upload Service');
-                        });
-                        \Illuminate\Support\Facades\Log::info('email-sent',[$this->file]);
-
-                    }catch (\Exception $e){
-                        \Illuminate\Support\Facades\Log::error('Mail sending error to: '.'',[$e]);
-                    }
-                    break;
-                default:
-                    $to_name = $user->first_name;
-                    $to_email = $user->email;
-                    $data = array('name'=>$user->first_name, "body" => "Data upload success". $file['filename']. ' You can now find the data in particular  Class Room');
-
-                    try{
-                        Mail::send('emails.mail', $data, function($message) use ($to_name, $to_email) {
-                            $message->to($to_email, $to_name)
-                                ->subject('SIS Bulk upload: Errors found '. date('Y:m:d H:i:s'));
-                            $message->from('nsis.moe@gmail.com','NEMIS-SIS Bulk upload Service');
-                        });
-                        \Illuminate\Support\Facades\Log::info('email-sent',[$this->file]);
-
-                    }catch (\Exception $e){
-                        \Illuminate\Support\Facades\Log::error('Mail sending error to: '.'',[$e]);
-                    }
-                    break;
-            }
 
         }
 

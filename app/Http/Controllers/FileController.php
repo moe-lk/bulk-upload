@@ -12,9 +12,6 @@ class FileController extends Controller
 {
 
 
-
-
-
     /**
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -42,5 +39,24 @@ class FileController extends Controller
     public function downloadTemplate(){
         $file= storage_path().'/app/public/censusNo_className_sis_students_bulk_upload_v1.xlsx';
         return Response::download($file);
+    }
+
+
+    /**
+     * @param $filename
+     * @return Processed excel file with error
+     */
+    public function downloadErrorFile($filename){
+        $file_path = storage_path() .'/app/sis-bulk-data-files/processed/'. $filename;;
+        if (file_exists($file_path))
+        {
+            return Response::download($file_path, $filename, [
+                'Content-Length: '. filesize($file_path)
+            ]);
+        }
+        else
+        {
+            return View::make('views.errors.404');
+        }
     }
 }

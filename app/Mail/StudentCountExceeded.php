@@ -22,7 +22,7 @@ class StudentCountExceeded extends Mailable
         $this->subject = 'SIS Bulk upload: Student count exceeded' . date('Y:m:d H:i:s');
         $this->from = env('MAIL_USERNAME');
         $this->to = [$user->first_name, $user->email];
-        $this->view = [
+        $this->viewData = [
             'name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
         ];
     }
@@ -34,7 +34,7 @@ class StudentCountExceeded extends Mailable
      */
     public function build()
     {
-        return $this->view('view.name');
+        return $this->view('emails.mail');
     }
 
 }
