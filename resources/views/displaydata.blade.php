@@ -20,7 +20,7 @@
         <script>
             $(function() {
                 $('#table').DataTable({
-                    processing: true,
+                    processing: false,
                     serverSide: true,
                     ajax: '{{ url('index') }}',
                     columns: [
