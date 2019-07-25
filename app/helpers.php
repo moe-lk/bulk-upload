@@ -86,3 +86,30 @@ function merge_error_by_row($errors,$key){
     }
     return $temp_array;
 }
+
+/**
+ * @param $error
+ * @param $count
+ * @param $reader
+ * bind error messages to the excel file
+ */
+
+function append_errors_to_excel($error, $count, $reader){
+    $reader->getActiveSheet()->setCellValue('A'. ($error['row']) ,  'Errors: '. implode(',',$error['errors']));
+    $reader->getActiveSheet()->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
+}
+
+
+function errors_unique_array($item,$key){
+
+        $search = array_filter($item,function ($data) use ($item){
+            return isset($data['row']) &&  ($data['row']  == $item->row());
+        });
+
+        if($search){
+            array_push($search[0]['errors'],implode(',',$item->errors()));
+            $errors = $search;
+        }
+
+        return $errors;
+}

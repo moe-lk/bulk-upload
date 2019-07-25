@@ -56,7 +56,7 @@ class FileController extends Controller
         }
         else
         {
-            return View::make('views.errors.404');
+            return View::make('errors.404');
         }
     }
 }
