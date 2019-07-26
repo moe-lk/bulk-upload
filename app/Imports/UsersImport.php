@@ -222,7 +222,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         $this->validateClass();
 
-
         Log::info('row data:',[$row]);
         if(!empty($institutionClass)){
 
@@ -563,7 +562,11 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         switch ($exceededStudents){
             case 1:
                 try{
-                    Mail::to($user->email)->send(new StudentCountExceeded($this->file));
+//                    Mail::to($user->email)->send(new StudentCountExceeded($this->file));
+                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                    $failure = new Failure(1, 'rows', [0 => 'Class student count exceeded!'],[null]);
+                    $failures = [0 => $failure];
+                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                     Log::info('email-sent',[$this->file]);
 
                 }catch (\Exception $e){
@@ -597,30 +600,30 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.bmi_date_yyyy_mm_dd' => 'required|date',
             '*.admission_no' => 'required',
             '*.start_date_yyyy_mm_dd' => 'required|date',
-//            '*.need_type' => 'required',
-//            '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
-//            '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
-//            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-//            '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
-//            '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
-//            '*.fathers_nationality' => 'required|fathers_identity_number',
-//            '*.fathers_identity_type' => 'required_with:fathers_identity_number',
-//            '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
-//            '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
-//            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-//            '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
-//            '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
-//            '*.mothers_nationality' => "required|mothers_identity_number",
-//            '*.mothers_identity_type' => "required_with:mothers_identity_number",
-//            '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
-//            '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
-//            '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
-//            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
-//            '*.guardians_address' => 'required_without:fathers_address,mothers_address',
-//            '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
-//            '*.guardians_nationality' => 'required|guardians_identity_number',
-//            '*.guardians_identity_type' => 'required_with:guardians_identity_number',
-//            '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.need_type' => 'required',
+            '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
+            '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+            '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
+            '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
+            '*.fathers_nationality' => 'required',
+            '*.fathers_identity_type' => 'required_with:fathers_identity_number',
+            '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
+            '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
+            '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
+            '*.mothers_nationality' => "required",
+            '*.mothers_identity_type' => "required_with:mothers_identity_number",
+            '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
+            '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
+            '*.guardians_address' => 'required_without:fathers_address,mothers_address',
+            '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
+            '*.guardians_nationality' => 'required',
+            '*.guardians_identity_type' => 'required_with:guardians_identity_number',
+            '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
 
         ];
     }

@@ -20,9 +20,13 @@ class StudentImportSuccess extends Mailable
     public function __construct($user)
     {
         $this->user = User::find($user['security_user_id']);
-        $this->subject = 'SIS Bulk upload: Student upload success' . date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk upload: Student upload success ' . date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_USERNAME');
         $this->from_name = 'SIS Bulk Uploader';
+        $this->with = [
+            'name' => $this->user->first_name,
+            'link' =>  env('APP_URL').'/create/'
+        ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "Student upload success, you can access the data from open email UI and dashboard"
         ];

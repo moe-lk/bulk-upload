@@ -19,6 +19,10 @@ class FileController extends Controller
      */
     public function upload(Request $request){
         $uploadFile = $request->file('import_file');
+        $this->validate(request(),[
+            'class'=>'required',
+            'import_file'=>'required|mimes:xlsx|max:2048|alpha_dash'
+        ]);
         $fileName = time().'_'.$uploadFile->getClientOriginalName();
         Storage::disk('local')->putFileAs(
             'sis-bulk-data-files/',
@@ -58,9 +62,12 @@ class FileController extends Controller
      * @return Processed excel file with error
      */
     public function downloadErrorFile($filename){
-        $file_path = storage_path() .'/app/sis-bulk-data-files/processed/'. $filename;;
+
+        $file_path = storage_path().'/app/sis-bulk-data-files/processed/'. $filename;
+
         if (file_exists($file_path))
         {
+//            dd('================'.file_exists($file_path));
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
             ]);

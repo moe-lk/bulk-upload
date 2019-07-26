@@ -19,7 +19,7 @@ class StudentImportFailure extends Mailable
     public function __construct($file)
     {
         $this->user = User::find($file['security_user_id']);
-        $this->subject = 'SIS Bulk Upload: Upload Failed' . date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk Upload: Upload Failed ' . date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_USERNAME');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
