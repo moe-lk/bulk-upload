@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Mail\StudentCountExceeded;
+use App\Mail\StudentImportSuccess;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
@@ -562,8 +563,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         switch ($exceededStudents){
             case 1:
                 try{
-                    $mailer = new StudentCountExceeded($user);
-                    $mailer->send();
+                    Mail::to($user->email)->send(new StudentCountExceeded($this->file));
                     Log::info('email-sent',[$this->file]);
 
                 }catch (\Exception $e){

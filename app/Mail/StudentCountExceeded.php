@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Mail\Mailer as MailerContract;
 use Illuminate\Mail\Mailable;
@@ -17,13 +18,25 @@ class StudentCountExceeded extends Mailable
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct($file)
     {
-        $this->subject = 'SIS Bulk upload: Student count exceeded' . date('Y:m:d H:i:s');
-        $this->from = env('MAIL_USERNAME');
-        $this->to = [$user->first_name, $user->email];
+//        $this->subject = 'SIS Bulk upload: Student count exceeded' . date('Y:m:d H:i:s');
+//        $this->from = env('MAIL_USERNAME');
+//        $this->to = [$user->first_name, $user->email];
+//        $this->viewData = [
+//            'name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
+//        ];
+
+        $this->user = User::find($file['security_user_id']);
+        $this->subject = 'SIS Bulk Upload: Upload Failed' . date('Y:m:d H:i:s');
+        $this->from_address = env('MAIL_USERNAME');
+        $this->from_name = 'SIS Bulk Uploader';
+        $this->with = [
+            'name' => $this->user->first_name,
+//            'link' =>  env('APP_URL').'/download/' .$file['filename']
+        ];
         $this->viewData = [
-            'name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
+            'name'=>$this->user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
         ];
     }
 
@@ -34,7 +47,11 @@ class StudentCountExceeded extends Mailable
      */
     public function build()
     {
-        return $this->view('emails.mail');
+        return $this->view('emails.mail')
+            ->from($this->from_address,$this->from_name)
+            ->to($this->user->email)
+            ->subject($this->subject)
+            ->with($this->with);
     }
 
 }
