@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Upload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
@@ -37,11 +38,11 @@ class FileController extends Controller
 
 
     public function downloadTemplate(){
-        $filename = 'censusNo_className_sis_students_bulk_upload_v1.xlsx';
+        $filename = 'SIS Students Bulk Upload Template.xlsx';
         $file_path = storage_path() .'/app/public/'. $filename;;
         if (file_exists($file_path))
         {
-            return Response::download($file_path, $filename, [
+            return Response::download($file_path, Auth::user()->openemis_no.'_'.$filename, [
                 'Content-Length: '. filesize($file_path)
             ]);
         }
