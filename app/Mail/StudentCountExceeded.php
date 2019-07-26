@@ -33,7 +33,7 @@ class StudentCountExceeded extends Mailable
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-//            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
