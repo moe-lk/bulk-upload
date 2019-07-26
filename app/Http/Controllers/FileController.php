@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 
 class FileController extends Controller
@@ -18,11 +19,25 @@ class FileController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function upload(Request $request){
+
+        $validator = Validator::make(
+            [
+                'import_file'      => $request->import_file,
+                'extension' => strtolower($request->import_file->getClientOriginalExtension()),
+                'class' => $request->class
+            ],
+            [
+                'import_file'          => 'required',
+                'extension'      => 'required|in:xlsx,xls,ods|max:2048|alpha_dash',
+                'class' => 'required'
+
+            ]
+        );
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator);
+        }
         $uploadFile = $request->file('import_file');
-        $this->validate(request(),[
-            'class'=>'required',
-            'import_file'=>'required|mimes:xlsx|max:2048|alpha_dash'
-        ]);
         $fileName = time().'_'.$uploadFile->getClientOriginalName();
         Storage::disk('local')->putFileAs(
             'sis-bulk-data-files/',
