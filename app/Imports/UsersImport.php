@@ -98,9 +98,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $failures = [0 => $failure];
                     throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 }
-            },
-            AfterImportJob::class => function(AfterImportJob $event){
-                dd($event);
             }
         ];
     }
@@ -118,6 +115,74 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         return 2;
     }
 
+    public function validateColumns($row){
+        $columns = [
+             "student_id_leave_blank_for_new_student" ,
+             "full_name" ,
+             "gender_mf",
+             "date_of_birth_yyyy_mm_dd",
+             "address",
+             "birth_registrar_office_as_in_birth_certificate",
+             "nationality",
+             "identity_type",
+             "identity_number",
+             "special_need_type",
+              "special_need",
+              "bmi_academic_period",
+              "bmi_date_yyyy_mm_dd",
+              "bmi_height",
+              "bmi_weight",
+              "admission_no",
+              "academic_period",
+              "education_grade",
+              "start_date_yyyy_mm_dd",
+              "option_1",
+              "option_2",
+              "option_3",
+              "option_4",
+              "option_5",
+              "option_6",
+              "option_7",
+              "option_8",
+              "option_9",
+              "fathers_full_name",
+              "fathers_date_of_birth_yyyy_mm_dd",
+              "fathers_address",
+              "fathers_address_area",
+              "fathers_nationality",
+              "fathers_identity_type",
+              "fathers_identity_number",
+              "mothers_full_name",
+              "mothers_date_of_birth_yyyy_mm_dd",
+              "mothers_address",
+              "mothers_address_area",
+              "mothers_nationality",
+              "mothers_identity_type",
+              "mothers_identity_number",
+              "guardians_full_name",
+              "name_with_initials",
+              "guardians_gender_mf",
+              "guardians_date_of_birth_yyyy_mm_dd",
+              "guardians_address",
+              "guardians_address_area",
+              "guardians_nationality",
+              "guardians_identity_type",
+              "guardians_identity_number",
+            ];
+
+        if($columns == array_keys($row)){
+
+            return true;
+        }else{
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(1, 'rows', [0 => 'Template is not valid for upload, use the template given in the system'],[null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+            Log::info('error-email-sent',[$this->file]);
+            return false;
+        }
+    }
+
 
     /**
      * @param mixed $row
@@ -126,7 +191,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
      */
     public function map($row): array
     {
+
         try{
+            $this->validateColumns($row);
             $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
 
             if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string'){
@@ -285,7 +352,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'end_year' =>  $academicPeriod->end_year,
                     'student_id' => $student->id,
                     'status_id' => 124,
-                    'assignee_id' => $this->file['security_user_id'],
+                    'assignee_id' => $institutionClass->staff_id,
                     'institution_id' => $institution,
                     'academic_period_id' => $academicPeriod->id,
                     'education_grade_id' => $institutionGrade->education_grade_id,
@@ -600,28 +667,28 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.bmi_date_yyyy_mm_dd' => 'required|date',
             '*.admission_no' => 'required',
             '*.start_date_yyyy_mm_dd' => 'required|date',
-            '*.need_type' => 'required',
+            '*.special_need_type' => 'required',
             '*.guardians_*' => 'required_without_all:*.fathers_*,*.mothers_*',
-            '*.fathers_full_name' =>'required_without:mothers_full_name,guardians_full_name',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-            '*.fathers_address' =>  'required_without:guardians_address,mothers_address',
-            '*.fathers_address_area' => 'required_without:guardians_address_area,mothers_address_area',
-            '*.fathers_nationality' => 'required',
+            '*.fathers_full_name' =>'required_without_all:*.mothers_full_name,*.guardians_full_name',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name|date', ///required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd
+            '*.fathers_address' =>  'required_with:fathers_full_name', //required_without:guardians_address,mothers_address
+            '*.fathers_address_area' => 'required_with:fathers_full_name', //required_without:guardians_address_area,mothers_address_area
+            '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
             '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
-            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date',
-            '*.mothers_address' =>  'required_without:guardians_address,fathers_address',
-            '*.mothers_address_area' => 'required_without:guardians_address_area,fathers_address_area',
-            '*.mothers_nationality' => "required",
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date
+            '*.mothers_address' =>  'required_with:mothers_full_name', //required_without:guardians_address,fathers_address
+            '*.mothers_address_area' => 'required_with:mothers_full_name', //required_without:guardians_address_area,fathers_address_area
+            '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
-            '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name',
-            '*.guardians_gender_mf' =>  'required_without:fathers_full_name,mothers_full_name',
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd|date',
-            '*.guardians_address' => 'required_without:fathers_address,mothers_address',
-            '*.guardians_address_area' => 'required_without:fathers_address_area,mothers_address_area',
-            '*.guardians_nationality' => 'required',
+            '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name', //required_without:fathers_full_name,mothers_full_name
+            '*.guardians_gender_mf' =>  'required_with:guardians_full_name', //required_without:fathers_full_name,mothers_full_name
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name|date', //required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd
+            '*.guardians_address' => 'required_with:guardians_full_name',
+            '*.guardians_address_area' => 'required_with:guardians_full_name', //required_without:fathers_address_area,mothers_address_area
+            '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
 

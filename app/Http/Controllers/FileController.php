@@ -8,11 +8,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Institution_class;
 
 
 class FileController extends Controller
 {
 
+
+    public function __construct()
+    {
+    }
 
     /**
      * @param Request $request
@@ -28,7 +33,7 @@ class FileController extends Controller
             ],
             [
                 'import_file'          => 'required',
-                'extension'      => 'required|in:xlsx,xls,ods|max:2048|alpha_dash',
+                'extension'      => 'required|in:xlsx,xls,ods|max:2048',
                 'class' => 'required'
 
             ]
@@ -37,8 +42,14 @@ class FileController extends Controller
             return back()
                 ->withErrors($validator);
         }
-        $uploadFile = $request->file('import_file');
-        $fileName = time().'_'.$uploadFile->getClientOriginalName();
+
+        $uploadFile = $validator->validated()['import_file'];
+        $class = Institution_class::find($validator->validated()['class']);
+//        dd(auth()->user()->principal[0]->institution_group[0]->institution);
+        $institution = auth()->user()->permissions->isEmpty() ? auth()->user()->principal[0]->institution_group[0]->institution->code : auth()->user()->permissions[0]->institution_staff->institution->code;
+
+
+        $fileName = time().'_'.$institution.'_'.str_replace(' ','_',$class->name).'_'.auth()->user()->openemis_no.'_student_bulk_data.xlsx';
         Storage::disk('local')->putFileAs(
             'sis-bulk-data-files/',
             $uploadFile,
@@ -48,7 +59,7 @@ class FileController extends Controller
         $upload = new Upload;
         $upload->fileName =$fileName;
         $upload->model = 'Student';
-        $upload->institution_class_id = $request->input('class');
+        $upload->institution_class_id = $class->id;
         $upload->user()->associate(auth()->user());
         $upload->save();
 
@@ -80,6 +91,7 @@ class FileController extends Controller
 
         $file_path = storage_path().'/app/sis-bulk-data-files/processed/'. $filename;
 
+//        dd($file_path);
         if (file_exists($file_path))
         {
 //            dd('================'.file_exists($file_path));

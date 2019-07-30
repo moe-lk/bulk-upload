@@ -82,6 +82,7 @@ class Security_user extends Base_Model  {
         return $this->hasOne(Institution_student::class, 'student_id');
     }
 
+
     /**
      * The attributes that should be mutated to dates.
      *

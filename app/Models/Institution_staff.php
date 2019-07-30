@@ -46,4 +46,9 @@ class Institution_staff extends Model  {
         return $this->hasMany('App\Models\Institution_class','staff_id','staff_id');
     }
 
+    public function institution(){
+        return $this->belongsTo('App\Models\Institution','institution_id');
+    }
+
+
 }
