@@ -663,7 +663,7 @@ ace_area_id' => $BirthArea->id,
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
-            '*.date_of_birth_yyyy_mm_dd' => 'admission_age:education_grade|date',
+            '*.date_of_birth_yyyy_mm_dd' => 'required|date|admission_age:education_grade',
             '*.address' => 'required',
             '*.birth_registrar_office_as_in_birth_certificate' => 'required',
             '*.nationality' => 'required',
