@@ -36,7 +36,8 @@ class StudentCountExceeded extends Mailable
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
+            'name'=>$this->user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit",
+            'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
     }
 

@@ -28,7 +28,8 @@ class StudentImportSuccess extends Mailable
             'link' =>  env('APP_URL').'/create/'
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "Student upload success, you can access the data from open email UI and dashboard"
+            'name'=>$this->user->first_name, "body" => "Student upload success, you can access the data from open email UI and dashboard",
+            'link' =>  env('APP_URL').'/create/'
         ];
     }
 
@@ -42,7 +43,8 @@ class StudentImportSuccess extends Mailable
         return $this->view('emails.mail')
              ->from($this->from_address,$this->from_name)
              ->to($this->user->email)
-            ->subject($this->subject);
+            ->subject($this->subject)
+            ->with($this->with);
     }
 
 }

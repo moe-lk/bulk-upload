@@ -78,6 +78,12 @@ class User extends Authenticatable   {
             ->with(['security_group_institution','institution_staff','security_group'  , 'staff_class','institution_group' , 'roles']);
     }
 
+    public function zonal_cordinator(){
+        return $this->hasMany('App\Models\Security_group_user','security_user_id','id')
+            ->where('security_group_users.security_role_id','=',3)
+            ->with(['security_group_institution','institution_staff','security_group'  , 'staff_class','institution_group' , 'roles']);
+    }
+
 
     public function institution_class_teacher(){
         return $this->hasMany('App\Models\Institution_staff','staff_id','id')

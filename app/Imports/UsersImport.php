@@ -327,56 +327,73 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                 //create students data
                 \Log::debug('Security_user');
-                $student =  Security_user::create([
-                    'username'=> $openemisStudent,
-                    'openemis_no'=>$openemisStudent,
-                    'first_name'=> $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
-                    'last_name' => genNameWithInitials($row['full_name']),
-                    'gender_id' => $genderId,
-                    'date_of_birth' => $date ,
-                    'address'   => $row['address'],
+
+
+                $student = Security_user::where('openemis_no','=',$row['student_id_leave_blank_for_new_student'])->get();
+                if(empty($row['student_id_leave_blank_for_new_student'])){
+                    $student =  Security_user::create([
+                        'username'=> $openemisStudent,
+                        'openemis_no'=>$openemisStudent,
+                        'first_name'=> $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                        'last_name' => genNameWithInitials($row['full_name']),
+                        'gender_id' => $genderId,
+                        'date_of_birth' => $date ,
+                        'address'   => $row['address'],
 //                'address_area_id'   => $AddressArea->id,
-                    'birthplace_area_id' => $BirthArea->id,
-                    'nationality_id' => $nationalityId->id,
-                    'identity_type_id' => $identityType->id,
-                    'identity_number' => $identityNUmber ,
-                    'is_student' => 1,
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
+                        'birthplIn the dev environment create Security groups for school with this census no 19357 and 01590.and follow up these steps.
+
+ace_area_id' => $BirthArea->id,
+                        'nationality_id' => $nationalityId->id,
+                        'identity_type_id' => $identityType->id,
+                        'identity_number' => $identityNUmber ,
+                        'is_student' => 1,
+                        'created_user_id' => $this->file['security_user_id']
+                    ]);
+
+                    Institution_student_admission::create([
+                        'start_date' => $row['start_date_yyyy_mm_dd'],
+                        'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
+                        'end_date' => $academicPeriod->end_date,
+                        'end_year' =>  $academicPeriod->end_year,
+                        'student_id' => $student->id,
+                        'status_id' => 124,
+                        'assignee_id' => $institutionClass->staff_id,
+                        'institution_id' => $institution,
+                        'academic_period_id' => $academicPeriod->id,
+                        'education_grade_id' => $institutionGrade->education_grade_id,
+                        'institution_class_id' => $institutionClass->id,
+                        'comment' => 'Imported using bulk data upload',
+                        'admission_id' => $row['admission_no'],
+                        'created_user_id' => $this->file['security_user_id']
+                    ]);
 
 
-                Institution_student_admission::create([
-                    'start_date' => $row['start_date_yyyy_mm_dd'],
-                    'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
-                    'end_date' => $academicPeriod->end_date,
-                    'end_year' =>  $academicPeriod->end_year,
-                    'student_id' => $student->id,
-                    'status_id' => 124,
-                    'assignee_id' => $institutionClass->staff_id,
-                    'institution_id' => $institution,
-                    'academic_period_id' => $academicPeriod->id,
-                    'education_grade_id' => $institutionGrade->education_grade_id,
-                    'institution_class_id' => $institutionClass->id,
-                    'comment' => 'Imported using bulk data upload',
-                    'admission_id' => $row['admission_no'],
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
+                    \Log::debug('Institution_student');
+                    Institution_student::create([
+                        'student_status_id' => 1,
+                        'student_id' => $student->id,
+                        'education_grade_id' => $institutionGrade->education_grade_id,
+                        'academic_period_id' => $academicPeriod->id,
+                        'start_date' => $row['start_date_yyyy_mm_dd'],
+                        'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
+                        'end_date' => $academicPeriod->end_date,
+                        'end_year' =>  $academicPeriod->end_year,
+                        'institution_id' => $institution,
+                        'admission_id' => $row['admission_no'],
+                        'created_user_id' => $this->file['security_user_id']
+                    ]);
 
+                    $student = Institution_class_student::create([
+                        'student_id'  => $student->id,
+                        'institution_class_id' => $institutionClass->id,
+                        'education_grade_id' => $institutionGrade->education_grade_id,
+                        'academic_period_id'=>$academicPeriod->id,
+                        'institution_id' => $institution,
+                        'student_status_id' => 1,
+                        'created_user_id' => $this->file['security_user_id']
+                    ]);
+                }
 
-                \Log::debug('Institution_student');
-                Institution_student::create([
-                    'student_status_id' => 1,
-                    'student_id' => $student->id,
-                    'education_grade_id' => $institutionGrade->education_grade_id,
-                    'academic_period_id' => $academicPeriod->id,
-                    'start_date' => $row['start_date_yyyy_mm_dd'],
-                    'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
-                    'end_date' => $academicPeriod->end_date,
-                    'end_year' =>  $academicPeriod->end_year,
-                    'institution_id' => $institution,
-                    'admission_id' => $row['admission_no'],
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
 
 
                 //TODO insert special need
@@ -515,15 +532,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
 
 
-                $student = Institution_class_student::create([
-                    'student_id'  => $student->id,
-                    'institution_class_id' => $institutionClass->id,
-                    'education_grade_id' => $institutionGrade->education_grade_id,
-                    'academic_period_id'=>$academicPeriod->id,
-                    'institution_id' => $institution,
-                    'student_status_id' => 1,
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
+
 
 
                 //Option subject feed
@@ -675,14 +684,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.fathers_address_area' => 'required_with:fathers_full_name', //required_without:guardians_address_area,mothers_address_area
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
-            '*.fathers_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.fathers_identity_number' => 'nullable',
             '*.mothers_full_name' => 'required_without:fathers_full_name,guardians_full_name',
             '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date
             '*.mothers_address' =>  'required_with:mothers_full_name', //required_without:guardians_address,fathers_address
             '*.mothers_address_area' => 'required_with:mothers_full_name', //required_without:guardians_address_area,fathers_address_area
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
-            '*.mothers_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.mothers_identity_number' => 'nullable',
             '*.guardians_full_name' => 'required_without:fathers_full_name,mothers_full_name', //required_without:fathers_full_name,mothers_full_name
             '*.guardians_gender_mf' =>  'required_with:guardians_full_name', //required_without:fathers_full_name,mothers_full_name
             '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name|date', //required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd
@@ -690,7 +699,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.guardians_address_area' => 'required_with:guardians_full_name', //required_without:fathers_address_area,mothers_address_area
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
-            '*.guardians_identity_number' => 'nullable|unique:security_users,identity_number',
+            '*.guardians_identity_number' => 'nullable',
 
         ];
     }
