@@ -53,9 +53,17 @@ class ImportStudents extends Command
     {
 
 
-        $file = Upload::where('is_processed', '=', 0)->get()->first();
+        $file = Upload::where('is_processed', '=', 0)
+            ->orWhere(function ($query){
+                $query->where('is_processed','=',3)
+                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
+            })
+            ->get()->first();
         if (!is_null($file)) {
             try {
+                DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>3]);
 
                 $import = new UsersImport($file);
                 $user = User::find($file['security_user_id']);
