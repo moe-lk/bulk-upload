@@ -20,7 +20,7 @@ class StudentImportFailure extends Mailable
     public function __construct($file)
     {
 
-        $institution = Institution_class::find($file['institution_class_id'])->get();
+        $institution = Institution_class::find($file['institution_class_id']);
 
 
         $this->user = User::find($file['security_user_id']);
