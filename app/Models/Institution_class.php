@@ -49,5 +49,9 @@ class Institution_class extends Model  {
         return $this->belongsTo('App\Models\Security_group_user','staff_id','security_user_id');
     }
 
+    public function institution(){
+        return $this->belongsTo('App\Models\Institution','institution_id');
+    }
+
 
 }

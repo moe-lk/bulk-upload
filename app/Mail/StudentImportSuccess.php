@@ -17,10 +17,13 @@ class StudentImportSuccess extends Mailable
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct($file)
     {
-        $this->user = User::find($user['security_user_id']);
-        $this->subject = 'SIS Bulk upload: Student upload success ' . date('Y:m:d H:i:s');
+
+        $institution = Institution_class($file['institution_class_id'])->get();
+
+        $this->user = User::find($file['security_user_id']);
+        $this->subject = 'SIS Bulk upload: Student upload success '.$institution->institution->code.': '. $institution->name.' ' . date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_USERNAME');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
