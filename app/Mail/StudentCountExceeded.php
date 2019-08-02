@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\User;
+use App\Models\Instituion_class;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Mail\Mailer as MailerContract;
 use Illuminate\Mail\Mailable;
@@ -27,7 +28,7 @@ class StudentCountExceeded extends Mailable
 //            'name'=>$user->first_name, "body" => "The class you tried to import data is exceeded the student count limit.Please check the class / increase the student limit"
 //        ];
 
-        $institution = Institution_class($file['institution_class_id'])->get();
+        $institution = Institution_class::find($file['institution_class_id'])->get();
 
         $this->user = User::find($file['security_user_id']);
         $this->subject = 'SIS Bulk Upload: Upload Failed '.$institution->institution->code.': '. $institution->name . date('Y:m:d H:i:s');

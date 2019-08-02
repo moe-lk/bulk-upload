@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\User;
+use App\Models\Instituion_class;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -19,7 +20,7 @@ class StudentImportFailure extends Mailable
     public function __construct($file)
     {
 
-        $institution = Institution_class($file['institution_class_id'])->get();
+        $institution = Institution_class::find($file['institution_class_id'])->get();
 
 
         $this->user = User::find($file['security_user_id']);

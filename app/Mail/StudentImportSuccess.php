@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\User;
+use App\Models\Instituion_class;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Mail\Mailer as MailerContract;
 use Illuminate\Mail\Mailable;
@@ -20,7 +21,7 @@ class StudentImportSuccess extends Mailable
     public function __construct($file)
     {
 
-        $institution = Institution_class($file['institution_class_id'])->get();
+        $institution = Institution_class::find($file['institution_class_id'])->get();
 
         $this->user = User::find($file['security_user_id']);
         $this->subject = 'SIS Bulk upload: Student upload success '.$institution->institution->code.': '. $institution->name.' ' . date('Y:m:d H:i:s');
