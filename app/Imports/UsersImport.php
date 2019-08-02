@@ -61,7 +61,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $this->request = new Request;
         $this->maleStudentsCount = 0;
         $this->femaleStudentsCount = 0;
+        $this->highestRow = 3;
     }
+
 
 
 
@@ -91,10 +93,10 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
 
                 $worksheet = $event->getSheet();
-                $highestRow = $worksheet->getHighestRow(); // e.g. 10
-                if ($highestRow < 3) {
+                $this->highestRow = $worksheet->getHighestRow(); // e.g. 10
+                if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(1, 'rows', [0 => 'Now enough rows!'],[null]);
+                    $failure = new Failure(3, 'rows', [0 => 'No enough rows!'],[null]);
                     $failures = [0 => $failure];
                     throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 }
@@ -283,9 +285,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         // TODO: Implement model() method.
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
-
-
-        $this->validateClass();
 
         Log::info('row data:',[$row]);
         if(!empty($institutionClass)){
@@ -561,6 +560,7 @@ ace_area_id' => $BirthArea->id,
                         $query->where('gender_id', '=', 2);
                     })->where('institution_class_id','=' , $this->file['institution_class_id'])->count();
 
+
                 Institution_class::where('id','=',$institutionClass->id)
                     ->update([
                         'total_male_students' => $total_male_students ,
@@ -637,18 +637,20 @@ ace_area_id' => $BirthArea->id,
         $totalFemaleStudents = $institutionClass->total_female_students;
         $totalStudents = $totalMaleStudents + $totalFemaleStudents;
 
-        $exceededStudents = ($totalStudents + ($this->worksheet->getHighestRow() - 2)) > $institutionClass->no_of_students;
+        $exceededStudents = ($totalStudents + ($this->highestRow - 2)) > $institutionClass->no_of_students ? true : false;
 
-        if($exceededStudents){
+        if($exceededStudents == true){
             try{
                 $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(1, 'rows', [3 => 'Class student count exceeded!'],[null]);
+                $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! '. ($totalStudents + ($this->highestRow - 2))],[null]);
                 $failures = [0 => $failure];
                 throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 Log::info('email-sent',[$this->file]);
             }catch (Exception $e){
-
+                Logg::info('email-sending-failed',[$e]);
             }
+        }else{
+            return true;
         }
 
     }

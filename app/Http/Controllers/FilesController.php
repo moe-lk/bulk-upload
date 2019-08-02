@@ -18,8 +18,10 @@ class FilesController extends Controller
                     return "Success";
                 }elseif ($data->is_processed === 2){
                     return "Failed";
+                }elseif($data->is_processed == 3){
+                    return "Terminated";
                 }else{
-                    return "Pending";
+                    return 'Pending';
                 };
             })
             ->make(true);
