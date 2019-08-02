@@ -38,7 +38,7 @@ class ValidatorExtended extends IlluminateValidator
         foreach ($validator->getData() as $data){
             $gradeEntity = Education_grade::where('code','=',$data['education_grade'])->first();
             $academicPeriod = Academic_period::where('name', '=',$data['academic_period'])->first();
-            if($data['date_of_birth_yyyy_mm_dd']){
+            if(empty($data['date_of_birth_yyyy_mm_dd'])){
                 return false;
             }elseif($gradeEntity !== null){
                 //            dd($gradeEntity);
