@@ -56,4 +56,8 @@ class Institution_class_student extends Model  {
             $model->created = now();
         });
     }
+
+    public function student(){
+        return $this->belongsTo('App\Models\Security_user','student_id');
+    }
 }

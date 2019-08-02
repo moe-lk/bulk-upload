@@ -284,8 +284,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
 
-        $totalMaleStudents = $institutionClass->total_male_students;
-        $totalFemaleStudents = $institutionClass->total_female_students;
 
         $this->validateClass();
 
@@ -551,9 +549,17 @@ ace_area_id' => $BirthArea->id,
                 }
 
                 unset($allSubjects);
+               $total_male_students =   Institution_class_student::with(['student' => function($query) {
+                       $query->where('student.gender_id','=',1);
+                   }])->whereHas('student',function ($query) {
+                       $query->where('gender_id','=',1);
+                   })->where('institution_class_id','=' , $this->file['institution_class_id'])->count();
 
-                $total_male_students = $totalMaleStudents + $this->maleStudentsCount;
-                $total_female_students = $totalFemaleStudents + $this->femaleStudentsCount;
+                $total_female_students =  Institution_class_student::with(['student' => function($query){
+                        $query->where('student.gender_id','=',2);
+                    }])->whereHas('student',function ($query) {
+                        $query->where('gender_id', '=', 2);
+                    })->where('institution_class_id','=' , $this->file['institution_class_id'])->count();
 
                 Institution_class::where('id','=',$institutionClass->id)
                     ->update([
@@ -625,32 +631,24 @@ ace_area_id' => $BirthArea->id,
 
     public function validateClass(){
 
-
-
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
 
         $totalMaleStudents = $institutionClass->total_male_students;
         $totalFemaleStudents = $institutionClass->total_female_students;
         $totalStudents = $totalMaleStudents + $totalFemaleStudents;
-        $user = User::find($this->file['security_user_id']);
+
         $exceededStudents = ($totalStudents + ($this->worksheet->getHighestRow() - 2)) > $institutionClass->no_of_students;
 
-        switch ($exceededStudents){
-            case 1:
-                try{
-//                    Mail::to($user->email)->send(new StudentCountExceeded($this->file));
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(1, 'rows', [0 => 'Class student count exceeded!'],[null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                    Log::info('email-sent',[$this->file]);
+        if($exceededStudents){
+            try{
+                $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                $failure = new Failure(1, 'rows', [3 => 'Class student count exceeded!'],[null]);
+                $failures = [0 => $failure];
+                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+                Log::info('email-sent',[$this->file]);
+            }catch (Exception $e){
 
-                }catch (\Exception $e){
-                    Log::error('Mail sending error to: '.'',[$e]);
-                }
-                return;
-            default:
-                return true;
+            }
         }
 
     }
