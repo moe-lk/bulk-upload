@@ -196,7 +196,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
             $this->validateColumns($row);
-            $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
+            $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',3)->first();
+            $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
+                ->where('parent_id','=',$BirthDivision->id)->first();
 
             if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string'){
                 $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
@@ -336,10 +338,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'gender_id' => $genderId,
                         'date_of_birth' => $date ,
                         'address'   => $row['address'],
-//                'address_area_id'   => $AddressArea->id,
-                        'birthplIn the dev environment create Security groups for school with this census no 19357 and 01590.and follow up these steps.
-
-ace_area_id' => $BirthArea->id,
+//                        'address_area_id'   => $AddressArea->id,
+                        'birthplace_area_id' => $BirthArea->id,
                         'nationality_id' => $nationalityId->id,
                         'identity_type_id' => $identityType->id,
                         'identity_number' => $identityNUmber ,
@@ -416,41 +416,8 @@ ace_area_id' => $BirthArea->id,
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-                //import father's information
                 if(!empty($row['fathers_full_name'])){
-                    $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
-                    $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
-                    $identityType = Identity_type::where('national_code','like','%'.$row['fathers_identity_type'].'%')->first();
-                    $openemisFather = $this::getUniqueOpenemisId();
-
-                    $father = Security_user::where('identity_type_id','=', $nationalityId->id)
-                        ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
-
-                    if(empty($father)){
-                        $father  =   Security_user::create([
-                            'username'=> $openemisFather,
-                            'openemis_no'=>$openemisFather,
-                            'first_name'=> $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
-                            'last_name' => genNameWithInitials($row['fathers_full_name']),
-                            'gender_id' => 1,
-                            'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'] ,
-                            'address'   => $row['fathers_address'],
-                            'address_area_id'   => $AddressArea->id,
-                            'birthplace_area_id' => $BirthArea->id,
-                            'nationality_id' => $nationalityId->id,
-                            'identity_type_id' => $identityType->id,
-                            'identity_number' => $row['fathers_identity_number'] ,
-                            'is_guardian' => 1,
-                            'created_user_id' => $this->file['security_user_id']
-                        ]);
-                        $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
-                    }else{
-                        Security_user::where('id' , '=', $father->id)
-                            ->update(['is_guardian' => 1]);
-                        $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
-                    }
+                    Father::createOrUpdate($row,$student);
                 }
 
                 if(!empty($row['mothers_full_name'])){
@@ -657,15 +624,14 @@ ace_area_id' => $BirthArea->id,
 
     public function rules(): array
     {
-        //TODO : not to make mandatory of guardian's NIC number
-        //TODO : validate age limit aginsed  the admission age
 
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|date|admission_age:education_grade',
             '*.address' => 'required',
-            '*.birth_registrar_office_as_in_birth_certificate' => 'required',
+            '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate',
+            '*.birth_registrar_office_as_in_birth_certificate' => 'required_if:identity_type,BC|birth_place',
             '*.nationality' => 'required',
             '*.identity_type' => 'required',
             '*.identity_number' =>  'required|unique:security_users,identity_number',
@@ -702,25 +668,6 @@ ace_area_id' => $BirthArea->id,
             '*.guardians_identity_number' => 'nullable',
 
         ];
-    }
-
-
-    public function validateRow($row){
-
-            $validate = Validator::make($row,[
-
-            ]);
-
-        if($validate->fails()){
-//                return $validate->getMessageBag();
-//            dd($validate->getMessageBag());
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failures = new Failure($validate->failed());
-//            $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
-
-
     }
 
 }

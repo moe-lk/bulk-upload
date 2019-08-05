@@ -4,6 +4,9 @@ namespace App\Providers;
 
 namespace App\Providers;
 use App\Models\Academic_period;
+use App\Models\Area_administrative;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Validator as IlluminateValidator;
 use Illuminate\Support\Facades\Log;
 use App\Models\Education_grade;
@@ -13,6 +16,7 @@ class ValidatorExtended extends IlluminateValidator
 
     private $_custom_messages = array(
         "admission_age" => "The age limit not match with admission age for this class",
+        "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat'
     );
 
     public function __construct( $translator, $data, $rules, $messages = array(),
@@ -41,9 +45,8 @@ class ValidatorExtended extends IlluminateValidator
             if(empty($data['date_of_birth_yyyy_mm_dd'])){
                 return false;
             }elseif($gradeEntity !== null){
-                //            dd($gradeEntity);
                 $admissionAge = $gradeEntity->admission_age;
-                $ageOfStudent =    ($academicPeriod->start_year) - $value->format('Y'); //$data['academic_period'];
+                $ageOfStudent =    ($academicPeriod->start_year) -   \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y'); //$data['academic_period'];
                 $enrolmentMinimumAge = $admissionAge - 0;
                 $enrolmentMaximumAge = $admissionAge + 10;
                 return ($ageOfStudent<=$enrolmentMaximumAge) && ($ageOfStudent>=$enrolmentMinimumAge);
@@ -52,6 +55,21 @@ class ValidatorExtended extends IlluminateValidator
             }
         }
 
+    }
+
+    protected function validateBirthPlace($attribute,$value,$perameters,$validator){
+        foreach ($validator->getData() as $data){
+            if($data['identity_type'] == 'BC'){
+                $BirthDivision = Area_administrative::where('name','like','%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
+                if(empty($BirthDivision)) return false;
+                $BirthArea = Area_administrative::where('name', 'like', '%'.$data['birth_registrar_office_as_in_birth_certificate'].'%')
+                    ->where('parent_id','=',$BirthDivision->id)->count();
+                return $BirthArea > 0;
+            }else{
+                return true;
+            }
+
+        }
     }
 
     /**

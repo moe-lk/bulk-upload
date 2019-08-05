@@ -41,4 +41,5 @@ class Area_administrative extends Model  {
      */
     protected $dates = ['modified', 'created'];
 
+
 }
