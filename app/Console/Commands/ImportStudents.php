@@ -104,20 +104,10 @@ class ImportStudents extends Command
                 'errors' => [ $error_mesg]
             ];
 
-            $search = array_filter($errors,function ($data) use ($failure){
-                return $data['row'] = $failure->row();
-            });
-
-
-            if($search && (!in_array($error_mesg,$search[0]['errors']))){
-                array_push($search[0]['errors'],$error_mesg);
-                $errors = $search;
-            }
             array_push($errors,$error);
 
         }
 
-        $errors = unique_multidim_array($errors,'row');
         array_walk($errors , 'append_errors_to_excel',$reader);
 
         $objWriter = new \PHPExcel_Writer_Excel2007($reader);

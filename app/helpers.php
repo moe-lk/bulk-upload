@@ -95,7 +95,8 @@ function merge_error_by_row($errors,$key){
  */
 
 function append_errors_to_excel($error, $count, $reader){
-    $reader->getActiveSheet()->setCellValue('A'. ($error['row']) ,  'Errors: '. implode(',',$error['errors']));
+    $prev_value = $reader->getActiveSheet()->getCell('A'.$error['row'])->getValue();
+    $reader->getActiveSheet()->setCellValue('A'. ($error['row']) ,  $prev_value.','.implode(',',$error['errors']));
     $reader->getActiveSheet()->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
 }
 
