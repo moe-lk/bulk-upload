@@ -20,7 +20,8 @@ Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
 
-Auth::routes();
+//Auth::routes();
+Auth::routes(['register' => false]);
 
 Route::get('/home', 'HomeController@index')->name('home');
 Route::post('upload', 'FileController@upload')->name('upload');
