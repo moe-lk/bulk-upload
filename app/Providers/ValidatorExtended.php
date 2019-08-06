@@ -84,7 +84,7 @@ class ValidatorExtended extends IlluminateValidator
     protected function validateUserUnique($attribute,$value,$perameters,$validator){
         foreach ($validator->getData() as $data) {
             $identityType = Identity_type::where('national_code','like','%'.$data['identity_type'].'%')->first();
-            if($identityType !== null){
+            if($identityType !== null && ($value !== null)){
                 $isUnique = Security_user::where('identity_number' ,'=',$value)->where('identity_type_id','=',$identityType->id);
                 if($isUnique->count() > 0){
                     $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : '.$isUnique->first()->openemis_no;
@@ -93,6 +93,8 @@ class ValidatorExtended extends IlluminateValidator
                 }else{
                     return true;
                 }
+            }elseif($value == null){
+                return true;
             }
 
         }
