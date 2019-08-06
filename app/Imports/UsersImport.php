@@ -458,7 +458,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'] ,
                             'address'   => $row['fathers_address'],
                             'address_area_id'   => $AddressArea->id,
-                            'nationality_id' => $nationalityId,
+                            'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType,
                             'identity_number' => $row['fathers_identity_number'] ,
                             'is_guardian' => 1,
