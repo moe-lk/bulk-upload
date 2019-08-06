@@ -684,7 +684,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
             '*.identity_type' => 'nullable',
-            '*.identity_number' =>  'nullable|unique:security_users,identity_number',
+            '*.identity_number' =>  'nullable|user_unique:identity_number',
             '*.academic_period' => 'required',
             '*.education_grade' => 'required',
             '*.bmi_height' => 'required',

@@ -97,14 +97,17 @@ class ImportStudents extends Command
         $errors = array();
 
         foreach ($failures as $key => $failure) {
+
             $error_mesg = implode(',',$failure->errors());
             $error = [
                 'row'=> $failure->row(),
                 'errors' => [ $error_mesg]
             ];
+
             $search = array_filter($errors,function ($data) use ($failure){
                 return $data['row'] = $failure->row();
             });
+
 
             if($search && (!in_array($error_mesg,$search[0]['errors']))){
                 array_push($search[0]['errors'],$error_mesg);

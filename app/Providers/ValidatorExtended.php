@@ -5,6 +5,8 @@ namespace App\Providers;
 namespace App\Providers;
 use App\Models\Academic_period;
 use App\Models\Area_administrative;
+use App\Models\Security_user;
+use App\Models\Identity_type;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Validator as IlluminateValidator;
@@ -16,7 +18,8 @@ class ValidatorExtended extends IlluminateValidator
 
     private $_custom_messages = array(
         "admission_age" => "The age limit not match with admission age for this class",
-        "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat'
+        "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
+        'user_unique' => 'The identity number already in use.'
     );
 
     public function __construct( $translator, $data, $rules, $messages = array(),
@@ -75,6 +78,21 @@ class ValidatorExtended extends IlluminateValidator
                 return true;
             }
 
+        }
+    }
+
+    protected function validateUserUnique($attribute,$value,$perameters,$validator){
+        foreach ($validator->getData() as $data) {
+            $identityType = Identity_type::where('national_code','like','%'.$data['identity_type'].'%')->first();
+            $isUnique = Security_user::where('identity_number' ,'=',$value)->where('identity_type_id','=',$identityType->id);
+
+            if($isUnique->count() > 0){
+                $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : '.$isUnique->first()->openemis_no;
+                $this->_set_custom_stuff();
+                return false;
+            }else{
+                return true;
+            }
         }
     }
 
