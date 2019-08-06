@@ -443,7 +443,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $identityType = Identity_type::where('national_code','like','%'.$row['fathers_identity_type'].'%')->first();
                     $openemisFather = $this::getUniqueOpenemisId();
 
-                    $identityType = $identityType !== null ? $identityType->id : null;
+                    $identityType = ($identityType !== null) ? $identityType->id : null;
 
                     $father = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
@@ -458,8 +458,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'] ,
                             'address'   => $row['fathers_address'],
                             'address_area_id'   => $AddressArea->id,
-                            'nationality_id' => $nationalityId->id,
-                            'identity_type_id' => $identityType->id,
+                            'nationality_id' => $nationalityId,
+                            'identity_type_id' => $identityType,
                             'identity_number' => $row['fathers_identity_number'] ,
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
@@ -497,7 +497,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'address'   => $row['mothers_address'],
                             'address_area_id'   => $AddressArea->id,
                             'birthplace_area_id' => $BirthArea->id,
-                            'nationality_id' => $nationalityId->id,
+                            'nationality_id' => $nationalityId,
                             'identity_type_id' => $identityType->id,
                             'identity_number' => $row['mothers_identity_number'] ,
                             'is_guardian' => 1,
@@ -536,7 +536,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'address'   => $row['guardians_address'],
                             'address_area_id'   => $AddressArea->id,
                             'birthplace_area_id' => $BirthArea->id,
-                            'nationality_id' => $nationalityId->id,
+                            'nationality_id' => $nationalityId,
                             'identity_type_id' => $identityType->id,
                             'identity_number' => $row['guardians_identity_number'] ,
                             'is_guardian' => 1,
