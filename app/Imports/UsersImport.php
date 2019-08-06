@@ -10,6 +10,8 @@ use App\Models\Institution_class_subject;
 use App\Models\Institution_student_admission;
 use App\Models\Institution_subject;
 use App\Models\Institution_subject_student;
+use App\Models\Special_need_difficulty;
+use App\Models\User_special_need;
 use App\Models\Security_group;
 use App\Models\Security_user;
 use App\Models\User;
@@ -197,7 +199,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
 
-            $this->validateColumns($row);
+
 
             if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string'){
                 $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
@@ -284,9 +286,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         if($row['identity_type'] == 'BC' && !empty($row['birth_divisional_secretariat'])){
             $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',3)->first();
-            $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
-                ->where('parent_id','=',$BirthDivision->id)->first();
-            $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+            if($BirthDivision !== null){
+                $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
+                    ->where('parent_id','=',$BirthDivision->id)->first();
+                $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+
+            }
         }
 
         Log::info('row data:',[$row]);
@@ -396,6 +401,18 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                 //TODO insert special need
 
+                if(!empty($row['special_need'])){
+                    $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
+                    User_special_need::creat([
+                        'special_need_date' => now(),
+                        'security_user_id' => $student->id,
+                        'special_need_type_id' => 1,
+                        'special_need_difficulty_id' => $specialNeed->id,
+                        'created_user_id' => $this->file['security_user_id'],
+                        'created' => now()
+                    ]);
+                }
+
 
 
                 // convert Meeter to CM
@@ -418,7 +435,39 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 ]);
 
                 if(!empty($row['fathers_full_name'])){
-                    Father::createOrUpdate($row,$student);
+
+                    $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
+                    $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
+                    $identityType = Identity_type::where('national_code','like','%'.$row['fathers_identity_type'].'%')->first();
+                    $openemisFather = $this::getUniqueOpenemisId();
+
+                    $father = Security_user::where('identity_type_id','=', $nationalityId->id)
+                        ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
+
+                    if(empty($father)){
+                        $father  =   Security_user::create([
+                            'username'=> $openemisFather,
+                            'openemis_no'=>$openemisFather,
+                            'first_name'=> $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                            'last_name' => genNameWithInitials($row['fathers_full_name']),
+                            'gender_id' => 1,
+                            'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'] ,
+                            'address'   => $row['fathers_address'],
+                            'address_area_id'   => $AddressArea->id,
+                            'nationality_id' => $nationalityId->id,
+                            'identity_type_id' => $identityType->id,
+                            'identity_number' => $row['fathers_identity_number'] ,
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                        $father['guardian_relation_id'] = 1;
+                        Student_guardian::createStudentGuardian($student,$father);
+                    }else{
+                        Security_user::where('id' , '=', $father->id)
+                            ->update(['is_guardian' => 1]);
+                        $father['guardian_relation_id'] = 1;
+                        Student_guardian::createStudentGuardian($student,$father);
+                    }
                 }
 
                 if(!empty($row['mothers_full_name'])){
@@ -629,23 +678,24 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
-            '*.date_of_birth_yyyy_mm_dd' => 'required|date|admission_age:education_grade',
-            '*.address' => 'required',
+            '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
+            '*.address' => 'nullable',
             '*.birth_registrar_office_as_in_birth_certificate' => 'required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
-            '*.identity_type' => 'required',
-            '*.identity_number' =>  'required|unique:security_users,identity_number',
+            '*.identity_type' => 'nullable',
+            '*.identity_number' =>  'nullable|unique:security_users,identity_number',
             '*.academic_period' => 'required',
             '*.education_grade' => 'required',
             '*.bmi_height' => 'required',
             '*.bmi_weight' => 'required',
-            '*.bmi_date_yyyy_mm_dd' => 'required|date',
+            '*.bmi_date_yyyy_mm_dd' => 'required',
             '*.admission_no' => 'required',
-            '*.start_date_yyyy_mm_dd' => 'required|date',
-            '*.special_need_type' => 'required',
+            '*.start_date_yyyy_mm_dd' => 'required',
+            '*.special_need_type' => 'nullable',
+            '*.special_need' => 'required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' =>'sometimes',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name|date', ///required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', ///required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd
             '*.fathers_address' =>  'required_with:fathers_full_name', //required_without:guardians_address,mothers_address
             '*.fathers_address_area' => 'required_with:fathers_full_name', //required_without:guardians_address_area,mothers_address_area
             '*.fathers_nationality' => 'required_with:fathers_full_name',
@@ -658,9 +708,9 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable',
-            '*.guardians_full_name' => 'required_without_all:fathers_full_name,mothers_full_name', //required_without:fathers_full_name,mothers_full_name
+            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name', //required_without:fathers_full_name,mothers_full_name
             '*.guardians_gender_mf' =>  'required_with:guardians_full_name', //required_without:fathers_full_name,mothers_full_name
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name|date', //required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd
             '*.guardians_address' => 'required_with:guardians_full_name',
             '*.guardians_address_area' => 'required_with:guardians_full_name', //required_without:fathers_address_area,mothers_address_area
             '*.guardians_nationality' => 'required_with:guardians_full_name',
