@@ -46,7 +46,8 @@ class ValidatorExtended extends IlluminateValidator
                 return false;
             }elseif($gradeEntity !== null){
                 $admissionAge = $gradeEntity->admission_age;
-                $ageOfStudent =    ($academicPeriod->start_year) -   \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y'); //$data['academic_period'];
+                $studentAge = gettype($value) == 'double' ?  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($data['date_of_birth_yyyy_mm_dd'])->format('Y') : ( ($value)->format('Y'));
+                $ageOfStudent =    ($academicPeriod->start_year)  - $studentAge  ; //$data['academic_period'];
                 $enrolmentMinimumAge = $admissionAge - 0;
                 $enrolmentMaximumAge = $admissionAge + 10;
                 return ($ageOfStudent<=$enrolmentMaximumAge) && ($ageOfStudent>=$enrolmentMinimumAge);
@@ -59,13 +60,16 @@ class ValidatorExtended extends IlluminateValidator
 
     protected function validateBirthPlace($attribute,$value,$perameters,$validator){
         foreach ($validator->getData() as $data){
-            if($data['identity_type'] == 'BC'){
+            if($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat',$data)){
                 $BirthDivision = Area_administrative::where('name','like','%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
                 if(empty($BirthDivision)) return false;
                 $BirthArea = Area_administrative::where('name', 'like', '%'.$data['birth_registrar_office_as_in_birth_certificate'].'%')
                     ->where('parent_id','=',$BirthDivision->id)->count();
                 return $BirthArea > 0;
-            }else{
+            }elseif($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat',$data)){
+                return false;
+            }
+            else{
                 return true;
             }
 
