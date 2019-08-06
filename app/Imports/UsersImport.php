@@ -323,6 +323,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
+                $identityType = $identityType !== null ? $identityType->id : null;
+
 
                 $identityNUmber = $row['identity_number'];
 
@@ -347,7 +349,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 //                        'address_area_id'   => $AddressArea->id,
                         'birthplace_area_id' => $BirthArea->id,
                         'nationality_id' => $nationalityId->id,
-                        'identity_type_id' => $identityType->id,
+                        'identity_type_id' => $identityType,
                         'identity_number' => $identityNUmber ,
                         'is_student' => 1,
                         'created_user_id' => $this->file['security_user_id']
@@ -441,6 +443,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $identityType = Identity_type::where('national_code','like','%'.$row['fathers_identity_type'].'%')->first();
                     $openemisFather = $this::getUniqueOpenemisId();
 
+                    $identityType = $identityType !== null ? $identityType->id : null;
+
                     $father = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
 
@@ -475,6 +479,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $nationalityId = Nationality::where('name','like','%'.$row['mothers_nationality'].'%')->first();
                     $identityType = Identity_type::where('national_code','like','%'.$row['mothers_identity_type'].'%')->first();
                     $openemisMother = $this::getUniqueOpenemisId();
+
+                    $identityType = $identityType !== null ? $identityType->id : null;
 
                     $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['mothers_identity_number'])->first();
@@ -513,6 +519,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $nationalityId = Nationality::where('name','like','%'.$row['guardians_nationality'].'%')->first();
                     $identityType = Identity_type::where('national_code','like','%'.$row['guardians_identity_type'].'%')->first();
                     $openemisGuardian = $this::getUniqueOpenemisId();
+
+                    $identityType = $identityType !== null ? $identityType->id : null;
 
                     $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
@@ -683,7 +691,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.birth_registrar_office_as_in_birth_certificate' => 'required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
-            '*.identity_type' => 'nullable',
+            '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' =>  'nullable|user_unique:identity_number',
             '*.academic_period' => 'required',
             '*.education_grade' => 'required',
