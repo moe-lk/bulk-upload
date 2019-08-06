@@ -497,8 +497,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'address'   => $row['mothers_address'],
                             'address_area_id'   => $AddressArea->id,
                             'birthplace_area_id' => $BirthArea->id,
-                            'nationality_id' => $nationalityId,
-                            'identity_type_id' => $identityType->id,
+                            'nationality_id' => $nationalityId->id,
+                            'identity_type_id' => $identityType,
                             'identity_number' => $row['mothers_identity_number'] ,
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
@@ -536,8 +536,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'address'   => $row['guardians_address'],
                             'address_area_id'   => $AddressArea->id,
                             'birthplace_area_id' => $BirthArea->id,
-                            'nationality_id' => $nationalityId,
-                            'identity_type_id' => $identityType->id,
+                            'nationality_id' => $nationalityId->id,
+                            'identity_type_id' => $identityType,
                             'identity_number' => $row['guardians_identity_number'] ,
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
