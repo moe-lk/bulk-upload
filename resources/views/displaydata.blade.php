@@ -13,6 +13,7 @@
                     <th>Created</th>
                     <th>Updated</th>
                     <th>Status</th>
+                    <th>Email Status</th>
                 </tr>
                 </thead>
             </table>
@@ -29,7 +30,8 @@
                         { data: 'class_room.name', name: 'Class' },
                         { data: 'created_at' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},
-                        { data: 'is_processed', name: 'Status'}
+                        { data: 'is_processed', name: 'Status'},
+                        { data: 'is_email_sent' , name: 'Email Status'}
                     ]
                 });
             });

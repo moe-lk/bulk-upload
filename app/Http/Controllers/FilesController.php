@@ -23,6 +23,15 @@ class FilesController extends Controller
                 }else{
                     return 'Pending';
                 };
+
+            })
+            ->editColumn('is_email_sent', function ($data) {
+                if ($data->is_email_sent === 1) {
+                    return "Success";
+                }else{
+                    return 'Failed';
+                };
+
             })
             ->make(true);
     }
