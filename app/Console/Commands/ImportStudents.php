@@ -82,11 +82,11 @@ class ImportStudents extends Command
                 self::writeErrors($e,$file);
                 DB::table('uploads')
                     ->where('id',  $file['id'])
-                    ->update(['is_processed' =>1]);
+                    ->update(['is_processed' =>2]);
                 Mail::to($user->email)->send(new StudentImportFailure($file));
                 DB::table('uploads')
                     ->where('id',  $file['id'])
-                    ->update(['is_processed' =>1,'is_email_sent' => 1]);
+                    ->update(['is_processed' =>2,'is_email_sent' => 1]);
 
 
             }

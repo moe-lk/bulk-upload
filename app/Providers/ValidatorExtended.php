@@ -87,21 +87,9 @@ class ValidatorExtended extends IlluminateValidator
             $identityType = Identity_type::where('national_code','like','%'.$data['identity_type'].'%')->first();
 
             if($identityType !== null && ($value !== null)){
-                if($data['identity_type'] == 'BC'){
-                    $BirthDivision = Area_administrative::where('name','like','%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
-                    if($BirthDivision !== null){
-                        $BirthArea = Area_administrative::where('name', 'like', '%'.$data['birth_registrar_office_as_in_birth_certificate'].'%')
-                            ->where('parent_id','=',$BirthDivision->id)->first();
-                        if($BirthArea == null){
-                            return false;
-                        }
-                        $value = $BirthArea->id . '' . $data['identity_number'] . '' . substr($data['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $data['date_of_birth_yyyy_mm_dd']->format("m");
-
-                    }
-                }
-;
 
                 $isUnique = Security_user::where('identity_number' ,'=',$value)->where('identity_type_id','=',$identityType->id);
+//                dd($isUnique->count());
                 if($isUnique->count() > 0){
                     $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : '.$isUnique->first()->openemis_no;
                     $this->_set_custom_stuff();
