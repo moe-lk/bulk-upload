@@ -199,8 +199,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
 
-
-
             if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string'){
                 $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
             }
@@ -224,6 +222,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             if(gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double'){
                 $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
             }
+
+
 
         }catch (\Exception $e){
             \Log::error('Import Error',[$e]);
@@ -283,9 +283,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
 
-
-        if($row['identity_type'] == 'BC' && !empty($row['birth_divisional_secretariat'])){
-            $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',3)->first();
+        if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
+            $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
             if($BirthDivision !== null){
                 $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
                     ->where('parent_id','=',$BirthDivision->id)->first();
@@ -294,6 +293,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             }
         }
 
+        dd($row['identity_number']);
         Log::info('row data:',[$row]);
         if(!empty($institutionClass)){
 
@@ -336,8 +336,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 \Log::debug('Security_user');
 
 
-                $student = Security_user::where('openemis_no','=',$row['student_id_leave_blank_for_new_student'])->get();
-                if(empty($row['student_id_leave_blank_for_new_student'])){
+//                $student = Security_user::where('openemis_no','=',$row['student_id_leave_blank_for_new_student'])->get();
+//                if(empty($row['student_id_leave_blank_for_new_student'])){
                     $student =  Security_user::create([
                         'username'=> $openemisStudent,
                         'openemis_no'=>$openemisStudent,
@@ -397,7 +397,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'student_status_id' => 1,
                         'created_user_id' => $this->file['security_user_id']
                     ]);
-                }
+//                }
 
 
 
