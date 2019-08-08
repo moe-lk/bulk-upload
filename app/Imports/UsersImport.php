@@ -10,7 +10,6 @@ use App\Models\Institution_class_subject;
 use App\Models\Institution_student_admission;
 use App\Models\Institution_subject;
 use App\Models\Institution_subject_student;
-use App\Models\Special_need_difficulty;
 use App\Models\User_special_need;
 use App\Models\Security_group;
 use App\Models\Security_user;
@@ -25,6 +24,7 @@ use App\Models\Academic_period;
 use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
+use App\Models\Special_need_difficulty;
 use App\Models\Workflow_transition;
 use App\Rules\admissionAge;
 use function foo\func;
@@ -224,6 +224,18 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             }
 
 
+            if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
+                $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
+                if($BirthDivision !== null){
+                    $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
+                        ->where('parent_id','=',$BirthDivision->id)->first();
+                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+
+                }
+            }
+
+
+
 
         }catch (\Exception $e){
             \Log::error('Import Error',[$e]);
@@ -283,17 +295,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
 
-        if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
-            $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
-            if($BirthDivision !== null){
-                $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
-                    ->where('parent_id','=',$BirthDivision->id)->first();
-                $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
 
-            }
-        }
-
-        dd($row['identity_number']);
         Log::info('row data:',[$row]);
         if(!empty($institutionClass)){
 
@@ -405,13 +407,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                 if(!empty($row['special_need'])){
                     $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
-                    User_special_need::creat([
+                    User_special_need::create([
                         'special_need_date' => now(),
                         'security_user_id' => $student->id,
                         'special_need_type_id' => 1,
                         'special_need_difficulty_id' => $specialNeed->id,
-                        'created_user_id' => $this->file['security_user_id'],
-                        'created' => now()
+                        'created_user_id' => $this->file['security_user_id']
                     ]);
                 }
 
@@ -693,7 +694,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' =>  'nullable|user_unique:identity_number',
-            '*.academic_period' => 'required',
+            '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.bmi_height' => 'required',
             '*.bmi_weight' => 'required',

@@ -1,10 +1,10 @@
 <?php
 
-namespace App;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User_special_need extends Model  {
+class User_special_need extends Base_Model  {
 
     /**
      * The database table used by the model.
