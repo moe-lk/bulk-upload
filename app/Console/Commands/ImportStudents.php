@@ -69,16 +69,30 @@ class ImportStudents extends Command
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
                 Excel::import($import,$excelFile,'local');
-                Mail::to($user->email)->send(new StudentImportSuccess($file));
-                DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>1]);
+
+                $isMailSent = Mail::to($user->email)->send(new StudentImportSuccess($file));
+                if($isMailSent){
+                    DB::table('uploads')
+                        ->where('id',  $file['id'])
+                        ->update(['is_processed' =>1,'is_email_sent' => 1]);
+                }else{
+                    DB::table('uploads')
+                        ->where('id',  $file['id'])
+                        ->update(['is_processed' =>1]);
+                }
+
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 self::writeErrors($e,$file);
-                Mail::to($user->email)->send(new StudentImportFailure($file));
-                DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2]);
+                $isMailSent = Mail::to($user->email)->send(new StudentImportFailure($file));
+                if($isMailSent){
+                    DB::table('uploads')
+                        ->where('id',  $file['id'])
+                        ->update(['is_processed' =>1,'is_email_sent' => 1]);
+                }else{
+                    DB::table('uploads')
+                        ->where('id',  $file['id'])
+                        ->update(['is_processed' =>1]);
+                }
 
             }
 

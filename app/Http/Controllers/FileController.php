@@ -29,14 +29,17 @@ class FileController extends Controller
             [
                 'import_file'      => $request->import_file,
                 'extension' => strtolower($request->import_file->getClientOriginalExtension()),
-                'class' => $request->class
+                'class' => $request->class,
+                'email' => auth()->user()->email
             ],
             [
                 'import_file'          => 'required',
                 'extension'      => 'required|in:xlsx,xls,ods|max:2048',
-                'class' => 'required'
+                'class' => 'required',
+                'email' => 'required'
 
-            ]
+            ],
+            ['email.required' => 'You dont have email  in your account, pleas contact your Zonal/Provincial Coordinator and update the email to get notification']
         );
         if ($validator->fails()) {
             return back()
