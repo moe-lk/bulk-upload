@@ -33,6 +33,11 @@ class FilesController extends Controller
                 };
 
             })
+            ->editColumn('filename', function ($data) {
+                return '<a href="/download/'.$data->filename.'">'.$data->filename.'</a>';
+
+            })
+            ->rawColumns(['filename','filename'])
             ->make(true);
     }
 
