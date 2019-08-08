@@ -237,8 +237,18 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
 
 
+
         }catch (\Exception $e){
             \Log::error('Import Error',[$e]);
+//            try{
+//                $error = \Illuminate\Validation\ValidationException::withMessages([]);
+//                $failure = new Failure(3, 'rows', [3 => 'Unexpected error, Pleas check your template and reconfirm that your are uploading the correct format' ],[null]);
+//                $failures = [0 => $failure];
+//                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+//                Log::info('email-sent',[$this->file]);
+//            }catch (Exception $e){
+//                Logg::info('email-sending-failed',[$e]);
+//            }
 
         }
 
@@ -294,6 +304,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         // TODO: Implement model() method.
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
+
 
 
         Log::info('row data:',[$row]);
@@ -586,6 +597,15 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         $query->where('gender_id', '=', 2);
                     })->where('institution_class_id','=' , $this->file['institution_class_id'])->count();
 
+                $totalStudents = $total_female_students + $total_male_students;
+
+                if($totalStudents > $institutionClass->no_of_students ){
+                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is ' .$institutionClass->no_of_students ],[null]);
+                    $failures = [0 => $failure];
+                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+                    Log::info('email-sent',[$this->file]);
+                }
 
                 Institution_class::where('id','=',$institutionClass->id)
                     ->update([
@@ -668,7 +688,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         if($exceededStudents == true){
             try{
                 $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! '. ($totalStudents + ($this->highestRow - 2))],[null]);
+                $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is' .$institutionClass->no_of_students ],[null]);
                 $failures = [0 => $failure];
                 throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 Log::info('email-sent',[$this->file]);
@@ -699,6 +719,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.bmi_height' => 'required',
             '*.bmi_weight' => 'required',
             '*.bmi_date_yyyy_mm_dd' => 'required',
+            '*.bmi_academic_period' => 'required|exists:academic_periods,name',
             '*.admission_no' => 'required',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
