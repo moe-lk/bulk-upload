@@ -223,7 +223,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
             }
 
-
             if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
                 $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
                 if($BirthDivision !== null){
@@ -237,18 +236,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
 
 
-
         }catch (\Exception $e){
             \Log::error('Import Error',[$e]);
-//            try{
-//                $error = \Illuminate\Validation\ValidationException::withMessages([]);
-//                $failure = new Failure(3, 'rows', [3 => 'Unexpected error, Pleas check your template and reconfirm that your are uploading the correct format' ],[null]);
-//                $failures = [0 => $failure];
-//                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-//                Log::info('email-sent',[$this->file]);
-//            }catch (Exception $e){
-//                Logg::info('email-sending-failed',[$e]);
-//            }
 
         }
 
@@ -304,6 +293,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         // TODO: Implement model() method.
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
+
+
 
 
 
