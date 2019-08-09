@@ -93,11 +93,23 @@ class FileController extends Controller
     public function downloadErrorFile($filename){
 
         $file_path = storage_path().'/app/sis-bulk-data-files/processed/'. $filename;
-
-//        dd($file_path);
         if (file_exists($file_path))
         {
-//            dd('================'.file_exists($file_path));
+            return Response::download($file_path, $filename, [
+                'Content-Length: '. filesize($file_path)
+            ]);
+        }
+        else
+        {
+            return View::make('errors.404');
+        }
+    }
+
+
+    public function downloadFile($filename){
+        $file_path = storage_path().'/app/sis-bulk-data-files/'. $filename;
+        if (file_exists($file_path))
+        {
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
             ]);

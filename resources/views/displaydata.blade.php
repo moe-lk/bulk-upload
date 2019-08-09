@@ -8,7 +8,8 @@
                 <thead>
                 <tr>
                     <th>Id</th>
-                    <th>File Name</th>
+                    <th>Original ile</th>
+                    <th>Error file</th>
                     <th>Class</th>
                     <th>Created</th>
                     <th>Updated</th>
@@ -27,6 +28,10 @@
                     columns: [
                         { data: 'id', name: 'id' },
                         { data: 'filename', name: 'filename' },
+                        { data: 'filename', name: 'filename',render:function(data, type, row){
+
+                                return "<a href='/users/"+ row.name +"'>" + row.name + "</a>"
+                        }},
                         { data: 'class_room.name', name: 'Class' },
                         { data: 'created_at' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},

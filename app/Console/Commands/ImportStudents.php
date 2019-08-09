@@ -74,7 +74,7 @@ class ImportStudents extends Command
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1]);
                 Mail::to($user->email)->send(new StudentImportSuccess($file));
-                Mail::to(env('MAIL_HOST'))->send(new StudentImportSuccess($file));
+//                Mail::to(env('MAIL_HOST'))->send(new StudentImportSuccess($file));
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1,'is_email_sent' => 1]);
@@ -85,7 +85,7 @@ class ImportStudents extends Command
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
                 Mail::to($user->email)->send(new StudentImportFailure($file));
-                Mail::to(env('MAIL_HOST'))->send(new StudentImportFailure($file));
+//                Mail::to(env('MAIL_HOST'))->send(new StudentImportFailure($file));
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2,'is_email_sent' => 1]);
@@ -112,14 +112,25 @@ class ImportStudents extends Command
             $error_mesg = implode(',',$failure->errors());
             $error = [
                 'row'=> $failure->row(),
-                'errors' => [ $error_mesg]
+                'errors' => [ $error_mesg],
+                'attribute' => $failure->attribute()
             ];
 
             array_push($errors,$error);
 
         }
 
+
+//        $selectedCells = $reader->getActiveSheet()->setSelectedCellByColumnAndRow();
+//        $selectedCells->getActiveCell()
+//            ->getFill()
+//            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+//            ->getStartColor()
+//            ->setARGB('FF808080');
+        ;
+//        dd($selectedCells);
         array_walk($errors , 'append_errors_to_excel',$reader);
+
 
         $objWriter = new \PHPExcel_Writer_Excel2007($reader);
         Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
