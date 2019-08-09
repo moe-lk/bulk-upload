@@ -28,10 +28,6 @@
                     columns: [
                         { data: 'id', name: 'id' },
                         { data: 'filename', name: 'filename' },
-                        { data: 'filename', name: 'filename',render:function(data, type, row){
-
-                                return "<a href='/users/"+ row.name +"'>" + row.name + "</a>"
-                        }},
                         { data: 'class_room.name', name: 'Class' },
                         { data: 'created_at' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},

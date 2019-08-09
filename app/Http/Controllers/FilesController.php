@@ -33,11 +33,11 @@ class FilesController extends Controller
                 };
 
             })
-//            ->editColumn('filename', function ($data) {
-//                return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
-//
-//            })
-//            ->rawColumns(['filename','filename'])
+            ->editColumn('filename', function ($data) {
+                return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
+
+            })
+            ->rawColumns(['filename','filename'])
             ->make(true);
     }
 
