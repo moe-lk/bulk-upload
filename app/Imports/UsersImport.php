@@ -98,7 +98,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $this->highestRow = $worksheet->getHighestRow(); // e.g. 10
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'rows', [0 => 'No enough rows!'],[null]);
+                    $failure = new Failure(3, 'remark', [0 => 'No enough rows!'],[null]);
                     $failures = [0 => $failure];
                     throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 }
@@ -180,7 +180,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             return true;
         }else{
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(1, 'rows', [0 => 'Template is not valid for upload, use the template given in the system'],[null]);
+            $failure = new Failure(1, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'],[null]);
             $failures = [0 => $failure];
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
             Log::info('error-email-sent',[$this->file]);
@@ -679,7 +679,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         if($exceededStudents == true){
             try{
                 $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is' .$institutionClass->no_of_students ],[null]);
+                $failure = new Failure(3, 'remark', [3 => 'Class student count exceeded! Max number of students is' .$institutionClass->no_of_students ],[null]);
                 $failures = [0 => $failure];
                 throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 Log::info('email-sent',[$this->file]);
@@ -715,14 +715,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
-            '*.fathers_full_name' =>'sometimes',
+            '*.fathers_full_name' =>'sometimes|required_with:fathers_identity_number',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', ///required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd
             '*.fathers_address' =>  'required_with:fathers_full_name', //required_without:guardians_address,mothers_address
             '*.fathers_address_area' => 'required_with:fathers_full_name', //required_without:guardians_address_area,mothers_address_area
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable',
-            '*.mothers_full_name' => 'sometimes',
+            '*.mothers_full_name' => 'sometimes|required_with:mothers_identity_number',
             '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date
             '*.mothers_address' =>  'required_with:mothers_full_name', //required_without:guardians_address,fathers_address
             '*.mothers_address_area' => 'required_with:mothers_full_name', //required_without:guardians_address_area,fathers_address_area

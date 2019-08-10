@@ -95,9 +95,36 @@ function merge_error_by_row($errors,$key){
  */
 
 function append_errors_to_excel($error, $count, $reader){
-    $prev_value = $reader->getActiveSheet()->getCell('A'.$error['row'])->getValue();
-    $reader->getActiveSheet()->setCellValue('A'. ($error['row']) ,  $prev_value.','.implode(',',$error['errors']));
-    $reader->getActiveSheet()->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
+    $active_sheet = $reader->getActiveSheet();
+    $prev_value = $active_sheet->getCell('A'.$error['row'])->getValue();
+    $active_sheet->setCellValue('A'. ($error['row']) ,  $prev_value.','.implode(',',$error['errors']));
+    $active_sheet->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
+
+    $columns = Illuminate\Support\Facades\Config::get('excel.columns');
+//    dd($error);
+    $column = array_keys($columns,$error['attribute'])[0];
+    $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+    $active_cell = ($selectedCells->getActiveCell());
+
+    $active_sheet->getStyle($active_cell)
+        ->getFill()
+        ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+        ->getStartColor()
+        ->setARGB('FF0000');
+
+}
+
+function colorizeCell($column,$error,$active_sheet){
+    $column = array_keys($column,$error['attribute']);
+    $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+    $active_cell = ($selectedCells->getActiveCell());
+
+    $active_sheet->getStyle($active_cell)
+        ->getFill()
+        ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+        ->getStartColor()
+        ->setARGB('FF0000');
+
 }
 
 

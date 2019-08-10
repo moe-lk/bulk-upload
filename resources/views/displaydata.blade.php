@@ -8,7 +8,8 @@
                 <thead>
                 <tr>
                     <th>Id</th>
-                    <th>File Name</th>
+                    <th>Original ile</th>
+                    <th>Error file</th>
                     <th>Class</th>
                     <th>Created</th>
                     <th>Updated</th>
