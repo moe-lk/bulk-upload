@@ -102,15 +102,20 @@ function append_errors_to_excel($error, $count, $reader){
 
     $columns = Illuminate\Support\Facades\Config::get('excel.columns');
 //    dd($error);
-    $column = array_keys($columns,$error['attribute'])[0];
-    $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
-    $active_cell = ($selectedCells->getActiveCell());
+    
+    $column = array_keys($columns,$error['attribute']);
+    if(!empty($column)){
+        $column= $column[0];
+         $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+        $active_cell = ($selectedCells->getActiveCell());
 
-    $active_sheet->getStyle($active_cell)
-        ->getFill()
-        ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
-        ->getStartColor()
-        ->setARGB('FF0000');
+        $active_sheet->getStyle($active_cell)
+            ->getFill()
+            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setARGB('FF0000');
+            
+        }
 
 }
 
