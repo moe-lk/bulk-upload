@@ -68,6 +68,9 @@ class ImportStudents extends Command
                 $import = new UsersImport($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+                //  \Excel::load('file.xls', function ($reader) {
+                //     $reader->ignoreEmpty();
+                // })->get();
                 Excel::import($import,$excelFile,'local');
 
                 DB::table('uploads')
@@ -119,16 +122,7 @@ class ImportStudents extends Command
             array_push($errors,$error);
 
         }
-
-
-//        $selectedCells = $reader->getActiveSheet()->setSelectedCellByColumnAndRow();
-//        $selectedCells->getActiveCell()
-//            ->getFill()
-//            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
-//            ->getStartColor()
-//            ->setARGB('FF808080');
-        ;
-//        dd($selectedCells);
+        
         array_walk($errors , 'append_errors_to_excel',$reader);
 
 

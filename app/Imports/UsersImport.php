@@ -65,9 +65,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $this->femaleStudentsCount = 0;
         $this->highestRow = 3;
     }
-
-
-
+    
 
     public function sheets(): array
     {
@@ -295,6 +293,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         $institution = $institutionClass->institution_id;
 
 
+        if(!array_filter($row)) { return nulll;}
 
 
 

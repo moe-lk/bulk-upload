@@ -49,6 +49,8 @@ return [
 
         'read_only' => true,
         'start_row' => 2,
+        'ignore_empty' => true,
+        'ignoreEmpty' => true,
 
         'heading_row' => [
 
