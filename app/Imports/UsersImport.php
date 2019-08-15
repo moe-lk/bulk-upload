@@ -44,12 +44,13 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Events\AfterImport;
+use Maatwebsite\Excel\Concerns\WithLimit;
 use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 
-class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMultipleSheets , WithEvents , WithMapping , WithBatchInserts , WithValidation
+class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMultipleSheets , WithEvents , WithMapping , WithLimit , WithBatchInserts , WithValidation
 {
     use Importable , RegistersEventListeners;
 
@@ -75,9 +76,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
         ];
     }
 
-    public function batchSize(): int
-    {
-        $highestColumn =  $this->worksheet->getHighestDataColumn();
+    public function limit(): int {
+        $highestColumn =  $this->worksheet->getHighestDataColumn(53);
         $higestRow = 0;
         for ($row = $this->startRow(); $row <= $this->highestRow; $row++){ 
             $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row,NULL,TRUE,FALSE);
@@ -85,6 +85,21 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $higestRow += 1;
             }
         }
+//        dd($higestRow);
+        return $higestRow;
+    }
+
+        public function batchSize(): int
+    {
+        $highestColumn =  $this->worksheet->getHighestDataColumn(53);
+        $higestRow = 0;
+        for ($row = $this->startRow(); $row <= $this->highestRow; $row++){ 
+            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row,NULL,TRUE,FALSE);
+            if(isEmptyRow(reset($rowData))) { continue; }else{
+                $higestRow += 1;
+            }
+        }
+//        dd($higestRow);
         return $higestRow;
     }
 
@@ -96,6 +111,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             BeforeSheet::class => function(BeforeSheet $event){
                 $this->sheetNames[] = $event->getSheet()->getTitle();
                 $this->worksheet = $event->getSheet();
+               
                 $this->validateClass();
 
                 $worksheet = $event->getSheet();
@@ -335,6 +351,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
                 $identityType = $identityType !== null ? $identityType->id : null;
+                
+                $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
 
 
                 $identityNUmber = $row['identity_number'];
@@ -358,7 +376,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'date_of_birth' => $date ,
                         'address'   => $row['address'],
 //                        'address_area_id'   => $AddressArea->id,
-                        'birthplace_area_id' => $BirthArea->id,
+                        'birthplace_area_id' => $BirthArea,
                         'nationality_id' => $nationalityId->id,
                         'identity_type_id' => $identityType,
                         'identity_number' => $identityNUmber ,
@@ -503,7 +521,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'date_of_birth' => $row['mothers_date_of_birth_yyyy_mm_dd'] ,
                             'address'   => $row['mothers_address'],
                             'address_area_id'   => $AddressArea->id,
-                            'birthplace_area_id' => $BirthArea->id,
+//                            'birthplace_area_id' => $BirthArea->id,
                             'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType,
                             'identity_number' => $row['mothers_identity_number'] ,
@@ -542,7 +560,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'date_of_birth' => $row['guardians_date_of_birth_yyyy_mm_dd'] ,
                             'address'   => $row['guardians_address'],
                             'address_area_id'   => $AddressArea->id,
-                            'birthplace_area_id' => $BirthArea->id,
+//                            'birthplace_area_id' => $BirthArea->id,
                             'nationality_id' => $nationalityId->id,
                             'identity_type_id' => $identityType,
                             'identity_number' => $row['guardians_identity_number'] ,
