@@ -146,3 +146,10 @@ function errors_unique_array($item,$key){
 
         return $errors;
 }
+
+function isEmptyRow($row) {
+    foreach($row as $cell){
+        if (null !== $cell) return false;
+    }
+    return true;
+}

@@ -77,8 +77,15 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
     public function batchSize(): int
     {
-        // TODO: Implement batchSize() method.
-        return 100;
+        $highestColumn =  $this->worksheet->getHighestDataColumn();
+        $higestRow = 0;
+        for ($row = $this->startRow(); $row <= $this->highestRow; $row++){ 
+            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row,NULL,TRUE,FALSE);
+            if(isEmptyRow(reset($rowData))) { continue; }else{
+                $higestRow += 1;
+            }
+        }
+        return $higestRow;
     }
 
 
@@ -91,9 +98,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $this->worksheet = $event->getSheet();
                 $this->validateClass();
 
-
                 $worksheet = $event->getSheet();
-                $this->highestRow = $worksheet->getHighestRow(); // e.g. 10
+                $this->highestRow = $worksheet->getHighestDataRow(); // e.g. 10
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
                     $failure = new Failure(3, 'remark', [0 => 'No enough rows!'],[null]);
@@ -288,7 +294,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
     public function model(array $row)
     {
 
-        // TODO: Implement model() method.
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
 
@@ -402,9 +407,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     ]);
 //                }
 
-
-
-                //TODO insert special need
 
                 if(!empty($row['special_need'])){
                     $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
@@ -715,24 +717,24 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' =>'sometimes|required_with:fathers_identity_number',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', ///required_without:mothers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd
-            '*.fathers_address' =>  'required_with:fathers_full_name', //required_without:guardians_address,mothers_address
-            '*.fathers_address_area' => 'required_with:fathers_full_name', //required_without:guardians_address_area,mothers_address_area
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', 
+            '*.fathers_address' =>  'required_with:fathers_full_name', 
+            '*.fathers_address_area' => 'required_with:fathers_full_name', 
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable',
             '*.mothers_full_name' => 'sometimes|required_with:mothers_identity_number',
-            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,guardians_date_of_birth_yyyy_mm_dd|date
-            '*.mothers_address' =>  'required_with:mothers_full_name', //required_without:guardians_address,fathers_address
-            '*.mothers_address_area' => 'required_with:mothers_full_name', //required_without:guardians_address_area,fathers_address_area
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', 
+            '*.mothers_address' =>  'required_with:mothers_full_name',
+            '*.mothers_address_area' => 'required_with:mothers_full_name', 
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable',
-            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name', //required_without:fathers_full_name,mothers_full_name
-            '*.guardians_gender_mf' =>  'required_with:guardians_full_name', //required_without:fathers_full_name,mothers_full_name
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name', //required_without:fathers_date_of_birth_yyyy_mm_dd,mothers_date_of_birth_yyyy_mm_dd
+            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name', 
+            '*.guardians_gender_mf' =>  'required_with:guardians_full_name', 
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name', 
             '*.guardians_address' => 'required_with:guardians_full_name',
-            '*.guardians_address_area' => 'required_with:guardians_full_name', //required_without:fathers_address_area,mothers_address_area
+            '*.guardians_address_area' => 'required_with:guardians_full_name', 
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable',

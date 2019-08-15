@@ -68,10 +68,9 @@ class ImportStudents extends Command
                 $import = new UsersImport($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-                //  \Excel::load('file.xls', function ($reader) {
-                //     $reader->ignoreEmpty();
-                // })->get();
+                
                 Excel::import($import,$excelFile,'local');
+                
 
                 DB::table('uploads')
                     ->where('id',  $file['id'])
