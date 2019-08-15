@@ -226,7 +226,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             if(gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double'){
                 $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
             }
-
+            
+        
             if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
                 $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
                 if($BirthDivision !== null){
@@ -293,6 +294,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
     public function model(array $row)
     {
+        
+        
 
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
         $institution = $institutionClass->institution_id;
