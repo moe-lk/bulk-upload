@@ -75,22 +75,35 @@ class ImportStudents extends Command
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1]);
-                Mail::to($user->email)->send(new StudentImportSuccess($file));
-//                Mail::to(env('MAIL_HOST'))->send(new StudentImportSuccess($file));
-                DB::table('uploads')
+                try{
+                    Mail::to($user->email)->send(new StudentImportSuccess($file));
+                     DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1,'is_email_sent' => 1]);
+                } catch (Exception $ex) {
+                     DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>1,'is_email_sent' => 2]);
+                }
+               
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 self::writeErrors($e,$file);
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
-                Mail::to($user->email)->send(new StudentImportFailure($file));
-//                Mail::to(env('MAIL_HOST'))->send(new StudentImportFailure($file));
-                DB::table('uploads')
+                try{
+                    Mail::to($user->email)->send(new StudentImportFailure($file));
+                       DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2,'is_email_sent' => 1]);
+                } catch (Exception $ex) {
+                      DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>2,'is_email_sent' => 2]);
+                }
+                
+              
 
 
             }

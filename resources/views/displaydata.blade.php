@@ -13,7 +13,6 @@
                     <th>Class</th>
                     <th>Created</th>
                     <th>Updated</th>
-                    <th>Status</th>
                     <th>Email Status</th>
                 </tr>
                 </thead>

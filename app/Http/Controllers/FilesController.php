@@ -19,7 +19,7 @@ class FilesController extends Controller
                 }elseif ($data->is_processed === 2){
                     return "Failed";
                 }elseif($data->is_processed == 3){
-                    return "Terminated";
+                    return "Processing";
                 }else{
                     return 'Pending';
                 };
@@ -28,8 +28,10 @@ class FilesController extends Controller
             ->editColumn('is_email_sent', function ($data) {
                 if ($data->is_email_sent === 1) {
                     return "Success";
-                }else{
+                }elseif($data->is_email_sent === 2 ){
                     return 'Failed';
+                }else{
+                    return 'Sending';
                 };
 
             })
