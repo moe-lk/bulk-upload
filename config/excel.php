@@ -43,12 +43,16 @@ return [
     ],
     'import' => [
         'start_row' => 2,
-        'chunk_size'=> 40
+        'chunk_size'=> 40,
+        'ignore_empty' => true,
+        'ignoreEmpty' => true
     ],
     'imports'            => [
 
         'read_only' => true,
         'start_row' => 2,
+        'ignore_empty' => true,
+        'ignoreEmpty' => true,
 
         'heading_row' => [
 

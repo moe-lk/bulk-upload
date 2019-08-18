@@ -68,27 +68,42 @@ class ImportStudents extends Command
                 $import = new UsersImport($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+                
                 Excel::import($import,$excelFile,'local');
+                
 
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1]);
-                Mail::to($user->email)->send(new StudentImportSuccess($file));
-//                Mail::to(env('MAIL_HOST'))->send(new StudentImportSuccess($file));
-                DB::table('uploads')
+                try{
+                    Mail::to($user->email)->send(new StudentImportSuccess($file));
+                     DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1,'is_email_sent' => 1]);
+                } catch (Exception $ex) {
+                     DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>1,'is_email_sent' => 2]);
+                }
+               
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 self::writeErrors($e,$file);
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
-                Mail::to($user->email)->send(new StudentImportFailure($file));
-//                Mail::to(env('MAIL_HOST'))->send(new StudentImportFailure($file));
-                DB::table('uploads')
+                try{
+                    Mail::to($user->email)->send(new StudentImportFailure($file));
+                       DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2,'is_email_sent' => 1]);
+                } catch (Exception $ex) {
+                      DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>2,'is_email_sent' => 2]);
+                }
+                
+              
 
 
             }
@@ -119,16 +134,7 @@ class ImportStudents extends Command
             array_push($errors,$error);
 
         }
-
-
-//        $selectedCells = $reader->getActiveSheet()->setSelectedCellByColumnAndRow();
-//        $selectedCells->getActiveCell()
-//            ->getFill()
-//            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
-//            ->getStartColor()
-//            ->setARGB('FF808080');
-        ;
-//        dd($selectedCells);
+        
         array_walk($errors , 'append_errors_to_excel',$reader);
 
 
