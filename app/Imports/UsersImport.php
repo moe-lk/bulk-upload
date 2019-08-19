@@ -528,7 +528,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
                         ]);
-                        $mother['guardian_relation_id'] = 1;
+                        $mother['guardian_relation_id'] = 2;
                         Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $mother->id)
@@ -567,12 +567,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
                         ]);
-                        $guardian['guardian_relation_id'] = 1;
+                        $guardian['guardian_relation_id'] = 3;
                         Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=',  $guardian->id)
                             ->update(['is_guardian' => 1]);
-                        $guardian['guardian_relation_id'] = 1;
+                        $guardian['guardian_relation_id'] = 3;
                         Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }
                 }
