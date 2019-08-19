@@ -557,7 +557,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $guardian = null ;
                     
-                    if(!($row['guardians_identity_number'])){
+                    if(!empty($row['guardians_identity_number'])){
                           $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
                     }
