@@ -22,6 +22,11 @@ function array_keys_exists(array $keys, array $arr)
     return !array_diff_key(array_flip($keys), $arr);
 }
 
+function clean($string) {
+   $string = str_replace(' ', '-', $string); // Replaces all spaces with hyphens.
+
+   return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
+}
 
 function getMatchingKeys($array){
     $keys = [];
