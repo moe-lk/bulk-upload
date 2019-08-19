@@ -461,7 +461,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-                if(!empty($row['fathers_full_name'])){
+                if(!empty($row['fathers_full_name']) && trim($row['fathers_full_name']," ") !== ""){
 
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
@@ -477,7 +477,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     }
                         
 
-                    if($father == null){
+                    if($father === null){
+                        
                         $father  =   Security_user::create([
                             'username'=> $openemisFather,
                             'openemis_no'=>$openemisFather,
@@ -503,7 +504,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     }
                 }
 
-                if(!empty($row['mothers_full_name'])){
+                if(!empty($row['mothers_full_name']) && trim($row['mothers_full_name']," ") !== "" ){
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['mothers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['mothers_nationality'].'%')->first();
                     $identityType = Identity_type::where('national_code','like','%'.$row['mothers_identity_type'].'%')->first();
@@ -518,7 +519,10 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         ->where('identity_number' , '=', $row['mothers_identity_number'])->first();
                     }
 
-                    if($mother == null){
+                    if($mother === null){
+//                       if(empty($row['mothers_date_of_birth_yyyy_mm_dd'])){
+//                           dd($row);
+//                       }
                         $mother = Security_user::create([
                             'username'=> $openemisMother,
                             'openemis_no'=>$openemisMother,
@@ -536,6 +540,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'created_user_id' => $this->file['security_user_id']
                         ]);
                         $mother['guardian_relation_id'] = 2;
+                        
                         Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $mother->id)
@@ -546,7 +551,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 }
 
             
-                if(!empty($row['guardians_full_name'])){
+                if(!empty($row['guardians_full_name']) && trim($row['guardians_full_name']," ") !== ""){
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['guardians_nationality'].'%')->first();
@@ -562,7 +567,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
                     }
                   
-                    if($guardian == null){
+                    if($guardian === null){
                         $guardian =  Security_user::create([
                             'username'=> $openemisGuardian,
                             'openemis_no'=>$openemisGuardian,
@@ -579,6 +584,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
                         ]);
+                     
                         $guardian['guardian_relation_id'] = 3;
                         Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }else{
@@ -750,14 +756,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'sometimes|required_with:fathers_identity_number',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:fathers_full_name',
             '*.fathers_address' =>  'required_with:fathers_full_name',
             '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable',
-            '*.mothers_full_name' => 'sometimes|required_with:.mothers_identity_number',
-            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name',
+            '*.mothers_full_name' => 'required_with:.mothers_identity_number',
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'sometimes|required_with:mothers_full_name',
             '*.mothers_address' =>  'required_with:mothers_full_name',
             '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_nationality' => "required_with:mothers_full_name",
@@ -765,7 +771,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.mothers_identity_number' => 'nullable',
             '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name',
             '*.guardians_gender_mf' =>  'required_with:guardians_full_name',
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'sometimes|required_with:guardians_full_name',
             '*.guardians_address' => 'required_with:guardians_full_name',
             '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
