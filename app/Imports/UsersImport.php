@@ -433,7 +433,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
                     User_special_need::create([
                         'special_need_date' => now(),
-                        'security_user_id' => $student->id,
+                        'security_user_id' => $student->student_id,
                         'special_need_type_id' => 1,
                         'special_need_difficulty_id' => $specialNeed->id,
                         'created_user_id' => $this->file['security_user_id']
@@ -457,7 +457,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'date' => $row['bmi_date_yyyy_mm_dd'],
                     'body_mass_index' => $bodyMass,
                     'academic_period_id' => $bmiAcademic->id,
-                    'security_user_id' => $student->id,
+                    'security_user_id' => $student->student_id,
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
@@ -490,12 +490,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'created_user_id' => $this->file['security_user_id']
                         ]);
                         $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
+                        Student_guardian::createStudentGuardian($student,$father,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $father->id)
                             ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
+                        Student_guardian::createStudentGuardian($student,$father,$this->file['security_user_id']);
                     }
                 }
 
@@ -529,15 +529,16 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'created_user_id' => $this->file['security_user_id']
                         ]);
                         $mother['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$mother);
+                        Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $mother->id)
                             ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
-                        Student_guardian::createStudentGuardian($student,$mother);
+                        Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }
                 }
 
+            
                 if(!empty($row['guardians_full_name'])){
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
@@ -549,7 +550,6 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
-
                     if(empty($guardian)){
                         $guardian =  Security_user::create([
                             'username'=> $openemisGuardian,
@@ -568,12 +568,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'created_user_id' => $this->file['security_user_id']
                         ]);
                         $guardian['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$guardian);
+                        Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=',  $guardian->id)
                             ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$guardian);
+                        Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }
                 }
 
@@ -718,7 +718,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
     {
 
         return [
-            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
+                   '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
             '*.address' => 'nullable',
@@ -737,29 +737,28 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
-            '*.fathers_full_name' =>'sometimes|required_with:fathers_identity_number',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', 
-            '*.fathers_address' =>  'required_with:fathers_full_name', 
-            '*.fathers_address_area' => 'required_with:fathers_full_name', 
+            '*.fathers_full_name' => 'sometimes|required_with:fathers_identity_number',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
+            '*.fathers_address' =>  'required_with:fathers_full_name',
+            '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable',
-            '*.mothers_full_name' => 'sometimes|required_with:mothers_identity_number',
-            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', 
+            '*.mothers_full_name' => 'sometimes|required_with:.mothers_identity_number',
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name',
             '*.mothers_address' =>  'required_with:mothers_full_name',
-            '*.mothers_address_area' => 'required_with:mothers_full_name', 
+            '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable',
-            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name', 
-            '*.guardians_gender_mf' =>  'required_with:guardians_full_name', 
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name', 
+            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name',
+            '*.guardians_gender_mf' =>  'required_with:guardians_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name',
             '*.guardians_address' => 'required_with:guardians_full_name',
-            '*.guardians_address_area' => 'required_with:guardians_full_name', 
+            '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable',
-
         ];
     }
 
