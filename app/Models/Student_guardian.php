@@ -64,7 +64,7 @@ class Student_guardian extends Base_Model  {
     public static function createStudentGuardian($student,$guardian,$user){
      
         $data = [
-            'student_id' => $student->id,
+            'student_id' => $student->student_id,
             'guardian_id' => $guardian->id,
             'guardian_relation_id' => $guardian->guardian_relation_id,
             'created' => now(),
