@@ -417,7 +417,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'created_user_id' => $this->file['security_user_id']
                     ]);
 
-                    $student = Institution_class_student::create([
+                    Institution_class_student::create([
                         'student_id'  => $student->id,
                         'institution_class_id' => $institutionClass->id,
                         'education_grade_id' => $institutionGrade->education_grade_id,
@@ -433,7 +433,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
                     User_special_need::create([
                         'special_need_date' => now(),
-                        'security_user_id' => $student->student_id,
+                        'security_user_id' => $student->id,
                         'special_need_type_id' => 1,
                         'special_need_difficulty_id' => $specialNeed->id,
                         'created_user_id' => $this->file['security_user_id']
@@ -457,7 +457,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'date' => $row['bmi_date_yyyy_mm_dd'],
                     'body_mass_index' => $bodyMass,
                     'academic_period_id' => $bmiAcademic->id,
-                    'security_user_id' => $student->student_id,
+                    'security_user_id' => $student->id,
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
@@ -649,7 +649,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                 $data[]  = [
                     'id' => (string) Uuid::generate(4),
-                    'student_id' => $student->student_id,
+                    'student_id' => $student->id,
                     'institution_class_id' => $student->institution_class_id,
                     'institution_subject_id' => $subject['institution_subject_id'],
                     'institution_id' => $student->institution_id,
@@ -718,7 +718,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
     {
 
         return [
-                   '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
+            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
             '*.address' => 'nullable',
