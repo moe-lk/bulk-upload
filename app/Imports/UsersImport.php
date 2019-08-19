@@ -470,10 +470,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
 
-                    $father = Security_user::where('identity_type_id','=', $nationalityId->id)
-                        ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
+                    $father = null;
+                    if(!empty($row['fathers_identity_number'])){
+                        $father = Security_user::where('identity_type_id','=', $nationalityId->id)
+                            ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
+                    }
+                        
 
-                    if(empty($father)){
+                    if($father == null){
                         $father  =   Security_user::create([
                             'username'=> $openemisFather,
                             'openemis_no'=>$openemisFather,
@@ -507,11 +511,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = $identityType !== null ? $identityType->id : null;
 
-                    $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
+                    $mother = null ;
+                    
+                    if(!empty($row['mothers_identity_number'])){
+                         $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['mothers_identity_number'])->first();
+                    }
 
-
-                    if(empty($mother)){
+                    if($mother == null){
                         $mother = Security_user::create([
                             'username'=> $openemisMother,
                             'openemis_no'=>$openemisMother,
@@ -548,9 +555,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = $identityType !== null ? $identityType->id : null;
 
-                    $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
+                    $guardian = null ;
+                    
+                    if(!($row['guardians_identity_number'])){
+                          $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
-                    if(empty($guardian)){
+                    }
+                  
+                    if($guardian == null){
                         $guardian =  Security_user::create([
                             'username'=> $openemisGuardian,
                             'openemis_no'=>$openemisGuardian,
