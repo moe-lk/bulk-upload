@@ -19,7 +19,7 @@ class FilesController extends Controller
                 }elseif ($data->is_processed === 2){
                     return "Failed";
                 }elseif($data->is_processed == 3){
-                    return "Processing";
+                    return "Processing  ";
                 }else{
                     return 'Pending';
                 };

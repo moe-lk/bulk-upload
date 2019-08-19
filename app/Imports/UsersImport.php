@@ -417,7 +417,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'created_user_id' => $this->file['security_user_id']
                     ]);
 
-                    $student = Institution_class_student::create([
+                    $student =  Institution_class_student::create([
                         'student_id'  => $student->id,
                         'institution_class_id' => $institutionClass->id,
                         'education_grade_id' => $institutionGrade->education_grade_id,
@@ -433,7 +433,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     $specialNeed = Special_need_difficulty::where('name','=',$row['special_need'])->first();
                     User_special_need::create([
                         'special_need_date' => now(),
-                        'security_user_id' => $student->id,
+                        'security_user_id' => $student->student_id,
                         'special_need_type_id' => 1,
                         'special_need_difficulty_id' => $specialNeed->id,
                         'created_user_id' => $this->file['security_user_id']
@@ -457,7 +457,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'date' => $row['bmi_date_yyyy_mm_dd'],
                     'body_mass_index' => $bodyMass,
                     'academic_period_id' => $bmiAcademic->id,
-                    'security_user_id' => $student->id,
+                    'security_user_id' => $student->student_id,
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
@@ -470,10 +470,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
 
-                    $father = Security_user::where('identity_type_id','=', $nationalityId->id)
-                        ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
+                    $father = null;
+                    if(!empty($row['fathers_identity_number'])){
+                        $father = Security_user::where('identity_type_id','=', $nationalityId->id)
+                            ->where('identity_number' , '=', $row['fathers_identity_number'])->first();
+                    }
+                        
 
-                    if(empty($father)){
+                    if($father == null){
                         $father  =   Security_user::create([
                             'username'=> $openemisFather,
                             'openemis_no'=>$openemisFather,
@@ -490,12 +494,12 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'created_user_id' => $this->file['security_user_id']
                         ]);
                         $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
+                        Student_guardian::createStudentGuardian($student,$father,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $father->id)
                             ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$father);
+                        Student_guardian::createStudentGuardian($student,$father,$this->file['security_user_id']);
                     }
                 }
 
@@ -507,11 +511,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = $identityType !== null ? $identityType->id : null;
 
-                    $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
+                    $mother = null ;
+                    
+                    if(!empty($row['mothers_identity_number'])){
+                         $mother = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['mothers_identity_number'])->first();
+                    }
 
-
-                    if(empty($mother)){
+                    if($mother == null){
                         $mother = Security_user::create([
                             'username'=> $openemisMother,
                             'openemis_no'=>$openemisMother,
@@ -528,16 +535,17 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
                         ]);
-                        $mother['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$mother);
+                        $mother['guardian_relation_id'] = 2;
+                        Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=', $mother->id)
                             ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
-                        Student_guardian::createStudentGuardian($student,$mother);
+                        Student_guardian::createStudentGuardian($student,$mother,$this->file['security_user_id']);
                     }
                 }
 
+            
                 if(!empty($row['guardians_full_name'])){
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
@@ -547,10 +555,14 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
                     $identityType = $identityType !== null ? $identityType->id : null;
 
-                    $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
+                    $guardian = null ;
+                    
+                    if(!empty($row['guardians_identity_number'])){
+                          $guardian = Security_user::where('identity_type_id','=', $nationalityId->id)
                         ->where('identity_number' , '=', $row['guardians_identity_number'])->first();
-
-                    if(empty($guardian)){
+                    }
+                  
+                    if($guardian == null){
                         $guardian =  Security_user::create([
                             'username'=> $openemisGuardian,
                             'openemis_no'=>$openemisGuardian,
@@ -567,13 +579,13 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                             'is_guardian' => 1,
                             'created_user_id' => $this->file['security_user_id']
                         ]);
-                        $guardian['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$guardian);
+                        $guardian['guardian_relation_id'] = 3;
+                        Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }else{
                         Security_user::where('id' , '=',  $guardian->id)
                             ->update(['is_guardian' => 1]);
-                        $guardian['guardian_relation_id'] = 1;
-                        Student_guardian::createStudentGuardian($student,$guardian);
+                        $guardian['guardian_relation_id'] = 3;
+                        Student_guardian::createStudentGuardian($student,$guardian,$this->file['security_user_id']);
                     }
                 }
 
@@ -737,29 +749,28 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
-            '*.fathers_full_name' =>'sometimes|required_with:fathers_identity_number',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name', 
-            '*.fathers_address' =>  'required_with:fathers_full_name', 
-            '*.fathers_address_area' => 'required_with:fathers_full_name', 
+            '*.fathers_full_name' => 'sometimes|required_with:fathers_identity_number',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
+            '*.fathers_address' =>  'required_with:fathers_full_name',
+            '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable',
-            '*.mothers_full_name' => 'sometimes|required_with:mothers_identity_number',
-            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name', 
+            '*.mothers_full_name' => 'sometimes|required_with:.mothers_identity_number',
+            '*.mothers_date_of_birth_yyyy_mm_dd' =>  'required_with:mothers_full_name',
             '*.mothers_address' =>  'required_with:mothers_full_name',
-            '*.mothers_address_area' => 'required_with:mothers_full_name', 
+            '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable',
-            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name', 
-            '*.guardians_gender_mf' =>  'required_with:guardians_full_name', 
-            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name', 
+            '*.guardians_full_name' => 'required_without_all:*.fathers_full_name,*.mothers_full_name',
+            '*.guardians_gender_mf' =>  'required_with:guardians_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' =>  'required_with:guardians_full_name',
             '*.guardians_address' => 'required_with:guardians_full_name',
-            '*.guardians_address_area' => 'required_with:guardians_full_name', 
+            '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable',
-
         ];
     }
 

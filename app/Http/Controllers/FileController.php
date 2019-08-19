@@ -52,7 +52,7 @@ class FileController extends Controller
         $institution = auth()->user()->permissions->isEmpty() ? auth()->user()->principal[0]->institution_group[0]->institution->code : auth()->user()->permissions[0]->institution_staff->institution->code;
 
 
-        $fileName = time().'_'.$institution.'_'.str_replace(' ','_',$class->name).'_'.auth()->user()->openemis_no.'_student_bulk_data.xlsx';
+        $fileName = time().'_'.$institution.'_'.str_replace(' ','_', clean($class->name)).'_'.auth()->user()->openemis_no.'_student_bulk_data.xlsx';
         Storage::disk('local')->putFileAs(
             'sis-bulk-data-files/',
             $uploadFile,
