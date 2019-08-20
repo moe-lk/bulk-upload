@@ -224,27 +224,27 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
 
-            if(gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string'){
+            if((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string')  && ($row['date_of_birth_yyyy_mm_dd'] !== null)  ){
                 $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['bmi_date_yyyy_mm_dd']) == 'double'){
+            if((gettype($row['bmi_date_yyyy_mm_dd']) == 'double')   && ($row['bmi_date_yyyy_mm_dd'] !== null) ){
                 $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
             }
 
-            if(gettype($row['start_date_yyyy_mm_dd']) == 'double'){
+            if((gettype($row['start_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)){
                 $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
             }
 
-            if(gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double'){
+            if((gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null) ){
                 $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double'){
+            if((gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)){
                 $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
             }
 
-            if(gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double'){
+            if((gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null) ){
                 $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
             }
             
