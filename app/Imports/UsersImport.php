@@ -224,6 +224,11 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
             
+            if((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string')  && ($row['date_of_birth_yyyy_mm_dd'] !== null)  ){
+                $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
+            }
+
+            
             if($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))){
                 $BirthDivision = Area_administrative::where('name','like','%'.$row['birth_divisional_secretariat'].'%')->where('area_administrative_level_id','=',5)->first();
                 if($BirthDivision !== null){
@@ -235,10 +240,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             }
 
 
-            if((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string')  && ($row['date_of_birth_yyyy_mm_dd'] !== null)  ){
-                $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
-            }
-
+          
             if((gettype($row['bmi_date_yyyy_mm_dd']) == 'double')   && ($row['bmi_date_yyyy_mm_dd'] !== null) ){
                 $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
             }
