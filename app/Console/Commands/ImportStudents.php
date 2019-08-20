@@ -72,9 +72,11 @@ class ImportStudents extends Command
                 Excel::import($import,$excelFile,'local');
                 
 
+                DB::beginTransaction();
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1]);
+                DB::commit();
                 try{
                     Mail::to($user->email)->send(new StudentImportSuccess($file));
                      DB::table('uploads')
