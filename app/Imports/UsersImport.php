@@ -99,8 +99,13 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 $higestRow += 1;
             }
         }
+        if($higestRow === 0){
+            return 1;
+        }else{
+            return $higestRow;
+        }
 //        dd($higestRow);
-        return $higestRow;
+        
     }
 
 
