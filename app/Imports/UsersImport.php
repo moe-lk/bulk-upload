@@ -467,7 +467,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-                if(!empty($row['fathers_full_name']) && ctype_space($row['fathers_date_of_birth_yyyy_mm_dd'])){
+                if(!empty($row['fathers_full_name']) && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)){
 
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
@@ -510,7 +510,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     }
                 }
 
-                if(!empty($row['mothers_full_name']) && ctype_space($row['mothers_date_of_birth_yyyy_mm_dd'])){
+                if(!empty($row['mothers_full_name']) && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)){
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['mothers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['mothers_nationality'].'%')->first();
                     $identityType = Identity_type::where('national_code','like','%'.$row['mothers_identity_type'].'%')->first();
@@ -557,7 +557,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 }
 
             
-                if(!empty($row['guardians_full_name']) && ctype_space($row['guardians_date_of_birth_yyyy_mm_dd'])){
+                if(!empty($row['guardians_full_name']) && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)){
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['guardians_nationality'].'%')->first();
