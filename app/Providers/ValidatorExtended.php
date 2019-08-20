@@ -71,7 +71,7 @@ class ValidatorExtended extends IlluminateValidator
                 $BirthArea = Area_administrative::where('name', 'like', '%'.$data['birth_registrar_office_as_in_birth_certificate'].'%')
                     ->where('parent_id','=',$BirthDivision->id)->count();
                 return $BirthArea > 0;
-            }elseif($data['identity_type'] == 'BC' && !key_exists('birth_divisional_secretariat',$data)){
+            }elseif($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat',$data)){
                 return false;
             }
             else{
@@ -97,7 +97,7 @@ class ValidatorExtended extends IlluminateValidator
                 }else{
                     return true;
                 }
-            }elseif($value == null){
+            }elseif(($value == null) || ($value == "")){
                 return true;
             }
 
