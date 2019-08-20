@@ -466,7 +466,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-                if(!empty($row['fathers_full_name']) && trim($row['fathers_full_name']," ") !== ""){
+                if(!empty($row['fathers_full_name']) && ctype_space($row['fathers_date_of_birth_yyyy_mm_dd'])){
 
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['fathers_nationality'].'%')->first();
@@ -509,7 +509,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                     }
                 }
 
-                if(!empty($row['mothers_full_name']) && trim($row['mothers_full_name']," ") !== "" ){
+                if(!empty($row['mothers_full_name']) && ctype_space($row['mothers_date_of_birth_yyyy_mm_dd'])){
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['mothers_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['mothers_nationality'].'%')->first();
                     $identityType = Identity_type::where('national_code','like','%'.$row['mothers_identity_type'].'%')->first();
@@ -556,7 +556,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 }
 
             
-                if(!empty($row['guardians_full_name']) && trim($row['guardians_full_name']," ") !== ""){
+                if(!empty($row['guardians_full_name']) && ctype_space($row['guardians_date_of_birth_yyyy_mm_dd'])){
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
                     $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
                     $nationalityId = Nationality::where('name','like','%'.$row['guardians_nationality'].'%')->first();
@@ -745,8 +745,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
             '*.address' => 'nullable',
-            '*.birth_registrar_office_as_in_birth_certificate' => '|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
-            '*.birth_divisional_secretariat' => '|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
+            '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
+            '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' =>  'nullable|user_unique:identity_number',
