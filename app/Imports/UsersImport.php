@@ -389,6 +389,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'created_user_id' => $this->file['security_user_id']
                     ]);
 
+                    $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                     Institution_student_admission::create([
                         'start_date' => $row['start_date_yyyy_mm_dd'],
                         'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
@@ -396,7 +397,7 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'end_year' =>  $academicPeriod->end_year,
                         'student_id' => $student->id,
                         'status_id' => 124,
-                        'assignee_id' => $institutionClass->staff_id,
+                        'assignee_id' =>  $assignee_id,
                         'institution_id' => $institution,
                         'academic_period_id' => $academicPeriod->id,
                         'education_grade_id' => $institutionGrade->education_grade_id,
