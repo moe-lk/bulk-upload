@@ -97,9 +97,9 @@ class ValidatorExtended extends IlluminateValidator
                 }else{
                     return true;
                 }
-            }else{
+            }elseif($value == null){
                 return true;
-            }
+            }else
 
         }
     }
