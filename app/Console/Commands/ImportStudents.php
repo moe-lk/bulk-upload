@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\App;
 
 class ImportStudents extends Command
 {
@@ -51,26 +53,50 @@ class ImportStudents extends Command
      */
     public function handle()
     {
-
-
-        $file = Upload::where('is_processed', '=', 0)
+        $files = $this->getFiles();
+        array_walk($files, array($this,'import'));
+        if((count($this->getFiles()) > 0) && $this->checkTime()){
+            $this->handle();
+        }else{
+            exit();
+        }
+    }
+    
+    protected function getFiles(){
+         $files = Upload::where('is_processed', '=', 0)
             ->orWhere(function ($query){
                 $query->where('is_processed','=',3)
                     ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
             })
-            ->get()->first();
-        if (!is_null($file)) {
-            try {
+            ->get()->toArray();
+         return $files;   
+    }
+
+    protected function checkTime(){
+         $time = Carbon::now()->tz('Asia/Colombo');
+        $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo'); //set time to 05:59
+        
+        $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',12), 30, 0)->tz('Asia/Colombo'); //set time to 18:00
+        return $time->between($morning, $evening, true);
+    }
+
+
+    protected function import($file){
+            if($this->checkTime()) {
+          //process the import if the time range is between morening and evening
+             try {
+                DB::beginTransaction();
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>3]);
+                DB::commit();
 
                 $import = new UsersImport($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-                
                 Excel::import($import,$excelFile,'local');
                 
+               
 
                 DB::beginTransaction();
                 DB::table('uploads')
@@ -78,11 +104,12 @@ class ImportStudents extends Command
                     ->update(['is_processed' =>1]);
                 DB::commit();
                 try{
-                    Mail::to($user->email)->send(new StudentImportSuccess($file));
+                     Mail::to($user->email)->send(new StudentImportSuccess($file));
                      DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1,'is_email_sent' => 1]);
                 } catch (Exception $ex) {
+                    $this->handle();
                      DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1,'is_email_sent' => 2]);
@@ -100,50 +127,47 @@ class ImportStudents extends Command
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2,'is_email_sent' => 1]);
                 } catch (Exception $ex) {
+                      $this->handle();
                       DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2,'is_email_sent' => 2]);
                 }
-                
-              
-
-
             }
-
-
+        } else {
+            exit();
         }
+    }
+           
 
+            
+
+    protected function processErrors($failure){
+            $error_mesg = implode(',',$failure->errors());
+            $failure = [
+                'row'=> $failure->row(),
+                'errors' => [ $error_mesg],
+                'attribute' => $failure->attribute()
+            ];
+            return $failure;
+        
     }
 
+
+
+
     protected function writeErrors($e,$file){
+        ini_set('memory_limit', '1024M');
         $failures = $e->failures();
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         $reader->setActiveSheetIndex(1);
-        $errors = array();
-
-        foreach ($failures as $key => $failure) {
-
-            $error_mesg = implode(',',$failure->errors());
-            $error = [
-                'row'=> $failure->row(),
-                'errors' => [ $error_mesg],
-                'attribute' => $failure->attribute()
-            ];
-
-            array_push($errors,$error);
-
-        }
-        
-        array_walk($errors , 'append_errors_to_excel',$reader);
-
-
+        $failures = array_map( array($this,'processErrors'),$failures );
+        array_walk($failures , 'append_errors_to_excel',$reader);
         $objWriter = new \PHPExcel_Writer_Excel2007($reader);
         Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
         $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
-
-
+        unset($objWriter);
     }
 }

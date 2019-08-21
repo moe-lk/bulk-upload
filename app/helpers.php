@@ -28,6 +28,7 @@ function clean($string) {
    return preg_replace('/[^A-Za-z0-9\-]/', '', $string); // Removes special chars.
 }
 
+
 function getMatchingKeys($array){
     $keys = [];
     foreach ($array as $key => $value){

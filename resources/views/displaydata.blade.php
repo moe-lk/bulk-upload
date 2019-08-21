@@ -8,7 +8,7 @@
                 <thead>
                 <tr>
                     <th>Id</th>
-                    <th>Original ile</th>
+                    <th>Original file</th>
                     <th>Error file</th>
                     <th>Class</th>
                     <th>Created</th>
@@ -27,7 +27,7 @@
                     columns: [
                         { data: 'id', name: 'id' },
                         { data: 'filename', name: 'filename' },
-                        { data: 'class_room.name', name: 'Class' },
+                        { data: 'error', name: 'error' },
                         { data: 'created_at' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},
                         { data: 'is_processed', name: 'Status'},

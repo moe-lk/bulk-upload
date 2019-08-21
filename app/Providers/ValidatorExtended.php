@@ -87,7 +87,6 @@ class ValidatorExtended extends IlluminateValidator
             $identityType = Identity_type::where('national_code','like','%'.$data['identity_type'].'%')->first();
 
             if($identityType !== null && ($value !== null)){
-
                 $isUnique = Security_user::where('identity_number' ,'=',$value)->where('identity_type_id','=',$identityType->id);
 //                dd($isUnique->count());
                 if($isUnique->count() > 0){
@@ -97,7 +96,7 @@ class ValidatorExtended extends IlluminateValidator
                 }else{
                     return true;
                 }
-            }elseif(($value == null) || ($value == "")){
+            }elseif(($value == null) || $value == ""){
                 return true;
             }
 

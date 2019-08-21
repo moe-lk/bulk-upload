@@ -36,10 +36,24 @@ class FilesController extends Controller
 
             })
             ->editColumn('filename', function ($data) {
-                return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
+                if(env('APP_ENV') == 'local'){
+                     return '<a href="/download_file/'.$data->filename.'">'.$data->filename.'</a>';
+                    
+                }else{
+                    return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.$data->filename.'</a>';
+                }
 
             })
-            ->rawColumns(['filename','filename'])
+             ->editColumn('error', function ($data) {
+                if(env('APP_ENV') == 'local'){
+                     return '<a href="/download/'.$data->filename.'">'.$data->filename.'</a>';
+                    
+                }else{
+                    return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
+                }
+
+            })
+            ->rawColumns(['filename','error'])
             ->make(true);
     }
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Institution_class;
+use App\Jobs\ProcessImportFiles;
 
 
 class FileController extends Controller
@@ -65,6 +66,7 @@ class FileController extends Controller
         $upload->institution_class_id = $class->id;
         $upload->user()->associate(auth()->user());
         $upload->save();
+        
 
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
     }
