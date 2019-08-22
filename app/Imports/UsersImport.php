@@ -17,7 +17,6 @@ use App\Models\User;
 use App\Models\User_body_mass;
 use App\Models\Institution_student;
 use App\Models\Import_mapping;
-use App\Models\Nationality;
 use App\Models\Identity_type;
 use App\Models\Student_guardian;
 use App\Models\Academic_period;
@@ -26,6 +25,8 @@ use App\Models\Institution_class_grade;
 use App\Models\Area_administrative;
 use App\Models\Special_need_difficulty;
 use App\Models\Workflow_transition;
+use App\Models\User_nationality;
+use App\Models\User_identity;
 use App\Rules\admissionAge;
 use function foo\func;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
+
 
 class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMultipleSheets , WithEvents , WithMapping , WithLimit , WithBatchInserts , WithValidation
 {
@@ -224,9 +226,8 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         try{
 
-            if((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double' || 'string')  && ($row['date_of_birth_yyyy_mm_dd'] !== null)  ){
-                $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
-            }
+            $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
+            
 
             if((gettype($row['bmi_date_yyyy_mm_dd']) == 'double')   && ($row['bmi_date_yyyy_mm_dd'] !== null) ){
                 $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
@@ -254,16 +255,13 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                 if($BirthDivision !== null){
                     $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')
                         ->where('parent_id','=',$BirthDivision->id)->first();
-                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
-
+                    if($BirthArea !== null){
+                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+                    }
                 }
             }
 
-        }catch (\Exception $e){
-              $error = \Illuminate\Validation\ValidationException::withMessages([]);
-              $failure = new Failure(3, 'remark', [3 => $e->getMessage() ],[null]);
-              $failures = [0 => $failure];
-             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+        }catch (Exceptions $e){
              \Log::error('Import Error',[$e]);
 
         }
@@ -389,6 +387,26 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'is_student' => 1,
                         'created_user_id' => $this->file['security_user_id']
                     ]);
+                    
+                    User_identity::create([
+                        'identity_type_id' => $identityType, 
+                        'number' => $identityNUmber, 
+                        'issue_date', 
+                        'expiry_date', 
+                        'issue_location', 
+                        'comments', 
+                        'security_user_id', 
+                        'created_user_id'
+                    ]);
+                    
+                    User_nationality::create([
+                        'nationality_id', 
+                        'security_user_id', 
+                        'comments', 
+                        'preferred', 
+                        'created_user_id', 
+                    ]);
+                    
 
                     $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                     Institution_student_admission::create([
@@ -747,11 +765,11 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             '*.gender_mf' => 'required',
             '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
             '*.address' => 'nullable',
-            '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
-            '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
+            '*.birth_registrar_office_as_in_birth_certificate' => 'exists:area_administratives,name||required_if:identity_type,BC|birth_place',
+            '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate|exists:area_administratives,name|birth_place',
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:identity_number',
-            '*.identity_number' =>  'nullable|user_unique:identity_number',
+            '*.identity_number' =>  'is_bc:identity_number|user_unique:identity_number',
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.bmi_height' => 'required|numeric',
