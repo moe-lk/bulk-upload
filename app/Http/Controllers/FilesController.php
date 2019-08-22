@@ -31,12 +31,12 @@ class FilesController extends Controller
                 }elseif($data->is_email_sent === 2 ){
                     return 'Failed';
                 }else{
-                    return 'Sending';
+                    return 'Pending';
                 };
 
             })
             ->editColumn('filename', function ($data) {
-                if(env('APP_ENV') == 'local'){
+                if(env('APP_ENV','local') == 'local'){
                      return '<a href="/download_file/'.$data->filename.'">'.$data->filename.'</a>';
                     
                 }else{
@@ -45,7 +45,7 @@ class FilesController extends Controller
 
             })
              ->editColumn('error', function ($data) {
-                if(env('APP_ENV') == 'local'){
+                if(env('APP_ENV','local') == 'local'){
                      return '<a href="/download/'.$data->filename.'">'.$data->filename.'</a>';
                     
                 }else{

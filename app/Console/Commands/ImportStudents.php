@@ -73,16 +73,19 @@ class ImportStudents extends Command
     }
 
     protected function checkTime(){
-         $time = Carbon::now()->tz('Asia/Colombo');
-        $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo'); //set time to 05:59
+        $time = Carbon::now()->tz('Asia/Colombo');
+        $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo')->setHour(1); //set time to 05:59
         
-        $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',12), 30, 0)->tz('Asia/Colombo'); //set time to 18:00
-        return $time->between($morning, $evening, true);
+        $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(6); //set time to 18:00
+         
+        $check = $time->between($morning,$evening, true);
+//        dd($check);
+        return $check;
     }
 
 
     protected function import($file){
-            if($this->checkTime()) {
+            if(!$this->checkTime()) {
           //process the import if the time range is between morening and evening
              try {
                 DB::beginTransaction();
@@ -104,6 +107,7 @@ class ImportStudents extends Command
                     ->update(['is_processed' =>1]);
                 DB::commit();
                 try{
+                   
                      Mail::to($user->email)->send(new StudentImportSuccess($file));
                      DB::table('uploads')
                     ->where('id',  $file['id'])

@@ -260,7 +260,11 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
             }
 
         }catch (\Exception $e){
-            \Log::error('Import Error',[$e]);
+              $error = \Illuminate\Validation\ValidationException::withMessages([]);
+              $failure = new Failure(3, 'remark', [3 => $e->getMessage() ],[null]);
+              $failures = [0 => $failure];
+             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+             \Log::error('Import Error',[$e]);
 
         }
 
