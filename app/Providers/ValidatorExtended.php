@@ -19,7 +19,7 @@ class ValidatorExtended extends IlluminateValidator
     private $_custom_messages = array(
         "admission_age" => "The age limit not match with admission age for this class",
         "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
-        'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
+        'user_unique' => 'The Birth Certificate number not match with the standed.',
         "is_bc" => "The Birth Certificate number is not valid",
     );
 
@@ -88,7 +88,14 @@ class ValidatorExtended extends IlluminateValidator
                 $BirthArea = Area_administrative::where('name', 'like', '%'.$data['birth_registrar_office_as_in_birth_certificate'].'%')
                     ->where('parent_id','=',$BirthDivision->id)->count();
                 return $BirthArea > 0;
-            }elseif($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat',$data)){
+            }elseif($data['identity_type'] == 'BC' && !key_exists('birth_divisional_secretariat',$data)){
+                $this->_custom_messages['birth_place'] = 'birth_divisional_secretariat required with BC';
+                $this->_set_custom_stuff();
+                return false;
+            }
+            elseif($data['identity_type'] == 'BC' && !key_exists('birth_registrar_office_as_in_birth_certificate',$data)){
+                $this->_custom_messages['birth_place'] = 'birth_registrar_office_as_in_birth_certificate required with BC';
+                $this->_set_custom_stuff();
                 return false;
             }
             else{
