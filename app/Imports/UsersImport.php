@@ -389,25 +389,25 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
                         'created_user_id' => $this->file['security_user_id']
                     ]);
                     
-                    User_identity::create([
-                        'identity_type_id' => $identityType, 
-                        'number' => $identityNUmber, 
-                        'issue_date', 
-                        'expiry_date', 
-                        'issue_location', 
-                        'comments', 
-                        'security_user_id', 
-                        'created_user_id'
-                    ]);
-                    
-                    User_nationality::create([
-                        'nationality_id', 
-                        'security_user_id', 
-                        'comments', 
-                        'preferred', 
-                        'created_user_id', 
-                    ]);
-                    
+//                    User_identity::create([
+//                        'identity_type_id' => $identityType, 
+//                        'number' => $identityNUmber, 
+//                        'issue_date', 
+//                        'expiry_date', 
+//                        'issue_location', 
+//                        'comments', 
+//                        'security_user_id', 
+//                        'created_user_id'
+//                    ]);
+//                    
+//                    User_nationality::create([
+//                        'nationality_id', 
+//                        'security_user_id', 
+//                        'comments', 
+//                        'preferred', 
+//                        'created_user_id', 
+//                    ]);
+//                    
 
                     $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                     Institution_student_admission::create([
