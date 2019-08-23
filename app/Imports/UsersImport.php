@@ -86,7 +86,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $higestRow += 1;
             }
         }
-//        dd($higestRow);
         return $higestRow;
     }
 
@@ -381,13 +380,13 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 'security_user_id' => $student->id,
                 'created_user_id' => $this->file['security_user_id']
             ]);
-
-            User_nationality::create([
-                'nationality_id' => $nationalityId,
-                'security_user_id' => $student->id,
-                'preferred' => 1,
-                'created_user_id' => $this->file['security_user_id']
-            ]);
+//
+//            User_nationality::create([
+//                'nationality_id' => $nationalityId,
+//                'security_user_id' => $student->id,
+//                'preferred' => 1,
+//                'created_user_id' => $this->file['security_user_id']
+//            ]);
 
 
             $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
