@@ -773,7 +773,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             '*.bmi_weight' => 'required|numeric',
             '*.bmi_date_yyyy_mm_dd' => 'required',
             '*.bmi_academic_period' => 'required|exists:academic_periods,name',
-            '*.admission_no' => 'required',
+            '*.admission_no' => 'required|max:12|min:4',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
