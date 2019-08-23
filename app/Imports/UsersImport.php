@@ -341,6 +341,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             $date = $row['date_of_birth_yyyy_mm_dd'];
 
             $identityType = $identityType !== null ? $identityType->id : null;
+            $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
             $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
 
@@ -367,7 +368,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                         'address' => $row['address'],
 //                        'address_area_id'   => $AddressArea->id,
                         'birthplace_area_id' => $BirthArea,
-                        'nationality_id' => $nationalityId->id,
+                        'nationality_id' => $nationalityId,
                         'identity_type_id' => $identityType,
                         'identity_number' => $identityNUmber,
                         'is_student' => 1,
@@ -475,6 +476,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $openemisFather = $this::getUniqueOpenemisId();
 
                 $identityType = ($identityType !== null) ? $identityType->id : null;
+                $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $father = null;
                 if (!empty($row['fathers_identity_number'])) {
@@ -494,7 +496,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'],
                                 'address' => $row['fathers_address'],
                                 'address_area_id' => $AddressArea->id,
-                                'nationality_id' => $nationalityId->id,
+                                'nationality_id' => $nationalityId,
                                 'identity_type_id' => $identityType,
                                 'identity_number' => $row['fathers_identity_number'],
                                 'is_guardian' => 1,
@@ -523,6 +525,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $openemisMother = $this::getUniqueOpenemisId();
 
                 $identityType = $identityType !== null ? $identityType->id : null;
+                $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $mother = null;
 
@@ -541,7 +544,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'date_of_birth' => $row['mothers_date_of_birth_yyyy_mm_dd'],
                                 'address' => $row['mothers_address'],
                                 'address_area_id' => $AddressArea->id,
-                                'nationality_id' => $nationalityId->id,
+                                'nationality_id' => $nationalityId,
                                 'identity_type_id' => $identityType,
                                 'identity_number' => $row['mothers_identity_number'],
                                 'is_guardian' => 1,
@@ -575,6 +578,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $openemisGuardian = $this::getUniqueOpenemisId();
 
                 $identityType = $identityType !== null ? $identityType->id : null;
+                $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $guardian = null;
 
@@ -594,7 +598,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'address' => $row['guardians_address'],
                                 'address_area_id' => $AddressArea->id,
 //                            'birthplace_area_id' => $BirthArea->id,
-                                'nationality_id' => $nationalityId->id,
+                                'nationality_id' => $nationalityId,
                                 'identity_type_id' => $identityType,
                                 'identity_number' => $row['guardians_identity_number'],
                                 'is_guardian' => 1,
