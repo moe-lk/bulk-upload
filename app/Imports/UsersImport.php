@@ -769,7 +769,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             '*.identity_number' => 'is_bc:identity_number|user_unique:identity_number',
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
-            '*.option_*' => 'exists:education_subjects,name,',
+            '*.option_*' => 'exists:education_subjects,name',
             '*.bmi_height' => 'required|numeric',
             '*.bmi_weight' => 'required|numeric',
             '*.bmi_date_yyyy_mm_dd' => 'required',
