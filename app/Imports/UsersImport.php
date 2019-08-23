@@ -479,7 +479,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 
                 $father = null;
                 if (!empty($row['fathers_identity_number'])) {
-                    $father = Security_user::where('identity_type_id', '=', $nationalityId->id)
+                    $father = Security_user::where('identity_type_id', '=', $nationalityId)
                                     ->where('identity_number', '=', $row['fathers_identity_number'])->first();
                 }
 
@@ -529,7 +529,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $mother = null;
 
                 if (!empty($row['mothers_identity_number'])) {
-                    $mother = Security_user::where('identity_type_id', '=', $nationalityId->id)
+                    $mother = Security_user::where('identity_type_id', '=', $nationalityId)
                                     ->where('identity_number', '=', $row['mothers_identity_number'])->first();
                 }
 
@@ -582,7 +582,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $guardian = null;
 
                 if (!empty($row['guardians_identity_number'])) {
-                    $guardian = Security_user::where('identity_type_id', '=', $nationalityId->id)
+                    $guardian = Security_user::where('identity_type_id', '=', $nationalityId)
                                     ->where('identity_number', '=', $row['guardians_identity_number'])->first();
                 }
 
