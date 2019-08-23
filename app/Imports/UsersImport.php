@@ -240,7 +240,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             }
 
 
-            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat']))) {
+            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) &&   ($row['identity_number'] !== null)) {
                 $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
                 if ($BirthDivision !== null) {
                     $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
@@ -374,13 +374,15 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                         'created_user_id' => $this->file['security_user_id']
             ]);
 
-            User_identity::create([
-                'identity_type_id' => $identityType,
-                'number' => $identityNUmber,
-                'security_user_id' => $student->id,
-                'created_user_id' => $this->file['security_user_id']
-            ]);
-//
+           
+            if ($row['identity_number'] !== null) {
+                User_identity::create([
+                    'identity_type_id' => $identityType,
+                    'number' => $identityNUmber,
+                    'security_user_id' => $student->id,
+                    'created_user_id' => $this->file['security_user_id']
+                ]);
+            }
 //            User_nationality::create([
 //                'nationality_id' => $nationalityId,
 //                'security_user_id' => $student->id,
@@ -501,12 +503,16 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'is_guardian' => 1,
                                 'created_user_id' => $this->file['security_user_id']
                     ]);
-                    User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $row['fathers_identity_number'],
-                        'security_user_id' => $father->id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                    
+                    if ($row['fathers_identity_number'] !== null) {
+                        User_identity::create([
+                            'identity_type_id' => $identityType,
+                            'number' => $row['fathers_identity_number'],
+                            'security_user_id' => $father->id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    }
+
                     $father['guardian_relation_id'] = 1;
                     Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                 } else {
@@ -550,13 +556,14 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'created_user_id' => $this->file['security_user_id']
                     ]);
 
-                    User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $row['mothers_identity_number'],
-                        'security_user_id' => $mother->id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
-                     
+                     if ($row['mothers_identity_number'] !== null) {
+                        User_identity::create([
+                            'identity_type_id' => $identityType,
+                            'number' => $row['mothers_identity_number'],
+                            'security_user_id' => $mother->id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    }
                     $mother['guardian_relation_id'] = 2;
 
                     Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
@@ -604,12 +611,14 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                 'created_user_id' => $this->file['security_user_id']
                     ]);
                     
+                    if ($row['guardians_identity_number'] !== null) {
                     User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $row['guardians_identity_number'],
-                        'security_user_id' => $guardian->id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                            'identity_type_id' => $identityType,
+                            'number' => $row['guardians_identity_number'],
+                            'security_user_id' => $guardian->id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    }
 
                     $guardian['guardian_relation_id'] = 3;
                     Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
