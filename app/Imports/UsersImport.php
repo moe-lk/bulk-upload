@@ -762,11 +762,11 @@ class UsersImport implements ToModel , WithStartRow  , WithHeadingRow , WithMult
 
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
-            '*.gender_mf' => 'required',
+            '*.gender_mf' => 'required|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
             '*.address' => 'nullable',
-            '*.birth_registrar_office_as_in_birth_certificate' => 'exists:area_administratives,name||required_if:identity_type,BC|birth_place',
-            '*.birth_divisional_secretariat' => 'required_with:birth_registrar_office_as_in_birth_certificate|exists:area_administratives,name|birth_place',
+            '*.birth_registrar_office_as_in_birth_certificate' => 'exists:area_administratives,name|required_if:identity_type,BC|birth_place',
+            '*.birth_divisional_secretariat' => 'exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' =>  'is_bc:identity_number|user_unique:identity_number',
