@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webpatser\Uuid\Uuid;
 
 class User_nationality extends Base_Model  {
 
