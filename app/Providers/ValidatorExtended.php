@@ -67,7 +67,7 @@ class ValidatorExtended extends IlluminateValidator
             $academicPeriod = Academic_period::where('name', '=',$data['academic_period'])->first();
             if(empty($data['date_of_birth_yyyy_mm_dd'])){
                 return false;
-            }elseif($gradeEntity !== null){
+            }elseif(($gradeEntity !== null) && ($academicPeriod !== null)){
                 $admissionAge = $gradeEntity->admission_age;
                 $studentAge =    ($data['date_of_birth_yyyy_mm_dd'])->format('Y');
                 $ageOfStudent =    ($academicPeriod->start_year)  - $studentAge  ; //$data['academic_period'];
