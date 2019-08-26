@@ -85,7 +85,7 @@ class ValidatorExtended extends IlluminateValidator {
     protected function validateNic($attribute, $value, $perameters, $validator){  
        $valid =  preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/', $value);
        if(!$valid){
-             $this->_custom_messages['nic'] = $attribute. ' si not valid,  Please check the NIC number';
+             $this->_custom_messages['nic'] = $attribute. ' is not valid,  Please check the NIC number';
              $this->_set_custom_stuff();
              return false;
        }else{
