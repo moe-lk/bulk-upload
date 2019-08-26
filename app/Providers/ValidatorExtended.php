@@ -21,6 +21,7 @@ class ValidatorExtended extends IlluminateValidator {
         "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         "is_bc" => "The Birth Certificate number is not valid",
+        "nic" => "NIC number is Not valid"
     );
 
     public function __construct($translator, $data, $rules, $messages = array(),
@@ -62,7 +63,7 @@ class ValidatorExtended extends IlluminateValidator {
     protected function validateBirthPlace($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
             if ($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat', $data)) {
-                dd($data['birth_divisional_secretariat']);
+               // dd($data['birth_divisional_secretariat']);
                 $BirthDivision = Area_administrative::where('name', '=',  '%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id', '=', 5); //
                 if ($BirthDivision->count() > 0 ) {
                     $BirthArea = Area_administrative::where('name', '=', '%'. $value.'%') //$data['birth_registrar_office_as_in_birth_certificate']
@@ -79,6 +80,17 @@ class ValidatorExtended extends IlluminateValidator {
                 return true;
             }
         }
+    }
+    
+    protected function validateNic($attribute, $value, $perameters, $validator){  
+       $valid =  preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/', $value);
+       if(!$valid){
+             $this->_custom_messages['nic'] = $attribute. ' si not valid,  Please check the NIC number';
+             $this->_set_custom_stuff();
+             return false;
+       }else{
+           return true;
+       }
     }
 
     protected function validateUserUnique($attribute, $value, $perameters, $validator) {

@@ -25,7 +25,6 @@ class admissionAge implements Rule
      */
     public function passes($attribute, $value)
     {
-        dd($value);
         //
     }
 
