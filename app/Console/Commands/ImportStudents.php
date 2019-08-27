@@ -91,6 +91,7 @@ class ImportStudents extends Command
 
 
     protected function import($file){
+            sleep(3);
             if($this->checkTime()) {
           //process the import if the time range is between morening and evening
              try {

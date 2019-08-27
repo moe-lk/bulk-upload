@@ -273,13 +273,20 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         }
 
         $currentStamp = time();
+        
         if ($latestDbStamp >= $currentStamp) {
             $newStamp = $latestDbStamp + 1;
         } else {
             $newStamp = $currentStamp;
         }
+        $check = Security_user::where('openemis_no' , '=' , $prefix . $newStamp)->first();
+        if($check === null){
+            return $prefix . $newStamp;
+        }else{
+            $newStamp = $latestOpenemisNo + random_int(1, 40);
+        }
 
-        return $prefix . $newStamp;
+        
     }
 
     public function model(array $row) {
