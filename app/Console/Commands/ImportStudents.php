@@ -54,6 +54,9 @@ class ImportStudents extends Command
     public function handle()
     {
         $files = $this->getFiles();
+        if(count($files) == 0){
+            $files = $this->getTerminated();
+        }
         $files = array_chunk($files, 10);
         array_walk($files, array($this,'process'));
         unset($files);
@@ -67,6 +70,12 @@ class ImportStudents extends Command
     
     protected function  process($files){
         array_walk($files, array($this,'import'));
+    }
+    
+    protected function getTerminated() {
+        $files = Upload::where('is_processed', '=', 3)
+                        ->get()->toArray();
+        return $files;
     }
 
     protected function getFiles(){
