@@ -69,7 +69,7 @@ class ValidatorExtended extends IlluminateValidator {
             if ($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat', $data)) {
                 $BirthDivision = Area_administrative::where('name', '=',  '%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id', '=', 5); //
                 if ($BirthDivision->count() > 0 ) {
-                    $BirthArea = Area_administrative::where('name', '=', '%'. $data['birth_registrar_office_as_in_birth_certificate'].'%') //$data['birth_registrar_office_as_in_birth_certificate']
+                    $BirthArea = Area_administrative::where('name', '=', '%'. $value.'%') //$data['birth_registrar_office_as_in_birth_certificate']
                                     ->where('parent_id', '=', $BirthDivision->first()->id)->count();
                     return $BirthArea  > 0;
                 } elseif (key_exists('birth_divisional_secretariat', $data) && (!key_exists('birth_registrar_office_as_in_birth_certificate', $data))) {
@@ -98,13 +98,12 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function validateUserUnique($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
-            $value = $data['identity_number'];
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if ($identityType !== null && ($value !== null)) {
                 if ($identityType->national_code === 'BC' && ($this->IsBc($data, $value))) {
-                    return $this->checkUnique($value,$identityType);
+                    return $this->checkUnique($value, $data,$identityType);
                 } elseif ($identityType->national_code === 'NIC') {
-                    return $this->checkUnique($value,$identityType);
+                    return $this->checkUnique($value, $data,$identityType);
                 }
             } elseif (($value == null) || $value == "") {
                 return true;
@@ -127,7 +126,7 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function checkUnique($value,$identityType) {
+    protected function checkUnique($value, $data,$identityType) {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
         if ($isUnique->count() > 0) {
             $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;

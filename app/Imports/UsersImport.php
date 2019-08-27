@@ -669,7 +669,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 //            $failure = new Failure(3, 'remark', [3 => ], [null]);
             $failures = $e->failures();
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-            Log::info('email-sent', [$this->file]);
+            Log::info('email-sent', [$e]);
         }
     }
 
