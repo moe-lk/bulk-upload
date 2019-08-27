@@ -67,10 +67,9 @@ class ValidatorExtended extends IlluminateValidator {
     protected function validateBirthPlace($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
             if ($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat', $data)) {
-               // dd($data['birth_divisional_secretariat']);
                 $BirthDivision = Area_administrative::where('name', '=',  '%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id', '=', 5); //
                 if ($BirthDivision->count() > 0 ) {
-                    $BirthArea = Area_administrative::where('name', '=', '%'. $value.'%') //$data['birth_registrar_office_as_in_birth_certificate']
+                    $BirthArea = Area_administrative::where('name', '=', '%'. $data['birth_registrar_office_as_in_birth_certificate'].'%') //$data['birth_registrar_office_as_in_birth_certificate']
                                     ->where('parent_id', '=', $BirthDivision->first()->id)->count();
                     return $BirthArea  > 0;
                 } elseif (key_exists('birth_divisional_secretariat', $data) && (!key_exists('birth_registrar_office_as_in_birth_certificate', $data))) {
@@ -128,7 +127,7 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function checkUnique($value, $data,$identityType) {
+    protected function checkUnique($value,$identityType) {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
         if ($isUnique->count() > 0) {
             $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
