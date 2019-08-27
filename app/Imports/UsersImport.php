@@ -284,9 +284,8 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             return $prefix . $newStamp;
         }else{
             $newStamp = $latestOpenemisNo + random_int(1, 40);
+            return $newStamp;
         }
-
-        
     }
 
     public function model(array $row) {
