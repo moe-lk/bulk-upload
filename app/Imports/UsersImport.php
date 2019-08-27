@@ -616,12 +616,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                     }
                 }
 
-
-
-
-
-
-                //Option subject feed
                 $optionalSubjects = $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
@@ -731,7 +725,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         $totalFemaleStudents = $institutionClass->total_female_students;
         $totalStudents = $totalMaleStudents + $totalFemaleStudents;
 
-        $exceededStudents = ($totalStudents + ($this->highestRow - 2)) > $institutionClass->no_of_students ? true : false;
+        $exceededStudents = ($totalStudents + $this->limit()) > $institutionClass->no_of_students ? true : false;
 
         if ($exceededStudents == true) {
             try {
