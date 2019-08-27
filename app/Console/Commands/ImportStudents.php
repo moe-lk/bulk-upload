@@ -74,18 +74,17 @@ class ImportStudents extends Command
 
     protected function checkTime(){
         $time = Carbon::now()->tz('Asia/Colombo');
-        $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo')->setHour(1); //set time to 05:59
+        $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo')->setHour(0); //set time to 05:59
         
-        $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(6); //set time to 18:00
+        $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(23); //set time to 18:00
          
         $check = $time->between($morning,$evening, true);
-//        dd($check);
         return $check;
     }
 
 
     protected function import($file){
-            if(!$this->checkTime()) {
+            if($this->checkTime()) {
           //process the import if the time range is between morening and evening
              try {
                 DB::beginTransaction();
