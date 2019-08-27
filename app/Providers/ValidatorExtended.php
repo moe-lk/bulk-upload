@@ -112,8 +112,8 @@ class ValidatorExtended extends IlluminateValidator {
         foreach ($validator->getData() as $data) {
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if (($identityType !== null) && ($identityType !== "")) {
-                if (($identityType->national_code) === 'BC' && strlen((string) $value) < 8) {
-                    return false;
+                if (($identityType->national_code) === 'BC') {
+                    return  (strlen((string) $value) < 8);
                 } else {
                     return true;
                 }
