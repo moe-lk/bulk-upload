@@ -99,6 +99,7 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function validateUserUnique($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
+            $value = $data['identity_number'];
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if ($identityType !== null && ($value !== null)) {
                 if ($identityType->national_code === 'BC' && ($this->IsBc($data, $value))) {
