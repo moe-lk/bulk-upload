@@ -54,7 +54,9 @@ class ImportStudents extends Command
     public function handle()
     {
         $files = $this->getFiles();
-        array_walk($files, array($this,'import'));
+        $files = array_chunk($files, 10);
+        array_walk($files, array($this,'process'));
+        unset($files);
         if((count($this->getFiles()) > 0) && $this->checkTime()){
             $this->handle();
         }else{
@@ -62,6 +64,11 @@ class ImportStudents extends Command
         }
     }
     
+    
+    protected function  process($files){
+        array_walk($files, array($this,'import'));
+    }
+
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
             ->orWhere(function ($query){

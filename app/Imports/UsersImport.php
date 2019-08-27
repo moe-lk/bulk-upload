@@ -490,8 +490,8 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                     'is_guardian' => 1,
                                     'created_user_id' => $this->file['security_user_id']
                         ]);
-//
-//                        if ($row['fathers_identity_number'] !== null) {
+
+//                        if (!empty($row['fathers_identity_number'])) {
 //                            User_identity::create([
 //                                'identity_type_id' => $identityType,
 //                                'number' => $row['fathers_identity_number'],
@@ -543,7 +543,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                     'created_user_id' => $this->file['security_user_id']
                         ]);
 
-//                        if ($row['mothers_identity_number'] !== null) {
+//                        if (!empty($row['mothers_identity_number'])) {
 //                            User_identity::create([
 //                                'identity_type_id' => $identityType,
 //                                'number' => $row['mothers_identity_number'],
@@ -599,7 +599,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                     'created_user_id' => $this->file['security_user_id']
                         ]);
 
-//                        if ($row['guardians_identity_number'] !== null) {
+//                        if (!empty($row['guardians_identity_number'])) {
 //                            User_identity::create([
 //                                'identity_type_id' => $identityType,
 //                                'number' => $row['guardians_identity_number'],
