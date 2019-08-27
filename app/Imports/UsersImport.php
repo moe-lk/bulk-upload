@@ -784,14 +784,14 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             '*.fathers_address_area' => 'required_with:*.fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:*.fathers_full_name',
             '*.fathers_identity_type' => 'required_with:*.fathers_identity_number',
-            '*.fathers_identity_number' => 'nullable|required_with:*.fathers_identity_type|nic',
+            '*.fathers_identity_number' => 'nullable|required_with:*.fathers_identity_type|nic:fathers_identity_number',
             '*.mothers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:*.mothers_full_name',
             '*.mothers_address' => 'required_with:*.mothers_full_name',
             '*.mothers_address_area' => 'required_with:*.mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_nationality' => "required_with:*.mothers_full_name",
             '*.mothers_identity_type' => "required_with:*.mothers_identity_number",
-            '*.mothers_identity_number' => 'nullable|required_with:*.mothers_identity_type',
+            '*.mothers_identity_number' => 'nullable|required_with:*.mothers_identity_type|nic:mothers_identity_number',
             '*.guardians_full_name' => 'nullable|required_without_all:*.fathers_full_name,*.mothers_full_name|regex:/^[\pL\s\-]+$/u',
             '*.guardians_gender_mf' => 'required_with:*.guardians_full_name',
             '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:*.guardians_full_name',
@@ -799,7 +799,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             '*.guardians_address_area' => 'required_with:*.guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_nationality' => 'required_with:*.guardians_full_name',
             '*.guardians_identity_type' => 'required_with:*.guardians_identity_number',
-            '*.guardians_identity_number' => 'nullable|required_with:*.guardians_identity_type',
+            '*.guardians_identity_number' => 'nullable|required_with:*.guardians_identity_type|nic:guardians_identity_number',
         ];
     }
 
