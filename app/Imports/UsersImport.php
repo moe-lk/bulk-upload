@@ -376,14 +376,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             ]);
 
            
-            if ($row['identity_number'] !== null) {
-                User_identity::create([
-                    'identity_type_id' => $identityType,
-                    'number' => $identityNUmber,
-                    'security_user_id' => $student->id,
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
-            }
+          
 //            User_nationality::create([
 //                'nationality_id' => $nationalityId,
 //                'security_user_id' => $student->id,
@@ -438,6 +431,14 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 //                }
 
 
+            if (!empty($row['identity_number'])) {
+                User_identity::create([
+                    'identity_type_id' => $identityType,
+                    'number' => $identityNUmber,
+                    'security_user_id' => $student->student_id,
+                    'created_user_id' => $this->file['security_user_id']
+                ]);
+            }
             if (!empty($row['special_need'])) {
                 $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
                 User_special_need::create([

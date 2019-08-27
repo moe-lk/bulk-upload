@@ -3,8 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webpatser\Uuid\Uuid;
 
-class User_identity extends Base_Model  {
+class User_identity extends Model  {
+    
+    public const CREATED_AT = 'created';
+    public const UPDATED_AT = 'modified';
 
     /**
      * The database table used by the model.
@@ -40,5 +44,14 @@ class User_identity extends Base_Model  {
      * @var array
      */
     protected $dates = ['modified', 'created', 'issue_date', 'expiry_date', 'modified', 'created'];
+    
+    
+      public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->id = (string) Uuid::generate(4);
+        });
+    }
 
 }

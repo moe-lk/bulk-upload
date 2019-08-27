@@ -54,9 +54,8 @@ class ValidatorExtended extends IlluminateValidator {
                     $studentAge = 5;
                 }
                 $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
-                $enrolmentMinimumAge = $admissionAge;
                 $enrolmentMaximumAge = $admissionAge + 10;
-                return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $enrolmentMinimumAge);
+                return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
             } else {
                 return false;
             }
