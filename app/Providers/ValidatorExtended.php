@@ -50,8 +50,11 @@ class ValidatorExtended extends IlluminateValidator {
             } elseif (($gradeEntity !== null) && ($academicPeriod !== null)) {
                 $admissionAge = $gradeEntity->admission_age;
                 $studentAge = ($data['date_of_birth_yyyy_mm_dd'])->format('Y');
+                if(($studentAge === 4) && ($data['date_of_birth_yyyy_mm_dd'])->format('M') === 1  ){
+                    $studentAge = 5;
+                }
                 $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
-                $enrolmentMinimumAge = $admissionAge - 0;
+                $enrolmentMinimumAge = $admissionAge;
                 $enrolmentMaximumAge = $admissionAge + 10;
                 return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $enrolmentMinimumAge);
             } else {
