@@ -780,7 +780,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:*.fathers_full_name|date',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:*.fathers_full_name',
             '*.fathers_address' => 'required_with:*.fathers_full_name',
             '*.fathers_address_area' => 'required_with:*.fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:*.fathers_full_name',
