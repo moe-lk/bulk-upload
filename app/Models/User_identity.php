@@ -45,13 +45,5 @@ class User_identity extends Model  {
      */
     protected $dates = ['modified', 'created', 'issue_date', 'expiry_date', 'modified', 'created'];
     
-    
-      public static function boot()
-    {
-        parent::boot();
-        self::creating(function ($model) {
-            $model->id = (string) Uuid::generate(4);
-        });
-    }
 
 }
