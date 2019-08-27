@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Validator as IlluminateValidator;
 use Illuminate\Support\Facades\Log;
 use App\Models\Education_grade;
+use App\Models\Institution_class;
+use App\Models\Institution_class_grade;
 
 class ValidatorExtended extends IlluminateValidator {
 
@@ -42,15 +44,16 @@ class ValidatorExtended extends IlluminateValidator {
      * admission age validation
      */
     protected function validateAdmissionAge($attribute, $value, $parameters, $validator) {
-        foreach ($validator->getData() as $data) {
-            $gradeEntity = Education_grade::where('code', '=', $data['education_grade'])->first();
-            $academicPeriod = Academic_period::where('name', '=', $data['academic_period'])->first();
-            if (empty($data['date_of_birth_yyyy_mm_dd'])) {
+         $institutionClass = Institution_class::find($parameters[0]);
+         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
+         $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+         $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
+            if (empty($value)) {
                 return false;
-            } elseif (($gradeEntity !== null) && ($academicPeriod !== null)) {
+            } elseif ($gradeEntity !== null) {
                 $admissionAge = $gradeEntity->admission_age;
-                $studentAge = ($data['date_of_birth_yyyy_mm_dd'])->format('Y');
-                if(($studentAge === 4) && ($data['date_of_birth_yyyy_mm_dd'])->format('M') === 1  ){
+                $studentAge = ($value)->format('Y');
+                if(($studentAge === 4) && ($value)->format('M') === 1  ){
                     $studentAge = 5;
                 }
                 $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
@@ -59,7 +62,6 @@ class ValidatorExtended extends IlluminateValidator {
             } else {
                 return false;
             }
-        }
     }
 
     protected function validateBirthPlace($attribute, $value, $perameters, $validator) {

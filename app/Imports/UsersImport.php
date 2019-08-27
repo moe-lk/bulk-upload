@@ -76,7 +76,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
     }
 
     public function limit(): int {
-        $highestColumn = $this->worksheet->getHighestDataColumn(53);
+        $highestColumn = $this->worksheet->getHighestDataColumn(3);
         $higestRow = 0;
         for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
             $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
@@ -90,9 +90,9 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
     }
 
     public function batchSize(): int {
-        $highestColumn = $this->worksheet->getHighestDataColumn(53);
-        $higestRow = 0;
+        $highestColumn = $this->worksheet->getHighestDataColumn(3);
         for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
+            $higestRow = 0;
             $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
             if (isEmptyRow(reset($rowData))) {
                 continue;
@@ -105,7 +105,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         } else {
             return $higestRow;
         }
-//        dd($higestRow);
     }
 
     public function registerEvents(): array {
@@ -762,7 +761,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'required|in:M,F',
-            '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:education_grade',
+            '*.date_of_birth_yyyy_mm_dd' => 'required|admission_age:'.$this->file['institution_class_id'],
             '*.address' => 'nullable',
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
