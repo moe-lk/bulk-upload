@@ -664,10 +664,10 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                             'total_male_students' => $total_male_students,
                             'total_female_students' => $total_female_students]);
             }
-        } catch (\Exception $e) {
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [3 => $e->getMessage()], [null]);
-            $failures = [0 => $failure];
+//            $failure = new Failure(3, 'remark', [3 => ], [null]);
+            $failures = $e->failures();
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
             Log::info('email-sent', [$this->file]);
         }
