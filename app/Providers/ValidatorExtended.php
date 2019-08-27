@@ -102,9 +102,9 @@ class ValidatorExtended extends IlluminateValidator {
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if ($identityType !== null && ($value !== null)) {
                 if ($identityType->national_code === 'BC' && ($this->IsBc($data, $value))) {
-                    return $this->checkUnique($value, $data,$identityType);
+                    return $this->checkUnique($value,$identityType);
                 } elseif ($identityType->national_code === 'NIC') {
-                    return $this->checkUnique($value, $data,$identityType);
+                    return $this->checkUnique($value,$identityType);
                 }
             } elseif (($value == null) || $value == "") {
                 return true;
