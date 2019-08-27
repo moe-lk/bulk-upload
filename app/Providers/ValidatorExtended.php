@@ -129,15 +129,11 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function checkUnique($value, $data,$identityType) {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
-        if ($this->IsBc($data, $value)) {
-            if ($isUnique->count() > 0) {
-                $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
-                $this->_set_custom_stuff();
-                return false;
-            } else {
-                return true;
-            }
-        } elseif (!$this->IsBc($data, $value)) {
+        if ($isUnique->count() > 0) {
+            $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
+            $this->_set_custom_stuff();
+            return false;
+        } else {
             return true;
         }
     }

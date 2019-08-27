@@ -28,7 +28,7 @@
                         { data: 'id', name: 'id' },
                         { data: 'filename', name: 'filename' },
                         { data: 'error', name: 'error' },
-                        { data: 'created_at' , name: 'Uploaded'},
+                        { data: 'class' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},
                         { data: 'is_processed', name: 'Status'},
                         { data: 'is_email_sent' , name: 'Email Status'}
