@@ -149,7 +149,7 @@ class ImportStudents extends Command
                 DB::commit();
                
             } catch (\Exception $e) {
-                echo json_encode($e);
+                var_dump ($e);
                 Log::error('Exception-critical', [$e]);
             }
         } else {
