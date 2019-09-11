@@ -198,8 +198,7 @@ class ImportStudents extends Command
                 
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                self::writeErrors($e,$file,$sheet);
-                $this->processFailedEmail($file,$user);
+                 self::writeErrors($e,$file,$sheet);
                  switch ($sheet) {
                     case 1:
                             $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
