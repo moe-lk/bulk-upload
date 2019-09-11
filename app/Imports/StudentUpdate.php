@@ -329,9 +329,9 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
                 //create students data
                 \Log::debug('Security_user');
 
-                $studentInfo = Security_user::where('openemis_no', '=', $row['student_id_leave_blank_for_new_student'])->first();
+                $studentInfo = Security_user::where('openemis_no', '=', $row['student_id'])->first();
 //                dd($studentInfo);
-                $student = Security_user::where('openemis_no', '=', $row['student_id_leave_blank_for_new_student'])
+                $student = Security_user::where('openemis_no', '=', $row['student_id'])
                         ->update([
                     'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                     'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
