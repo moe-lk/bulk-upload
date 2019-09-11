@@ -114,6 +114,7 @@ class ImportStudents extends Command
     }
     
     public function processFailedEmail($file,$user) {
+         
         try {
             Mail::to($user->email)->send(new StudentImportFailure($file));
             DB::table('uploads')
@@ -128,6 +129,7 @@ class ImportStudents extends Command
     }
 
     protected function processSheet($file){
+//        $this->validateSheet($file);
         $user = User::find($file['security_user_id']);
         if ($this->checkTime()) {
             //process the import if the time range is between morening and evening
@@ -148,12 +150,20 @@ class ImportStudents extends Command
                 DB::commit();
                
             } catch (\Exception $e) {
-                dd($e);
+                echo json_encode($e);
                 Log::error('Exception-critical', [$e]);
             }
         } else {
             exit();
         }
+    }
+    
+    protected function getSheetCount($file){
+       $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+        $objPHPExcel->setReadDataOnly(true);
+        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+        return $reader->getSheetCount();
     }
 
 
@@ -168,7 +178,7 @@ class ImportStudents extends Command
                
                 switch ($sheet) {
                     case 1:
-                        if ($this->getHigestRow($file, $sheet,$column) > 2) {
+                        if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
                             $this->processSuccessEmail($file,$user);
@@ -177,7 +187,7 @@ class ImportStudents extends Command
                         break;
 
                     case 2:
-                        if ($this->getHigestRow($file, $sheet,$column) > 2) {
+                        if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
                             $import = new StudentUpdate($file);
                             Excel::import($import, $excelFile, 'local');
                             $this->processSuccessEmail($file,$user);
@@ -218,7 +228,7 @@ class ImportStudents extends Command
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
-       return  $reader->getActiveSheet()->getHighestDataRow($column);
+        return  $reader->getActiveSheet()->getHighestDataRow($column);
     }
 
 
