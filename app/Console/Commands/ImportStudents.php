@@ -170,7 +170,7 @@ class ImportStudents extends Command
                         if ($this->getHigestRow($file, $sheet,$column) > 2) {
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
-//                            $this->processSuccessEmail($file,$user);
+                            $this->processSuccessEmail($file,$user);
                             
                         }
                         break;
@@ -179,7 +179,7 @@ class ImportStudents extends Command
                         if ($this->getHigestRow($file, $sheet,$column) > 2) {
                             $import = new StudentUpdate($file);
                             Excel::import($import, $excelFile, 'local');
-//                            $this->processSuccessEmail($file,$user);
+                            $this->processSuccessEmail($file,$user);
                         }
                         break;
                     default:
@@ -189,7 +189,7 @@ class ImportStudents extends Command
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 self::writeErrors($e,$file,$sheet);
-//                $this->processFailedEmail($file,$user);
+                $this->processFailedEmail($file,$user);
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
