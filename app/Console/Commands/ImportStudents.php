@@ -114,7 +114,7 @@ class ImportStudents extends Command
         }
     }
     
-    public function processFailedEmail($file,$user) {
+    public function processFailedEmail($file,$user,$subject) {
         $file['subject'] = $subject;
         try {
             Mail::to($user->email)->send(new StudentImportFailure($file));
