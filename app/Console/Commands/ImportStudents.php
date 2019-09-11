@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Http\Controllers\StudentImportSuccessMailController;
 use App\Imports\UsersImport;
+use App\Imports\StudentUpdate;
 use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
 use App\Models\Upload;
@@ -61,7 +62,7 @@ class ImportStudents extends Command
         array_walk($files, array($this,'process'));
         unset($files);
         if((count($this->getFiles()) > 0) && $this->checkTime()){
-            $this->handle();
+//            $this->handle();
         }else{
             exit();
         }
@@ -69,7 +70,7 @@ class ImportStudents extends Command
     
     
     protected function  process($files){
-        array_walk($files, array($this,'import'));
+        array_walk($files, array($this,'processSheet'));
     }
     
     protected function getTerminated() {
@@ -97,69 +98,109 @@ class ImportStudents extends Command
         $check = $time->between($morning,$evening, true);
         return $check;
     }
+    
+    public function processSuccessEmail($file,$user) {
+        try {
+            Mail::to($user->email)->send(new StudentImportSuccess($file));
+            DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 1, 'is_email_sent' => 1]);
+        } catch (Exception $ex) {
+            $this->handle();
+            DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 1, 'is_email_sent' => 2]);
+        }
+    }
+    
+    public function processFailedEmail($file,$user) {
+        try {
+            Mail::to($user->email)->send(new StudentImportFailure($file));
+            DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+        } catch (Exception $ex) {
+            $this->handle();
+            DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+        }
+    }
 
-
-    protected function import($file){
-            sleep(3);
-            if($this->checkTime()) {
-          //process the import if the time range is between morening and evening
-             try {
+    protected function processSheet($file){
+        $user = User::find($file['security_user_id']);
+        if ($this->checkTime()) {
+            //process the import if the time range is between morening and evening
+            try {
                 DB::beginTransaction();
                 DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>3]);
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 3]);
                 DB::commit();
-
-                $import = new UsersImport($file);
-                $user = User::find($file['security_user_id']);
-                $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-                Excel::import($import,$excelFile,'local');
                 
-               
-
+                $this->import($file,1,'C');
+                $this->import($file,2,'B');
+                
+                
+                
                 DB::beginTransaction();
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>1]);
                 DB::commit();
-                try{
-                   
-                     Mail::to($user->email)->send(new StudentImportSuccess($file));
-                     DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>1,'is_email_sent' => 1]);
-                } catch (Exception $ex) {
-                    $this->handle();
-                     DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>1,'is_email_sent' => 2]);
-                }
                
-
-            }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                self::writeErrors($e,$file);
-                DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2]);
-                try{
-                    Mail::to($user->email)->send(new StudentImportFailure($file));
-                       DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2,'is_email_sent' => 1]);
-                } catch (Exception $ex) {
-                      $this->handle();
-                      DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2,'is_email_sent' => 2]);
-                }
+            } catch (\Exception $e) {
+                dd($e);
             }
         } else {
             exit();
         }
     }
-           
 
-            
+
+    protected function import($file,$sheet,$column){
+            ini_set('memory_limit', '2048M');
+            sleep(3);
+          //process the import if the time range is between morening and evening
+             try {
+                $user = User::find($file['security_user_id']);
+                $excelFile = '/sis-bulk-data-files/' . $file['filename'];
+
+               
+                switch ($sheet) {
+                    case 1:
+                        if ($this->getHigestRow($file, $sheet,$column) > 2) {
+                            $import = new UsersImport($file);
+                            Excel::import($import, $excelFile, 'local');
+//                            $this->processSuccessEmail($file,$user);
+                            
+                        }
+                        break;
+
+                    case 2:
+                        if ($this->getHigestRow($file, $sheet,$column) > 2) {
+                            $import = new StudentUpdate($file);
+                            Excel::import($import, $excelFile, 'local');
+//                            $this->processSuccessEmail($file,$user);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                
+
+            }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                self::writeErrors($e,$file,$sheet);
+//                $this->processFailedEmail($file,$user);
+                DB::table('uploads')
+                    ->where('id',  $file['id'])
+                    ->update(['is_processed' =>2]);
+               
+            }
+    
+    }
+    
+    
 
     protected function processErrors($failure){
             $error_mesg = implode(',',$failure->errors());
@@ -172,17 +213,24 @@ class ImportStudents extends Command
         
     }
 
+    protected function getHigestRow($file,$sheet,$column){
+        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+        $objPHPExcel->setReadDataOnly(true);
+        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+        $reader->setActiveSheetIndex($sheet);
+       return  $reader->getActiveSheet()->getHighestDataRow($column);
+    }
 
 
-
-    protected function writeErrors($e,$file){
-        ini_set('memory_limit', '1024M');
+    protected function writeErrors($e,$file,$sheet){
+        ini_set('memory_limit', '2048M');
         $failures = $e->failures();
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        $reader->setActiveSheetIndex(1);
+        $reader->setActiveSheetIndex($sheet);
         $failures = array_map( array($this,'processErrors'),$failures );
         array_walk($failures , 'append_errors_to_excel',$reader);
         $objWriter = new \PHPExcel_Writer_Excel2007($reader);
