@@ -99,7 +99,8 @@ class ImportStudents extends Command
         return $check;
     }
     
-    public function processSuccessEmail($file,$user) {
+    public function processSuccessEmail($file,$user,$subject) {
+        $file['subject'] = $subject;
         try {
             Mail::to($user->email)->send(new StudentImportSuccess($file));
             DB::table('uploads')
@@ -114,7 +115,7 @@ class ImportStudents extends Command
     }
     
     public function processFailedEmail($file,$user) {
-         
+        $file['subject'] = $subject;
         try {
             Mail::to($user->email)->send(new StudentImportFailure($file));
             DB::table('uploads')
@@ -129,10 +130,8 @@ class ImportStudents extends Command
     }
 
     protected function processSheet($file){
-//        $this->validateSheet($file);
         $user = User::find($file['security_user_id']);
         if ($this->checkTime()) {
-            //process the import if the time range is between morening and evening
             try {
                 DB::beginTransaction();
                 DB::table('uploads')
@@ -181,7 +180,7 @@ class ImportStudents extends Command
                         if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
-                            $this->processSuccessEmail($file,$user);
+                            $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                             
                         }
                         break;
@@ -190,7 +189,7 @@ class ImportStudents extends Command
                         if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
                             $import = new StudentUpdate($file);
                             Excel::import($import, $excelFile, 'local');
-                            $this->processSuccessEmail($file,$user);
+                            $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                         }
                         break;
                     default:
@@ -201,6 +200,17 @@ class ImportStudents extends Command
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 self::writeErrors($e,$file,$sheet);
                 $this->processFailedEmail($file,$user);
+                 switch ($sheet) {
+                    case 1:
+                            $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                        break;
+                    case 2:
+                            $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                        break;
+                    default:
+                        break;
+                }
+                
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
