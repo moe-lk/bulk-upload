@@ -39,7 +39,7 @@
                 <input type="file" name="import_file" required />
                 <button class="btn btn-primary">Import File</button>
             </form>
-
+<!--
                  <form style="border: 4px solid #a1a1a1;margin-top: 15px;padding: 10px;" action="{{ url('exportExcel') }}" class="form-horizontal" method="post" enctype="multipart/form-data">
                 @csrf
  
@@ -67,9 +67,8 @@
                     @endforeach
                 </select>
                 <button class="btn btn-primary">Export File</button>
-            </form>
+            </form>-->
 
- 
           </div>
         </div>
     </div>

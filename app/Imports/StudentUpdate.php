@@ -669,7 +669,7 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
     public function rules(): array {
 
         return [
-            '*.student_id_leave_blank_for_new_student' => 'required',
+            '*.student_id' => 'required',
             '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'nullable|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'nullable|date',

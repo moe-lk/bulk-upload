@@ -29,7 +29,6 @@ use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
 use App\Rules\admissionAge;
-use function foo\func;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Request;

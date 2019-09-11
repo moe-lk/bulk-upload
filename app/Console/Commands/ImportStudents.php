@@ -9,7 +9,7 @@ use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
 use App\Models\Upload;
 use App\Models\User;
-use Cake\Log\Log;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -138,10 +138,8 @@ class ImportStudents extends Command
                         ->update(['is_processed' => 3]);
                 DB::commit();
                 
-                $this->import($file,1,'C');
+                $this->import($file,1,'B');
                 $this->import($file,2,'B');
-                
-                
                 
                 DB::beginTransaction();
                 DB::table('uploads')
@@ -150,7 +148,7 @@ class ImportStudents extends Command
                 DB::commit();
                
             } catch (\Exception $e) {
-                dd($e);
+                Log::error('Exception-critical', [$e]);
             }
         } else {
             exit();
