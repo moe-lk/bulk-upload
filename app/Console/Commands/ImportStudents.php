@@ -148,6 +148,7 @@ class ImportStudents extends Command
                 DB::commit();
                
             } catch (\Exception $e) {
+                dd($e);
                 Log::error('Exception-critical', [$e]);
             }
         } else {
