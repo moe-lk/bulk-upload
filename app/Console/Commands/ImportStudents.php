@@ -7,6 +7,7 @@ use App\Imports\UsersImport;
 use App\Imports\StudentUpdate;
 use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
+use App\Mail\IncorrectTemplate;
 use App\Models\Upload;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
@@ -148,9 +149,19 @@ class ImportStudents extends Command
                     ->update(['is_processed' =>1]);
                 DB::commit();
                
-            } catch (\Exception $e) {
-                var_dump ($e->getMessage());
-                Log::error('Exception-critical', [$e]);
+            } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                self::writeErrors($e,$file,$sheet);
+                try {
+                    Mail::to($user->email)->send(new IncorrectTemplate($file));
+                    DB::table('uploads')
+                            ->where('id', $file['id'])
+                            ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+                } catch (Exception $ex) {
+                    $this->handle();
+                    DB::table('uploads')
+                            ->where('id', $file['id'])
+                            ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+                }
             }
         } else {
             exit();
@@ -240,7 +251,7 @@ class ImportStudents extends Command
         return  $reader->getActiveSheet()->getHighestDataRow($column);
     }
 
-
+    
     protected function writeErrors($e,$file,$sheet){
         ini_set('memory_limit', '2048M');
         $failures = $e->failures();

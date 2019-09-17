@@ -67,6 +67,7 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
         $this->maleStudentsCount = 0;
         $this->femaleStudentsCount = 0;
         $this->highestRow = 3;
+        $this->isValidSheet = true;
     }
 
     public function sheets(): array {
@@ -152,9 +153,9 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
         return 2;
     }
 
-    public function validateColumns($row) {
+    public function validateColumns($column) {
         $columns = [
-            "student_id",
+            "student_id"
             "full_name",
             "gender_mf",
             "date_of_birth_yyyy_mm_dd",
@@ -208,16 +209,53 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
             "guardians_identity_number",
         ];
 
-        if ($columns == array_keys($row)) {
+        if (!(array_key_exists($column,$columns))) {
+            $this->isValidSheet = false;
+        }
+    }
 
-            return true;
-        } else {
+    protected function mapFields($row){
+        array_walk($row,array($this,'validateColumns'));
+        if($this->isValidSheet == false){
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(1, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
             $failures = [0 => $failure];
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-            Log::info('error-email-sent', [$this->file]);
-            return false;
+        }
+        if ((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double') && ($row['date_of_birth_yyyy_mm_dd'] !== null)) {
+            $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
+        }
+
+
+        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
+            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
+            if ($BirthDivision !== null) {
+                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
+                                ->where('parent_id', '=', $BirthDivision->id)->first();
+                if ($BirthArea !== null) {
+                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+                }
+            }
+        }
+
+        if ((gettype($row['bmi_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
+            $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
+        }
+
+        if ((gettype($row['start_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
+            $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
+        }
+
+        if ((gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
+            $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
+        }
+
+        if ((gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)) {
+            $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
+        }
+
+        if ((gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)) {
+            $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
         }
     }
 
@@ -227,47 +265,15 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
      * @throws \Exception
      */
     public function map($row): array {
-
-
         try {
-              if ((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double') && ($row['date_of_birth_yyyy_mm_dd'] !== null)) {
-                $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
-            }
-
-            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
-                $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-                if ($BirthDivision !== null) {
-                    $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                                    ->where('parent_id', '=', $BirthDivision->id)->first();
-                    if ($BirthArea !== null) {
-                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
-                    }
-                }
-            }
-
-            if ((gettype($row['bmi_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-                $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
-            }
-
-            if ((gettype($row['start_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-                $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
-            }
-
-            if ((gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-                $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
-            }
-
-            if ((gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)) {
-                $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
-            }
-
-            if ((gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)) {
-                $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
-            }
+            $this->mapFields($row);
+           
         } catch (Exceptions $e) {
-            \Log::error('Import Error', [$e]);
+                $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+                $failures = [0 => $failure];
+                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
-
         return $row;
     }
 
