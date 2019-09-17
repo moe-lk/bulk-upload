@@ -155,6 +155,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 
     public function validateColumns($column) {
         $columns = [
+            "remarks",
             "full_name",
             "gender_mf",
             "date_of_birth_yyyy_mm_dd",
@@ -208,13 +209,15 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             "guardians_identity_number",
         ];
 
+
         if (!(array_key_exists($column,$columns))) {
             $this->isValidSheet = false;
         }
     }
 
     protected function mapFields($row){
-        array_walk($row,array($this,'validateColumns'));
+        $keys = array_keys($row);
+        array_walk($keys,array($this,'validateColumns'));
         if($this->isValidSheet == false){
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);

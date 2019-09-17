@@ -155,6 +155,7 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
 
     public function validateColumns($column) {
         $columns = [
+            "remarks",
             "student_id",
             "full_name",
             "gender_mf",
@@ -215,7 +216,8 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
     }
 
     protected function mapFields($row){
-        array_walk($row,array($this,'validateColumns'));
+        $keys = array_keys($row);
+        array_walk($keys,array($this,'validateColumns'));
         if($this->isValidSheet == false){
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
