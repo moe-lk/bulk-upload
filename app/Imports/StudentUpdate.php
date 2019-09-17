@@ -155,7 +155,7 @@ class StudentUpdate implements ToModel, WithStartRow, WithHeadingRow, WithMultip
 
     public function validateColumns($column) {
         $columns = [
-            "student_id"
+            "student_id",
             "full_name",
             "gender_mf",
             "date_of_birth_yyyy_mm_dd",
