@@ -178,6 +178,7 @@ class ImportStudents extends Command
                 switch ($sheet) {
                     case 1:
                         if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
+
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
                             $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
@@ -240,6 +241,11 @@ class ImportStudents extends Command
         return  $reader->getActiveSheet()->getHighestDataRow($column);
     }
 
+    
+    protected function getCellValue($cell){
+        dd($cell);
+        return $cell->getValue();
+    }
 
     protected function writeErrors($e,$file,$sheet){
         ini_set('memory_limit', '2048M');
