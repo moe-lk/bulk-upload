@@ -73,6 +73,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         $this->maleStudentsCount = 0;
         $this->femaleStudentsCount = 0;
         $this->highestRow = 0;
+        $this->isValidSheet = false;
     }
 
     public function sheets(): array {
@@ -154,7 +155,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 
     public function validateColumns($row) {
         $columns = [
-            "student_id_leave_blank_for_new_student",
             "full_name",
             "gender_mf",
             "date_of_birth_yyyy_mm_dd",
@@ -210,14 +210,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 
         if ($columns == array_keys($row)) {
 
-            return true;
-        } else {
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(1, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
-            $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-            Log::info('error-email-sent', [$this->file]);
-            return false;
+            $this->isValidSheet = true;
         }
     }
 
@@ -228,6 +221,15 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
      */
     public function map($row): array {
         try {
+
+            $this->validateColumns($row);
+            if(!$this->isValidSheet){
+                $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+                $failures = [0 => $failure];
+                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+                Log::info('error-email-sent', [$this->file]);
+            }
 
             if ((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double') && ($row['date_of_birth_yyyy_mm_dd'] !== null)) {
                 $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
