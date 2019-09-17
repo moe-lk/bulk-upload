@@ -189,6 +189,7 @@ class ImportStudents extends Command
                 switch ($sheet) {
                     case 1:
                         if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
+
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
                             $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
