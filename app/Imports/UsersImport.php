@@ -58,73 +58,23 @@ use Webpatser\Uuid\Uuid;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation {
 
-    use Importable,
-        RegistersEventListeners;
-
-    public function __construct($file) {
-        $this->sheetNames = [];
-        $this->file = $file;
-        $this->sheetData = [];
-        $this->worksheet = '';
-        $this->failures = [];
-        $this->request = new Request;
-        $this->maleStudentsCount = 0;
-        $this->femaleStudentsCount = 0;
-        $this->highestRow = 0;
-        $this->isValidSheet = true;
-    }
+class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation  {
 
     public function sheets(): array {
         return [
             1 => $this,
-//            2 => new StudentUpdate($this)
         ];
     }
 
-    public function limit(): int {
-        $highestColumn = $this->worksheet->getHighestDataColumn(3);
-        $higestRow = 0;
-        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
-            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
-            if (isEmptyRow(reset($rowData))) {
-                continue;
-            } else {
-                $higestRow += 1;
-            }
-        }
-        return $higestRow;
-    }
-
-    public function batchSize(): int {
-        $highestColumn = $this->worksheet->getHighestDataColumn(3);
-        $higestRow = 1;
-        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
-            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
-            if (isEmptyRow(reset($rowData))) {
-                continue;
-            } else {
-                $higestRow += 1;
-            }
-        }
-        if ($higestRow == 0) {
-            exit;
-        } else {
-            return $higestRow;
-        }
-    }
-
+   
     public function registerEvents(): array {
         return [
             BeforeSheet::class => function(BeforeSheet $event) {
                 $this->sheetNames[] = $event->getSheet()->getTitle();
                 $this->worksheet = $event->getSheet();
-
                 $this->validateClass();
-
-                $worksheet = $event->getSheet();
-                $this->highestRow = $worksheet->getHighestDataRow(); // e.g. 10
+                $this->highestRow = $this->worksheet->getHighestDataRow(); // e.g. 10
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
                     $failure = new Failure(3, 'remark', [0 => 'No enough rows!'], [null]);
@@ -133,7 +83,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 }
             },
             BeforeImport::class => function (BeforeImport $event) {
-                $event->getReader()->getDelegate()->setActiveSheetIndex(1);
+                $activeSeet = $event->getReader()->getDelegate()->setActiveSheetIndex(1);
                 $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('C'));
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
@@ -145,201 +95,16 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
         ];
     }
 
-    public function startRow(): int {
-        return 3;
-    }
 
-    public function headingRow(): int {
-        return 2;
-    }
-
-    public function validateColumns($column) {
-        $columns = [
-            "remarks",
-            "full_name",
-            "gender_mf",
-            "date_of_birth_yyyy_mm_dd",
-            "address",
-            "birth_registrar_office_as_in_birth_certificate",
-            "birth_divisional_secretariat",
-            "nationality",
-            "identity_type",
-            "identity_number",
-            "special_need_type",
-            "special_need",
-            "bmi_academic_period",
-            "bmi_date_yyyy_mm_dd",
-            "bmi_height",
-            "bmi_weight",
-            "admission_no",
-            "academic_period",
-            "education_grade",
-            "start_date_yyyy_mm_dd",
-            "option_1",
-            "option_2",
-            "option_3",
-            "option_4",
-            "option_5",
-            "option_6",
-            "option_7",
-            "option_8",
-            "option_9",
-            "fathers_full_name",
-            "fathers_date_of_birth_yyyy_mm_dd",
-            "fathers_address",
-            "fathers_address_area",
-            "fathers_nationality",
-            "fathers_identity_type",
-            "fathers_identity_number",
-            "mothers_full_name",
-            "mothers_date_of_birth_yyyy_mm_dd",
-            "mothers_address",
-            "mothers_address_area",
-            "mothers_nationality",
-            "mothers_identity_type",
-            "mothers_identity_number",
-            "guardians_full_name",
-            "name_with_initials",
-            "guardians_gender_mf",
-            "guardians_date_of_birth_yyyy_mm_dd",
-            "guardians_address",
-            "guardians_address_area",
-            "guardians_nationality",
-            "guardians_identity_type",
-            "guardians_identity_number",
-        ];
-
-
-        if (!(array_key_exists($column,$columns))) {
-            $this->isValidSheet = false;
-        }
-    }
-
-    protected function mapFields($row){
-        $keys = array_keys($row);
-        array_walk($keys,array($this,'validateColumns'));
-        if($this->isValidSheet == false){
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
-            $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
-        if ((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double') && ($row['date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
-        }
-
-
-        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
-            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-            if ($BirthDivision !== null) {
-                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                                ->where('parent_id', '=', $BirthDivision->id)->first();
-                if ($BirthArea !== null) {
-                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
-                }
-            }
-        }
-
-        if ((gettype($row['bmi_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-            $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['start_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-            $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
-        }
-    }
-
-    /**
-     * @param mixed $row
-     * @return array
-     * @throws \Exception
-     */
-    public function map($row): array {
-        try {
-            $this->mapFields($row);
-           
-        } catch (Exceptions $e) {
-                $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
-                $failures = [0 => $failure];
-                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
-
-        return $row;
-    }
-
-    public function array(array $array) {
-        $this->sheetData[] = $array;
-    }
-
-    /**
-     * @param array $options
-     * @return string
-     */
-    public static function getUniqueOpenemisId($options = []) {
-        $prefix = '';
-
-        $prefix = DB::table('config_items')->where('code', '=', 'openemis_id_prefix')->get();
-        $prefix = explode(",", $prefix);
-        $prefix = ($prefix[1] > 0) ? $prefix[0] : '';
-
-        $latest = Security_user::orderBy('id', 'DESC')
-                ->first();
-
-        if (is_array($latest)) {
-            $latestOpenemisNo = $latest['SecurityUser']['openemis_no'];
-        } else {
-            $latestOpenemisNo = $latest->openemis_no;
-        }
-        if (empty($prefix)) {
-            $latestDbStamp = $latestOpenemisNo;
-        } else {
-            $latestDbStamp = substr($latestOpenemisNo, strlen($prefix));
-        }
-
-        $currentStamp = time();
-
-        if ($latestDbStamp >= $currentStamp) {
-            $newStamp = $latestDbStamp + 1;
-        } else {
-            $newStamp = $currentStamp;
-        }
-        $check = Security_user::where('openemis_no', '=', $prefix . $newStamp)->first();
-        if ($check === null) {
-            return $prefix . $newStamp;
-        } else {
-            $newStamp = $latestOpenemisNo + random_int(1, 40);
-            return $newStamp;
-        }
-    }
+  
 
     public function model(array $row) {
-
-
-
         try {
             $institutionClass = Institution_class::find($this->file['institution_class_id']);
             $institution = $institutionClass->institution_id;
-
-
             if (!array_filter($row)) {
                 return nulll;
             }
-
-
-            Log::info('row data:', [$row]);
             if (!empty($institutionClass)) {
 
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
@@ -377,15 +142,7 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                 $identityNUmber = $row['identity_number'];
 
                 $openemisStudent = $this::getUniqueOpenemisId();
-
-
-
-                //create students data
                 \Log::debug('Security_user');
-
-
-//                $student = Security_user::where('openemis_no','=',$row['student_id_leave_blank_for_new_student'])->get();
-//                if(empty($row['student_id_leave_blank_for_new_student'])){
                 $student = Security_user::create([
                             'username' => $openemisStudent,
                             'openemis_no' => $openemisStudent,
@@ -394,7 +151,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                             'gender_id' => $genderId,
                             'date_of_birth' => $date,
                             'address' => $row['address'],
-//                        'address_area_id'   => $AddressArea->id,
                             'birthplace_area_id' => $BirthArea,
                             'nationality_id' => $nationalityId,
                             'identity_type_id' => $identityType,
@@ -535,14 +291,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
                                     'created_user_id' => $this->file['security_user_id']
                         ]);
 
-//                        if (!empty($row['fathers_identity_number'])) {
-//                            User_identity::create([
-//                                'identity_type_id' => $identityType,
-//                                'number' => $row['fathers_identity_number'],
-//                                'security_user_id' => $father->id,
-//                                'created_user_id' => $this->file['security_user_id']
-//                            ]);
-//                        }
 
                         $father['guardian_relation_id'] = 1;
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
@@ -666,14 +414,10 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
                 if (!empty($allSubjects)) {
-
-
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
                     $allSubjects = $this->setStudentSubjects($allSubjects, $student);
-//                   $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     Institution_subject_student::insert((array) $allSubjects);
-//                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
                 unset($allSubjects);
@@ -699,89 +443,6 @@ class UsersImport implements ToModel, WithStartRow, WithHeadingRow, WithMultiple
             $failures = $e->failures();
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
             Log::info('email-sent', [$e]);
-        }
-    }
-
-    protected function updateSubjectCount($subject) {
-        $$totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
-        Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
-                ->update([
-                    'total_male_students' => $totalStudents['total_male_students'],
-                    'total_female_students' => $totalStudents['total_female_students']]);
-    }
-
-    /**
-     * @param $subjects
-     * @param $student
-     * @return array
-     * @throws \Exception
-     */
-    public function setStudentSubjects($subjects, $student) {
-        $data = [];
-
-        foreach ($subjects as $subject) {
-            $educationSubjectId = key_exists('institution_optional_subject', $subject) ? $subject['institution_optional_subject']['education_subject_id'] : $subject['institution_mandatory_subject']['education_subject_id'];
-
-
-            $data[] = [
-                'id' => (string) Uuid::generate(4),
-                'student_id' => $student->student_id,
-                'institution_class_id' => $student->institution_class_id,
-                'institution_subject_id' => $subject['institution_subject_id'],
-                'institution_id' => $student->institution_id,
-                'academic_period_id' => $student->academic_period_id,
-                'education_subject_id' => $educationSubjectId,
-                'education_grade_id' => $student->education_grade_id,
-                'student_status_id' => 1,
-                'created_user_id' => $this->file['security_user_id'],
-                'created' => now()
-            ];
-        }
-        return $data;
-    }
-
-    public function getStudentOptionalSubject($subjects, $student, $row, $institution) {
-        $data = [];
-
-
-        foreach ($subjects as $subject) {
-
-            $subjectId = Institution_class_subject::with(['institutionOptionalSubject'])
-                            ->whereHas('institutionOptionalSubject', function ($query) use ($row, $subject, $student) {
-                                $query->where('name', '=', $row[$subject])
-                                ->where('education_grade_id', '=', $student->education_grade_id);
-                            })
-                            ->where('institution_class_id', '=', $student->institution_class_id)
-                            ->get()->toArray();
-            if (!empty($subjectId))
-                $data[] = $subjectId[0];
-        }
-
-        return $data;
-    }
-
-    public function validateClass() {
-
-        $institutionClass = Institution_class::find($this->file['institution_class_id']);
-
-        $totalMaleStudents = $institutionClass->total_male_students;
-        $totalFemaleStudents = $institutionClass->total_female_students;
-        $totalStudents = $totalMaleStudents + $totalFemaleStudents;
-
-        $exceededStudents = ($totalStudents + $this->limit()) > $institutionClass->no_of_students ? true : false;
-
-        if ($exceededStudents == true) {
-            try {
-                $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'remark', [3 => 'Class student count exceeded! Max number of students is' . $institutionClass->no_of_students], [null]);
-                $failures = [0 => $failure];
-                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                Log::info('email-sent', [$this->file]);
-            } catch (Exception $e) {
-                Logg::info('email-sending-failed', [$e]);
-            }
-        } else {
-            return true;
         }
     }
 
