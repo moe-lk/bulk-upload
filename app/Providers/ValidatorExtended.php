@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
+use App\Models\Institution_class_student;
 
 class ValidatorExtended extends IlluminateValidator {
 
@@ -23,7 +24,8 @@ class ValidatorExtended extends IlluminateValidator {
         "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         "is_bc" => "The Birth Certificate number is not valid",
-        "nic" => "NIC number is Not valid"
+        "nic" => "NIC number is Not valid",
+        "is_student_in_class" => "The Student ID is not belong to this class"
     );
 
     public function __construct($translator, $data, $rules, $messages = array(),
@@ -84,7 +86,21 @@ class ValidatorExtended extends IlluminateValidator {
             }
         }
     }
-    
+
+    protected function validateIsStudentInClass($attribute, $value, $perameters, $validator) {
+        $student =  Security_user::where('openemis_no', '=', $value);
+        if($student->count() > 0){
+            $check =  Institution_class_student::where('student_id', '=', $student->get()->id)->where('institution_class_id','=',$perameters[0])->count();
+            if($check == 1){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+       
+    }
     protected function validateNic($attribute, $value, $perameters, $validator){  
        $valid =  preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/', $value);
        if(!$valid){

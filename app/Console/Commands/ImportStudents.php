@@ -96,7 +96,7 @@ class ImportStudents extends Command
         
         $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(23); //set time to 18:00
          
-        $check = !$time->between($morning,$evening, true);
+        $check = $time->between($morning,$evening, true);
         return $check;
     }
     
