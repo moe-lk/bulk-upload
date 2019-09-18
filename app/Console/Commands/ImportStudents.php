@@ -192,7 +192,7 @@ class ImportStudents extends Command
 
                             $import = new UsersImport($file);
                             Excel::import($import, $excelFile, 'local');
-                            // $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
+                            $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                             
                         }
                         break;
@@ -201,7 +201,7 @@ class ImportStudents extends Command
                         if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
                             $import = new StudentUpdate($file);
                             Excel::import($import, $excelFile, 'local');
-                            // $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
+                            $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                         }
                         break;
                     default:
@@ -213,10 +213,10 @@ class ImportStudents extends Command
                  self::writeErrors($e,$file,$sheet);
                  switch ($sheet) {
                     case 1:
-                            // $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                            $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                         break;
                     case 2:
-                            // $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                            $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                         break;
                     default:
                         break;
