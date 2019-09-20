@@ -164,8 +164,7 @@ class ImportStudents extends Command
                 self::writeErrors($e,$file,1);
                 self::writeErrors($e,$file,2);
                 try {
-                    // Mail::to($user->email)->send(new IncorrectTemplate($file));
-                    
+                    Mail::to($user->email)->send(new IncorrectTemplate($file));
                     DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 2, 'is_email_sent' => 1]);
@@ -208,7 +207,7 @@ class ImportStudents extends Command
                             DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 1]);
-                            // $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
+                            $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                             
                         }
                         break;
@@ -220,7 +219,7 @@ class ImportStudents extends Command
                             DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 1]);
-                            // $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
+                            $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                         }
                         break;
                     default:
@@ -232,10 +231,10 @@ class ImportStudents extends Command
                  self::writeErrors($e,$file,$sheet);
                  switch ($sheet) {
                     case 1:
-                            // $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                            $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                         break;
                     case 2:
-                            // $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                            $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                         break;
                     default:
                         break;
@@ -277,13 +276,9 @@ class ImportStudents extends Command
         $failures = $e->failures();
         $excelFile = '/sis-bulk-data-files/processed/'.$file['filename'];
         $exists = Storage::disk('local')->exists($excelFile);
-//         dd($excelFile);
         if(!$exists){
             $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         }
-        
-//         $exists = Storage::disk('local')->exists($excelFile);
-//         dd($exists);
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
