@@ -55,7 +55,6 @@ class ImportStudents extends Command
      */
     public function handle()
     {
-        $this->sendNotificationForTerminatedFiles();
         $files = $this->getFiles();
         if(count($files) == 0){
             $files = $this->getTerminated();
@@ -63,16 +62,11 @@ class ImportStudents extends Command
         $files = array_chunk($files, 10);
         array_walk($files, array($this,'process'));
         unset($files);
-        if((count($this->getFiles()) > 0) && $this->checkTime()){
+        if($this->checkTime()){
            $this->handle();
         }else{
             exit();
         }
-    }
-
-    public function sendNotificationForTerminatedFiles(){
-        $files = $this->getTerminated();
-        array_walk($files, array($this,'processTerminatedEmail'));
     }
     
     
@@ -114,16 +108,10 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1, 'is_email_sent' => 1]);
         } catch (\Exception $ex) {
-            $this->handle();
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1, 'is_email_sent' => 2]);
         }
-    }
-
-    protected function processTerminatedEmail($file){
-        $user = User::find($file['security_user_id']);
-        // $this->processFailedEmail($file,$user,'Import Process Terminated: Please ');
     }
     
     public function processFailedEmail($file,$user,$subject) {
@@ -134,7 +122,6 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 1]);
         } catch (\Exception $ex) {
-            $this->handle();
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 2]);
@@ -155,7 +142,6 @@ class ImportStudents extends Command
                 $this->import($file,2,'B');
                
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                // self::writeErrors($e,$file,1);
                 try {
                     Mail::to($user->email)->send(new IncorrectTemplate($file));
                     DB::table('uploads')
@@ -220,10 +206,9 @@ class ImportStudents extends Command
                 
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                 
                  switch ($sheet) {
                     case 1:
-                            self::writeErrors($e,$file,$sheet);
+                            self::writeErrors($e,$file,1);
                             $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                         break;
                     case 2:
