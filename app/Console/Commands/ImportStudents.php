@@ -153,16 +153,9 @@ class ImportStudents extends Command
                 
                 $this->import($file,1,'B');
                 $this->import($file,2,'B');
-                
-//                 DB::beginTransaction();
-//                 DB::table('uploads')
-//                     ->where('id',  $file['id'])
-//                     ->update(['is_processed' =>1]);
-//                 DB::commit();
                
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                self::writeErrors($e,$file,1);
-                self::writeErrors($e,$file,2);
+                // self::writeErrors($e,$file,1);
                 try {
                     Mail::to($user->email)->send(new IncorrectTemplate($file));
                     DB::table('uploads')
@@ -192,7 +185,6 @@ class ImportStudents extends Command
     protected function import($file,$sheet,$column){
             ini_set('memory_limit', '2048M');
             sleep(3);
-          //process the import if the time range is between morening and evening
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
@@ -228,12 +220,14 @@ class ImportStudents extends Command
                 
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                 self::writeErrors($e,$file,$sheet);
+                 
                  switch ($sheet) {
                     case 1:
+                            self::writeErrors($e,$file,$sheet);
                             $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                         break;
                     case 2:
+                            self::writeErrors($e,$file,$sheet);
                             $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                         break;
                     default:
