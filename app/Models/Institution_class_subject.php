@@ -43,16 +43,33 @@ class Institution_class_subject extends Model  {
 
     public function institutionMandatorySubject(){
         return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id')
-            ->with(['institutionMandatoryGradeSubject']);
+        ->with('institutionGradeSubject')
+        ->whereHas('institutionGradeSubject', function ($query) {
+                $query->where('auto_allocation',1);
+        });
+        // ->using('App\Models\Institution_subject','institution_subjects.education_subject_id','education_grades_subjects.education_subject_id');
+        // return $this->belongsToMany('App\Models\Education_grades_subject','institution_subjects','education_subject_id')
+        // ->using('App\Models\Institution_subject','institution_subjects.education_subject_id','education_grades_subjects.education_subject_id')
+        // ->where('education_grades_subjects.auto_allocation','=',1);
+        // ->wherePivotIn('auto_allocation', '=',1);
+        // ->with(['institutionGradeSubject'])
+            // ->whereHas('institutionGradeSubject', function ($query) {
+            //     $query->where('auto_allocation', '=',1);
+            // });
     }
 
     public function institutionOptionalSubject(){
         return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id')
-            ->with(['institutionOptionalGradeSubject']);
+        ->with('institutionGradeSubject')
+        ->whereHas('institutionGradeSubject', function ($query) {
+                $query->where('auto_allocation',0);
+        });
+        
     }
 
     public function institutionSubject(){
-        return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id');
+        return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id')
+        ->with('institutionGradeSubject');
     }
 
 }

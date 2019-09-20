@@ -55,6 +55,7 @@ use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Webpatser\Uuid\Uuid;
+use Exception;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
@@ -183,22 +184,36 @@ class Import
         return 2;
     }
 
+
+    protected function formateDate($row,$column,$format = 'Y-m-d'){
+        switch (gettype($row[$column])){
+            case 'string':
+                $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
+                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                break;
+            case 'double';
+                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                break;
+        }
+        return $row;
+    }
+
+
     protected function mapFields($row){
 
         $keys = array_keys($row);
         array_walk($keys,array($this,'validateColumns'));
-        if($this->isValidSheet == false){
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
-            $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
-        if ((gettype($row['date_of_birth_yyyy_mm_dd']) == 'double') && ($row['date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['date_of_birth_yyyy_mm_dd']);
-        }
-
+        $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
+        $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
+        $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
+        $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
+        $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
+        $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
 
         if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
+            // dd(($row['date_of_birth_yyyy_mm_dd']));
             $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
             if ($BirthDivision !== null) {
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
@@ -208,27 +223,6 @@ class Import
                 }
             }
         }
-
-        if ((gettype($row['bmi_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-            $row['bmi_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['bmi_date_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['start_date_yyyy_mm_dd']) == 'double') && ($row['bmi_date_yyyy_mm_dd'] !== null)) {
-            $row['start_date_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['start_date_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['fathers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['fathers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['fathers_date_of_birth_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['mothers_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['mothers_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['mothers_date_of_birth_yyyy_mm_dd']);
-        }
-
-        if ((gettype($row['guardians_date_of_birth_yyyy_mm_dd']) == 'double') && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)) {
-            $row['guardians_date_of_birth_yyyy_mm_dd'] = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['guardians_date_of_birth_yyyy_mm_dd']);
-        }
-
         return $row;
     }
 
@@ -245,7 +239,7 @@ class Import
     public function map($row): array {
         try {
          $row = $this->mapFields($row);
-        } catch (Exceptions $e) {
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $error = \Illuminate\Validation\ValidationException::withMessages([]);
                 $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
                 $failures = [0 => $failure];
@@ -273,7 +267,7 @@ class Import
                 throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                 Log::info('email-sent', [$this->file]);
             } catch (Exception $e) {
-                Logg::info('email-sending-failed', [$e]);
+                Log::info('email-sending-failed', [$e]);
             }
         } else {
             return true;
@@ -330,45 +324,56 @@ class Import
                     'total_female_students' => $totalStudents['total_female_students']]);
     }
 
-    /**
-     * @param $subjects
-     * @param $student
-     * @return array
-     * @throws \Exception
+
+    /** 
+     * 
      */
-    public function setStudentSubjects($subjects, $student) {
-        $data = [];
+    protected function setStudentSubjects($subject){
+        return [
+            'id' => (string) Uuid::generate(4),
+            'student_id' => $this->student->student_id,
+            'institution_class_id' => $this->student->institution_class_id,
+            'institution_subject_id' => $subject['institution_subject_id'],
+            'institution_id' => $this->student->institution_id,
+            'academic_period_id' => $this->student->academic_period_id,
+            'education_subject_id' => $subject['institution_subject']['education_subject_id'],
+            'education_grade_id' => $this->student->education_grade_id,
+            'student_status_id' => 1,
+            'created_user_id' => $this->file['security_user_id'],
+            'created' => now()
+        ];
+    }
 
-        foreach ($subjects as $subject) {
-            $educationSubjectId = key_exists('institution_optional_subject', $subject) ? $subject['institution_optional_subject']['education_subject_id'] : $subject['institution_mandatory_subject']['education_subject_id'];
+    protected function insertSubject($subject){
+        if(!Institution_subject_student::isDuplicated($subject)){
+            Institution_subject_student::updateOrInsert($subject);
+        }     
+    }
 
 
-            $data[] = [
-                'id' => (string) Uuid::generate(4),
-                'student_id' => $student->student_id,
-                'institution_class_id' => $student->institution_class_id,
-                'institution_subject_id' => $subject['institution_subject_id'],
-                'institution_id' => $student->institution_id,
-                'academic_period_id' => $student->academic_period_id,
-                'education_subject_id' => $educationSubjectId,
-                'education_grade_id' => $student->education_grade_id,
-                'student_status_id' => 1,
-                'created_user_id' => $this->file['security_user_id'],
-                'created' => now()
-            ];
-        }
-        return $data;
+    public function getMandetorySubjects($institutionClass){
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
+        $mandatorySubject = Institution_class_subject::with(['institutionSubject'])
+                        ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
+                            $query->whereHas('institutionGradeSubject',function($query){
+                                $query->where('auto_allocation',1);
+                            })->where('education_grade_id', $institutionGrade->education_grade_id);
+                            // ->where('auto_allocation', $institutionGrade->education_grade_id);
+                        })
+                        ->where('institution_class_id', '=', $institutionClass->id)
+                        ->get()->toArray();
+        return $mandatorySubject;                
     }
 
     public function getStudentOptionalSubject($subjects, $student, $row, $institution) {
         $data = [];
-
-
         foreach ($subjects as $subject) {
-
-            $subjectId = Institution_class_subject::with(['institutionOptionalSubject'])
-                            ->whereHas('institutionOptionalSubject', function ($query) use ($row, $subject, $student) {
-                                $query->where('name', '=', $row[$subject])
+            $subjectId = Institution_class_subject::with(['institutionSubject'])
+                            ->whereHas('institutionSubject', function ($query) use ($row, $subject, $student) {
+                                $query->whereHas('institutionGradeSubject',function($query){
+                                    $query->where('auto_allocation',0);
+                                })
+                                ->where('name', '=', $row[$subject])
                                 ->where('education_grade_id', '=', $student->education_grade_id);
                             })
                             ->where('institution_class_id', '=', $student->institution_class_id)
@@ -376,7 +381,6 @@ class Import
             if (!empty($subjectId))
                 $data[] = $subjectId[0];
         }
-
         return $data;
     }
 

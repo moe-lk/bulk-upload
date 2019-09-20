@@ -90,7 +90,8 @@ class ValidatorExtended extends IlluminateValidator {
     protected function validateIsStudentInClass($attribute, $value, $perameters, $validator) {
         $student =  Security_user::where('openemis_no', '=', $value);
         if($student->count() > 0){
-            $check =  Institution_class_student::where('student_id', '=', $student->get()->id)->where('institution_class_id','=',$perameters[0])->count();
+            $student = $student->first()->toArray();
+            $check =  Institution_class_student::where('student_id', '=', $student['id'])->where('institution_class_id','=',$perameters[0])->count();
             if($check == 1){
                 return true;
             }else{

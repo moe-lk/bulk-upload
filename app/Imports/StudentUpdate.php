@@ -100,14 +100,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             }
 
             if (!empty($institutionClass)) {
-
-                $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-                $mandatorySubject = Institution_class_subject::with(['institutionMandatorySubject'])
-                                ->whereHas('institutionMandatorySubject', function ($query) use ($institutionGrade) {
-                                    $query->where('education_grade_id', '=', $institutionGrade->education_grade_id);
-                                })
-                                ->where('institution_class_id', '=', $institutionClass->id)
-                                ->get()->toArray();
+                $mandatorySubject = $this->getMandetorySubjects($institutionClass);
                 $subjects = getMatchingKeys($row);
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
                 switch ($row['gender_mf']) {
@@ -346,19 +339,20 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     }
                 }
 
-                $optionalSubjects = $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $optionalSubjects =  $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
 
-
-                $newSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
-                $sundetSubjects = $this->getStudentSubjects($student);
-                $allSubjects = array_merge_recursive($newSubjects, $sundetSubjects);
+                $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+                // $stundetSubjects = $this->getStudentSubjects($student);
+                // $allSubjects = array_merge_recursive($newSubjects, $stundetSubjects);
 
                 if (!empty($allSubjects)) {
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                    $allSubjects = $this->setStudentSubjects($allSubjects, $student);
-//                   $allSubjects = array_unique($allSubjects,SORT_REGULAR);
+                    $this->student = $student;
+                    $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
+                    // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    Institution_subject_student::insert((array) $allSubjects);
+                    array_walk($allSubjects,array($this,'insertSubject'));
+                    // Institution_subject_student::insert((array) $allSubjects);
 //                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
@@ -393,6 +387,11 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
     public function getStudentSubjects($student) {
         return Institution_subject_student::where('student_id', '=', $student->student_id)
                         ->where('institution_class_id', '=', $student->institution_class_id)->get()->toArray();
+    }
+
+    protected function insertSubject($subject){
+        if(!Institution_subject_student::isDuplicated($subject))
+                Institution_subject_student::updateOrInsert($subject);
     }
 
 

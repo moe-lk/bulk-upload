@@ -106,14 +106,8 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 return nulll;
             }
             if (!empty($institutionClass)) {
-
-                $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-                $mandatorySubject = Institution_class_subject::with(['institutionMandatorySubject'])
-                                ->whereHas('institutionMandatorySubject', function ($query) use ($institutionGrade) {
-                                    $query->where('education_grade_id', '=', $institutionGrade->education_grade_id);
-                                })
-                                ->where('institution_class_id', '=', $institutionClass->id)
-                                ->get()->toArray();
+                $mandatorySubject = $this->getMandetorySubjects($institutionClass);  
+                // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
                 switch ($row['gender_mf']) {
@@ -168,7 +162,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                'created_user_id' => $this->file['security_user_id']
 //            ]);
 
-
+                $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                 Institution_student_admission::create([
                     'start_date' => $row['start_date_yyyy_mm_dd'],
@@ -212,6 +206,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                             'student_status_id' => 1,
                             'created_user_id' => $this->file['security_user_id']
                 ]);
+                $this->student = $student;
 //                }
 
 
@@ -413,11 +408,17 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 $optionalSubjects = $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+
                 if (!empty($allSubjects)) {
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                    $allSubjects = $this->setStudentSubjects($allSubjects, $student);
+                    $this->student = $student;
+                    $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
+                    // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
+                    // $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                    // array_walk($allSubjects,array($this,'insertSubject'));
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    Institution_subject_student::insert((array) $allSubjects);
+                    array_walk($allSubjects,array($this,'insertSubject'));
+                    // Institution_subject_student::insert((array) $allSubjects);
                 }
 
                 unset($allSubjects);
