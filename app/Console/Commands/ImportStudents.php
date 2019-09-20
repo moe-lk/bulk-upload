@@ -247,7 +247,7 @@ class ImportStudents extends Command
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         try{
             $reader->setActiveSheetIndex($sheet);
-        }catch(){
+        }catch(\Exception $e){
             $reader->setActiveSheetIndex(0);
         }
         return  $reader->getActiveSheet()->getHighestDataRow($column);
