@@ -245,7 +245,11 @@ class ImportStudents extends Command
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        $reader->setActiveSheetIndex($sheet);
+        try{
+            $reader->setActiveSheetIndex($sheet);
+        }catch(){
+            $reader->setActiveSheetIndex(0);
+        }
         return  $reader->getActiveSheet()->getHighestDataRow($column);
     }
 
@@ -262,8 +266,10 @@ class ImportStudents extends Command
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
-        $failures = array_map( array($this,'processErrors'),$failures );
-        array_walk($failures , 'append_errors_to_excel',$reader);
+        if(gettype($failures) == 'array'){
+            $failures = array_map(array($this,'processErrors'),$failures );
+            array_walk($failures , 'append_errors_to_excel',$reader);
+        }
         $objWriter = new \PHPExcel_Writer_Excel2007($reader);
         Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
         $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
