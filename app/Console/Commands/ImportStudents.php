@@ -138,7 +138,7 @@ class ImportStudents extends Command
                         ->update(['is_processed' => 3]);
                 DB::commit();
                 
-                $this->import($file,1,'B');
+                $this->import($file,1,'C');
                 $this->import($file,2,'B');
                
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
