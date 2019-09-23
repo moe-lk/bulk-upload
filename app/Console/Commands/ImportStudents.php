@@ -162,7 +162,7 @@ class ImportStudents extends Command
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(true);
+        // $objPHPExcel->setReadDataOnly(false);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetCount();
     }
@@ -206,13 +206,12 @@ class ImportStudents extends Command
                 
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                 self::writeErrors($e,$file,$sheet);
                  switch ($sheet) {
                     case 1:
-                            self::writeErrors($e,$file,$sheet);
                             $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                         break;
                     case 2:
-                            self::writeErrors($e,$file,$sheet);
                             $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                         break;
                     default:
@@ -243,7 +242,7 @@ class ImportStudents extends Command
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(true);
+        // $objPHPExcel->setReadDataOnly(false);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         try{
             $reader->setActiveSheetIndex($sheet);
@@ -263,7 +262,7 @@ class ImportStudents extends Command
             $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         }
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-        // $objPHPExcel->setReadDataOnly(true);
+        // $objPHPExcel->setReadDataOnly(false);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
         if(gettype($failures) == 'array'){
