@@ -151,8 +151,12 @@ class Import
 
         
         if ( ($column !== "") && (!in_array($column,$columns))) {
-            dd($column);
+            // dd($column);
             $this->isValidSheet = false;
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                       $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+                       $failures = [0 => $failure];
+                       throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
     }
 
