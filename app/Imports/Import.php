@@ -190,17 +190,20 @@ class Import
 
 
     protected function formateDate($row,$column,$format = 'Y-m-d'){
-        switch (gettype($row[$column])){
-            case 'string':
-                $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
-                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                break;
-            case 'double';
-                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                break;
+        if($row[$column] !== null){
+            switch (gettype($row[$column])){
+                case 'string':
+                    $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
+                    $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                    $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                    break;
+                case 'double';
+                    // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]); 
+                    break;
+            }
         }
+        // dd($row);
         return $row;
     }
 
