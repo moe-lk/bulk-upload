@@ -174,50 +174,32 @@ class ImportStudents extends Command
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
+                if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
 
-               
-                switch ($sheet) {
-                    case 1:
-                        if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
-
-                            $import = new UsersImport($file);
-                            Excel::import($import, $excelFile, 'local');
-                            DB::table('uploads')
-                            ->where('id', $file['id'])
-                            ->update(['is_processed' => 1]);
-                            $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
-                            
-                        }
-                        break;
-
-                    case 2:
-                        if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3)) {
-                            $import = new StudentUpdate($file);
-                            Excel::import($import, $excelFile, 'local');
-                            DB::table('uploads')
-                            ->where('id', $file['id'])
-                            ->update(['is_processed' => 1]);
-                            $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                        }
-                        break;
-                    default:
-                        break;
+                    $import = new UsersImport($file);
+                    Excel::import($import, $excelFile, 'local');
+                    DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 1]);
+                    $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
+                    
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) $sheet == 2) {
+                    $import = new StudentUpdate($file);
+                    Excel::import($import, $excelFile, 'local');
+                    DB::table('uploads')
+                    ->where('id', $file['id'])
+                    ->update(['is_processed' => 1]);
+                    $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                 }
                 
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
-                 switch ($sheet) {
-                    case 1:
-                            $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
-                        break;
-                    case 2:
-                            $this->processFailedEmail($file,$user, 'Existing Student Data Update');
-                        break;
-                    default:
-                        break;
-                }
-                
+                 if($sheet == 1){
+                    $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                 }else if($sheet ==2){
+                    $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                 }
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
