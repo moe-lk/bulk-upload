@@ -76,7 +76,7 @@ class ImportStudents extends Command
     
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-                        ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
+                        ->where('updated_at','>=', \Carbon\Carbon::now()->subHour())
                         ->get()->toArray();
         return $files;
     }
@@ -184,7 +184,7 @@ class ImportStudents extends Command
                     ->update(['is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                     
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) $sheet == 2) {
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
