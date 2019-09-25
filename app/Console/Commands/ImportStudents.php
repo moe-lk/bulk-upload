@@ -62,11 +62,11 @@ class ImportStudents extends Command
         $files = array_chunk($files, 10);
         array_walk($files, array($this,'process'));
         unset($files);
-        if($this->checkTime()){
-           $this->handle();
-        }else{
-            exit();
-        }
+        // if($this->checkTime()){
+        //    $this->handle();
+        // }else{
+        //     exit();
+        // }
     }
     
     
@@ -76,6 +76,7 @@ class ImportStudents extends Command
     
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
+                        ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
                         ->get()->toArray();
         return $files;
     }
@@ -197,7 +198,7 @@ class ImportStudents extends Command
                  self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
                     $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
-                 }else if($sheet ==2){
+                 }else if($sheet == 2){
                     $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                  }
                 DB::table('uploads')
