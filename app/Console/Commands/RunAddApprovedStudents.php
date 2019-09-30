@@ -72,13 +72,13 @@ class RunAddApprovedStudents extends Command
 //        dd(Institution_class_student::isDuplicated($student));
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         sleep(1);
-        if(!(Institution_student::isDuplicated($student) > 0)){
+        if(!(Institution_class_student::isDuplicated($student) > 0)){
             $this->count += 1;
             $this->student = $student ;
             try{
                Institution_student::create([
                    'student_status_id' => 1,
-                   'student_id' => $student['status_id'],
+                   'student_id' => $student['student_id'],
                    'education_grade_id' => $student['education_grade_id'],
                    'academic_period_id' => $student['academic_period_id'],
                    'start_date' => $student['start_date'],
@@ -90,8 +90,8 @@ class RunAddApprovedStudents extends Command
                    'created_user_id' => $student['created_user_id'],
                ]);
 
-               Institution_class_student::updateOrcreate([
-                   'student_id' => $student['status_id'],
+               Institution_class_student::create([
+                   'student_id' => $student['student_id'],
                    'institution_class_id' => $student['institution_class_id'],
                    'education_grade_id' =>  $student['education_grade_id'],
                    'academic_period_id' => $student['academic_period_id'],
@@ -106,7 +106,7 @@ class RunAddApprovedStudents extends Command
         }
         $output->writeln('
         ####################################################
-        #    Total number of students updated : '.$this->count.'          #
+           Total number of students updated : '.$this->count.'         
         #                                                  #             
         #                                                  #         
         ####################################################' );
