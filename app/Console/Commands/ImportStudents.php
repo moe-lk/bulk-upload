@@ -163,7 +163,7 @@ class ImportStudents extends Command
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
+        // $objPHPExcel->setReadDataOnly(false);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetCount();
     }
