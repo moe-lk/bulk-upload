@@ -72,7 +72,7 @@ class RunAddApprovedStudents extends Command
 //        dd(Institution_class_student::isDuplicated($student));
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         sleep(1);
-        if((Institution_student::isDuplicated($student) > 0)){
+        if(!(Institution_student::isDuplicated($student) > 0)){
             $this->count += 1;
             $this->student = $student ;
             try{
