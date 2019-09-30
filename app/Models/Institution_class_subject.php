@@ -64,7 +64,7 @@ class Institution_class_subject extends Model  {
         ->whereHas('institutionGradeSubject', function ($query) {
                 $query->where('auto_allocation',0);
         });
-        
+
     }
 
     public function institutionSubject(){
@@ -72,4 +72,37 @@ class Institution_class_subject extends Model  {
         ->with('institutionGradeSubject');
     }
 
+
+    public static function getMandetorySubjects($institutionClass){
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass)->first();
+        $mandatorySubject = Institution_class_subject::with(['institutionSubject'])
+            ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
+                $query->whereHas('institutionGradeSubject',function($query){
+                    $query->where('auto_allocation',1);
+                })->where('education_grade_id', $institutionGrade->education_grade_id);
+                // ->where('auto_allocation', $institutionGrade->education_grade_id);
+            })
+            ->where('institution_class_id', '=', $institutionClass)
+            ->get()->toArray();
+        return $mandatorySubject;
+    }
+
+    public static function getStudentOptionalSubject($subjects, $student, $row, $institution) {
+        $data = [];
+        foreach ($subjects as $subject) {
+            $subjectId = Institution_class_subject::with(['institutionSubject'])
+                ->whereHas('institutionSubject', function ($query) use ($row, $subject, $student) {
+                    $query->whereHas('institutionGradeSubject',function($query){
+                        $query->where('auto_allocation',0);
+                    })
+                        ->where('name', '=', $row[$subject])
+                        ->where('education_grade_id', '=', $student->education_grade_id);
+                })
+                ->where('institution_class_id', '=', $student->institution_class_id)
+                ->get()->toArray();
+            if (!empty($subjectId))
+                $data[] = $subjectId[0];
+        }
+        return $data;
+    }
 }

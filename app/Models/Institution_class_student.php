@@ -60,7 +60,7 @@ class Institution_class_student extends Model  {
     public function student(){
         return $this->belongsTo('App\Models\Security_user','student_id');
     }
-    
+
     public  static function getStudentsCount($institution_class_id) {
         $total_male_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 1);
@@ -75,13 +75,22 @@ class Institution_class_student extends Model  {
                 })->where('institution_class_id', '=', $institution_class_id)->count();
 
         $totalStudents = $total_female_students + $total_male_students;
-        
-        
+
+
         return [
             'total'=> $totalStudents,
             'total_female_students' => $total_female_students,
             'total_male_students' => $total_male_students
         ];
     }
+
+    public static function  isDuplicated($inputs){
+
+        $exists = self::where('student_id','=',$inputs['student_id'])
+           ->count();
+
+        return $exists;
+    }
+
 
 }

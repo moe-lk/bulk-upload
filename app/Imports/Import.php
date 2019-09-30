@@ -59,7 +59,7 @@ use Exception;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class Import  
+class Import
 {
     //Parent class for import script
     use Importable,
@@ -149,7 +149,7 @@ class Import
             "guardians_identity_number",
         ];
 
-        
+
         if ( ($column !== "") && (!in_array($column,$columns))) {
             // dd($column);
             $this->isValidSheet = false;
@@ -179,7 +179,7 @@ class Import
         }
     }
 
-    
+
     public function startRow(): int {
         return 3;
     }
@@ -199,7 +199,7 @@ class Import
                     break;
                 case 'double';
                     // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]); 
+                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
                     break;
             }
         }
@@ -324,7 +324,7 @@ class Import
 
 
     protected function updateSubjectCount($subject) {
-        $$totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
+        $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
         Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
                 ->update([
                     'total_male_students' => $totalStudents['total_male_students'],
@@ -332,8 +332,8 @@ class Import
     }
 
 
-    /** 
-     * 
+    /**
+     *
      */
     protected function setStudentSubjects($subject){
         return [
@@ -354,42 +354,10 @@ class Import
     protected function insertSubject($subject){
         if(!Institution_subject_student::isDuplicated($subject)){
             Institution_subject_student::updateOrInsert($subject);
-        }     
-    }
-
-
-    public function getMandetorySubjects($institutionClass){
-        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-        $mandatorySubject = Institution_class_subject::with(['institutionSubject'])
-                        ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
-                            $query->whereHas('institutionGradeSubject',function($query){
-                                $query->where('auto_allocation',1);
-                            })->where('education_grade_id', $institutionGrade->education_grade_id);
-                            // ->where('auto_allocation', $institutionGrade->education_grade_id);
-                        })
-                        ->where('institution_class_id', '=', $institutionClass->id)
-                        ->get()->toArray();
-        return $mandatorySubject;                
-    }
-
-    public function getStudentOptionalSubject($subjects, $student, $row, $institution) {
-        $data = [];
-        foreach ($subjects as $subject) {
-            $subjectId = Institution_class_subject::with(['institutionSubject'])
-                            ->whereHas('institutionSubject', function ($query) use ($row, $subject, $student) {
-                                $query->whereHas('institutionGradeSubject',function($query){
-                                    $query->where('auto_allocation',0);
-                                })
-                                ->where('name', '=', $row[$subject])
-                                ->where('education_grade_id', '=', $student->education_grade_id);
-                            })
-                            ->where('institution_class_id', '=', $student->institution_class_id)
-                            ->get()->toArray();
-            if (!empty($subjectId))
-                $data[] = $subjectId[0];
         }
-        return $data;
     }
+
+
 
 
 }

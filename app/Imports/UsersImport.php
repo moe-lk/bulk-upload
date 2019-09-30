@@ -67,7 +67,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
         ];
     }
 
-   
+
     public function registerEvents(): array {
         return [
             BeforeSheet::class => function(BeforeSheet $event) {
@@ -96,7 +96,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
     }
 
 
-  
+
 
     public function model(array $row) {
         try {
@@ -106,7 +106,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 return nulll;
             }
             if (!empty($institutionClass)) {
-                $mandatorySubject = $this->getMandetorySubjects($institutionClass);  
+                $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
@@ -378,7 +378,6 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                                     'date_of_birth' => $row['guardians_date_of_birth_yyyy_mm_dd'],
                                     'address' => $row['guardians_address'],
                                     'address_area_id' => $AddressArea->id,
-//                            'birthplace_area_id' => $BirthArea->id,
                                     'nationality_id' => $nationalityId,
                                     'identity_type_id' => $identityType,
                                     'identity_number' => $row['guardians_identity_number'],
@@ -405,7 +404,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     }
                 }
 
-                $optionalSubjects = $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $optionalSubjects = Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
 
