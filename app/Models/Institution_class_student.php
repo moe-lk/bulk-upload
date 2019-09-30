@@ -87,7 +87,8 @@ class Institution_class_student extends Model  {
     public static function  isDuplicated($inputs){
 
         $exists = self::where('student_id','=',$inputs['student_id'])
-           ->count();
+            ->where('institution_class_id',$inputs['institution_class_id'])
+            ->count();
 
         return $exists;
     }
