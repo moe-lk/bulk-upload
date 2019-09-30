@@ -67,7 +67,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
         ];
     }
 
-   
+
     public function registerEvents(): array {
         return [
             BeforeSheet::class => function(BeforeSheet $event) {
@@ -96,7 +96,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
     }
 
 
-  
+
 
     public function model(array $row) {
         try {
@@ -106,7 +106,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 return nulll;
             }
             if (!empty($institutionClass)) {
-                $mandatorySubject = $this->getMandetorySubjects($institutionClass);  
+                $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
@@ -378,7 +378,6 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                                     'date_of_birth' => $row['guardians_date_of_birth_yyyy_mm_dd'],
                                     'address' => $row['guardians_address'],
                                     'address_area_id' => $AddressArea->id,
-//                            'birthplace_area_id' => $BirthArea->id,
                                     'nationality_id' => $nationalityId,
                                     'identity_type_id' => $identityType,
                                     'identity_number' => $row['guardians_identity_number'],
@@ -405,7 +404,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     }
                 }
 
-                $optionalSubjects = $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $optionalSubjects = Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
 
@@ -471,27 +470,27 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:*.fathers_full_name',
-            '*.fathers_address' => 'required_with:*.fathers_full_name',
-            '*.fathers_address_area' => 'required_with:*.fathers_full_name|nullable|exists:area_administratives,name',
-            '*.fathers_nationality' => 'required_with:*.fathers_full_name',
-            '*.fathers_identity_type' => 'required_with:*.fathers_identity_number',
-            '*.fathers_identity_number' => 'nullable|required_with:*.fathers_identity_type|nic:fathers_identity_number',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
+            '*.fathers_address' => 'required_with:fathers_full_name',
+            '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
+            '*.fathers_nationality' => 'required_with:fathers_full_name',
+            '*.fathers_identity_type' => 'required_with:fathers_identity_number',
+            '*.fathers_identity_number' => 'nullable|required_with:fathers_identity_type|nic:fathers_identity_number',
             '*.mothers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:*.mothers_full_name',
-            '*.mothers_address' => 'required_with:*.mothers_full_name',
-            '*.mothers_address_area' => 'required_with:*.mothers_full_name|nullable|exists:area_administratives,name',
-            '*.mothers_nationality' => "required_with:*.mothers_full_name",
-            '*.mothers_identity_type' => "required_with:*.mothers_identity_number",
-            '*.mothers_identity_number' => 'nullable|required_with:*.mothers_identity_type|nic:mothers_identity_number',
+            '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:mothers_full_name',
+            '*.mothers_address' => 'required_with:mothers_full_name',
+            '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
+            '*.mothers_nationality' => "required_with:mothers_full_name",
+            '*.mothers_identity_type' => "required_with:mothers_identity_number",
+            '*.mothers_identity_number' => 'nullable|required_with:mothers_identity_type|nic:mothers_identity_number',
             '*.guardians_full_name' => 'nullable|required_without_all:*.fathers_full_name,*.mothers_full_name|regex:/^[\pL\s\-]+$/u',
-            '*.guardians_gender_mf' => 'required_with:*.guardians_full_name',
-            '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:*.guardians_full_name',
-            '*.guardians_address' => 'required_with:*.guardians_full_name',
-            '*.guardians_address_area' => 'required_with:*.guardians_full_name|nullable|exists:area_administratives,name',
-            '*.guardians_nationality' => 'required_with:*.guardians_full_name',
-            '*.guardians_identity_type' => 'required_with:*.guardians_identity_number',
-            '*.guardians_identity_number' => 'nullable|required_with:*.guardians_identity_type|nic:guardians_identity_number',
+            '*.guardians_gender_mf' => 'required_with:guardians_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:guardians_full_name',
+            '*.guardians_address' => 'required_with:guardians_full_name',
+            '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
+            '*.guardians_nationality' => 'required_with:guardians_full_name',
+            '*.guardians_identity_type' => 'required_with:guardians_identity_number',
+            '*.guardians_identity_number' => 'nullable|required_with:guardians_identity_type|nic:guardians_identity_number',
         ];
     }
 

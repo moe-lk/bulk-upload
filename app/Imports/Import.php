@@ -59,7 +59,7 @@ use Exception;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class Import  
+class Import
 {
     //Parent class for import script
     use Importable,
@@ -149,10 +149,14 @@ class Import
             "guardians_identity_number",
         ];
 
-        
+
         if ( ($column !== "") && (!in_array($column,$columns))) {
-            dd($column);
+            // dd($column);
             $this->isValidSheet = false;
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                       $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+                       $failures = [0 => $failure];
+                       throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
     }
 
@@ -175,7 +179,7 @@ class Import
         }
     }
 
-    
+
     public function startRow(): int {
         return 3;
     }
@@ -186,17 +190,20 @@ class Import
 
 
     protected function formateDate($row,$column,$format = 'Y-m-d'){
-        switch (gettype($row[$column])){
-            case 'string':
-                $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
-                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                break;
-            case 'double';
-                $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                break;
+        if($row[$column] !== null){
+            switch (gettype($row[$column])){
+                case 'string':
+                    $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
+                    $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                    $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                    break;
+                case 'double';
+                    // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
+                    break;
+            }
         }
+        // dd($row);
         return $row;
     }
 
@@ -317,7 +324,7 @@ class Import
 
 
     protected function updateSubjectCount($subject) {
-        $$totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
+        $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
         Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
                 ->update([
                     'total_male_students' => $totalStudents['total_male_students'],
@@ -325,8 +332,8 @@ class Import
     }
 
 
-    /** 
-     * 
+    /**
+     *
      */
     protected function setStudentSubjects($subject){
         return [
@@ -347,42 +354,10 @@ class Import
     protected function insertSubject($subject){
         if(!Institution_subject_student::isDuplicated($subject)){
             Institution_subject_student::updateOrInsert($subject);
-        }     
-    }
-
-
-    public function getMandetorySubjects($institutionClass){
-        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-        $mandatorySubject = Institution_class_subject::with(['institutionSubject'])
-                        ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
-                            $query->whereHas('institutionGradeSubject',function($query){
-                                $query->where('auto_allocation',1);
-                            })->where('education_grade_id', $institutionGrade->education_grade_id);
-                            // ->where('auto_allocation', $institutionGrade->education_grade_id);
-                        })
-                        ->where('institution_class_id', '=', $institutionClass->id)
-                        ->get()->toArray();
-        return $mandatorySubject;                
-    }
-
-    public function getStudentOptionalSubject($subjects, $student, $row, $institution) {
-        $data = [];
-        foreach ($subjects as $subject) {
-            $subjectId = Institution_class_subject::with(['institutionSubject'])
-                            ->whereHas('institutionSubject', function ($query) use ($row, $subject, $student) {
-                                $query->whereHas('institutionGradeSubject',function($query){
-                                    $query->where('auto_allocation',0);
-                                })
-                                ->where('name', '=', $row[$subject])
-                                ->where('education_grade_id', '=', $student->education_grade_id);
-                            })
-                            ->where('institution_class_id', '=', $student->institution_class_id)
-                            ->get()->toArray();
-            if (!empty($subjectId))
-                $data[] = $subjectId[0];
         }
-        return $data;
     }
+
+
 
 
 }

@@ -194,6 +194,7 @@ return [
 
     'columns' => [
         "remarks",
+        "stdeunt_id",
         "full_name" ,
         "gender_mf",
         "date_of_birth_yyyy_mm_dd",

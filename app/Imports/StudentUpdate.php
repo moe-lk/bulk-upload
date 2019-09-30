@@ -100,7 +100,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             }
 
             if (!empty($institutionClass)) {
-                $mandatorySubject = $this->getMandetorySubjects($institutionClass);
+                $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
                 $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
                 switch ($row['gender_mf']) {
@@ -164,7 +164,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 }
 
                 if (!empty($row['special_need'])) {
-                    
+
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
                     $data = [
                         'special_need_date' => now(),
@@ -339,7 +339,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     }
                 }
 
-                $optionalSubjects =  $this->getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
                 // $stundetSubjects = $this->getStudentSubjects($student);
@@ -368,7 +368,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     Log::info('email-sent', [$this->file]);
                 }
 
-               
+
                 Institution_class::where('id', '=', $institutionClass->id)
                         ->update([
                             'total_male_students' => $totalStudents['total_male_students'],
@@ -383,7 +383,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
         }
         unset($row);
     }
-    
+
     public function getStudentSubjects($student) {
         return Institution_subject_student::where('student_id', '=', $student->student_id)
                         ->where('institution_class_id', '=', $student->institution_class_id)->get()->toArray();
