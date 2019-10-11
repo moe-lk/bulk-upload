@@ -44,9 +44,12 @@ class ImportExport extends Controller
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function export() 
+    public function export(Request $request) 
     {
-        return Excel::download(new UsersExport, 'users.xlsx');
+         $request->validate([
+                'class' => 'required'
+            ]);
+        return Excel::download(new UsersExport($request->input('class')), 'users.xlsx');
     }
 
 
