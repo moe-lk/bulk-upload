@@ -22,7 +22,7 @@ services:
     depends_on:
       - mariadb
     ports:
-      - 3000:3000
+      - 3001:3000
     volumes:
       - ./:/app
     restart: always
