@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
+use App\Models\Institution_class_student;
 
 class ValidatorExtended extends IlluminateValidator {
 
@@ -23,7 +24,8 @@ class ValidatorExtended extends IlluminateValidator {
         "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         "is_bc" => "The Birth Certificate number is not valid",
-        "nic" => "NIC number is Not valid"
+        "nic" => "NIC number is Not valid",
+        "is_student_in_class" => "The Student ID is not belong to this class"
     );
 
     public function __construct($translator, $data, $rules, $messages = array(),
@@ -52,11 +54,12 @@ class ValidatorExtended extends IlluminateValidator {
                 return false;
             } elseif ($gradeEntity !== null) {
                 $admissionAge = $gradeEntity->admission_age;
-                $studentAge = ($value)->format('Y');
-                if(($studentAge === 4) && ($value)->format('M') === 1  ){
-                    $studentAge = 5;
-                }
+                $studentAge =  ($value)->format('Y') ;
+              
                 $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
+                // if(($studentAge === 5) && ($value)->format('M') === 1  ){
+                //     $studentAge = 5;
+                // }
                 $enrolmentMaximumAge = $admissionAge + 10;
                 return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
             } else {
@@ -67,7 +70,6 @@ class ValidatorExtended extends IlluminateValidator {
     protected function validateBirthPlace($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
             if ($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat', $data)) {
-               // dd($data['birth_divisional_secretariat']);
                 $BirthDivision = Area_administrative::where('name', '=',  '%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id', '=', 5); //
                 if ($BirthDivision->count() > 0 ) {
                     $BirthArea = Area_administrative::where('name', '=', '%'. $value.'%') //$data['birth_registrar_office_as_in_birth_certificate']
@@ -85,7 +87,22 @@ class ValidatorExtended extends IlluminateValidator {
             }
         }
     }
-    
+
+    protected function validateIsStudentInClass($attribute, $value, $perameters, $validator) {
+        $student =  Security_user::where('openemis_no', '=', $value);
+        if($student->count() > 0){
+            $student = $student->first()->toArray();
+            $check =  Institution_class_student::where('student_id', '=', $student['id'])->where('institution_class_id','=',$perameters[0])->count();
+            if($check == 1){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+       
+    }
     protected function validateNic($attribute, $value, $perameters, $validator){  
        $valid =  preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/', $value);
        if(!$valid){
@@ -101,7 +118,7 @@ class ValidatorExtended extends IlluminateValidator {
         foreach ($validator->getData() as $data) {
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if ($identityType !== null && ($value !== null)) {
-                if ($identityType->national_code === 'BC' && ($this->IsBc($data, $value))) {
+                if ($identityType->national_code === 'BC') {
                     return $this->checkUnique($value, $data,$identityType);
                 } elseif ($identityType->national_code === 'NIC') {
                     return $this->checkUnique($value, $data,$identityType);
@@ -129,15 +146,11 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function checkUnique($value, $data,$identityType) {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
-        if ($this->IsBc($data, $value)) {
-            if ($isUnique->count() > 0) {
-                $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
-                $this->_set_custom_stuff();
-                return false;
-            } else {
-                return true;
-            }
-        } elseif (!$this->IsBc($data, $value)) {
+        if ($isUnique->count() > 0) {
+            $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
+            $this->_set_custom_stuff();
+            return false;
+        } else {
             return true;
         }
     }

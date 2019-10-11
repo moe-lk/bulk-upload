@@ -57,6 +57,20 @@ class Institution_student extends Model  {
         });
     }
 
+    /**
+     * @param $inputs
+     * @return bool
+     *
+     *
+     */
+    public static function  isDuplicated($inputs){
+
+        $exists = self::where('student_id','=',$inputs['student_id'])->count();
+
+
+        return $exists;
+    }
+
 
     /**
      * The attributes that should be mutated to dates.
