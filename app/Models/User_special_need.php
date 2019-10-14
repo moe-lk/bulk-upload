@@ -40,5 +40,16 @@ class User_special_need extends Base_Model  {
      * @var array
      */
     protected $dates = ['special_need_date', 'modified', 'created'];
+    
+    
+     public static function  isDuplicated($inputs){
+
+       $exists = self::where('security_user_id','=',$inputs['security_user_id'])
+           ->where('special_need_type_id','=',$inputs['special_need_type_id'])
+           ->where('special_need_difficulty_id','=',$inputs['special_need_difficulty_id'])->count();
+
+//       dd($exists);
+        return $exists == 0 ? true :false;
+    }
 
 }

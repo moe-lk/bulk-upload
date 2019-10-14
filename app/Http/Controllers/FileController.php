@@ -66,14 +66,14 @@ class FileController extends Controller
         $upload->institution_class_id = $class->id;
         $upload->user()->associate(auth()->user());
         $upload->save();
-        
+
 
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
     }
 
 
     public function downloadTemplate(){
-        $filename = 'SIS Students Bulk Upload Template.xlsx';
+        $filename = 'censusNo_className_sis_students_bulk_upload_2007.xlsx';
         $file_path = storage_path() .'/app/public/'. $filename;;
         if (file_exists($file_path))
         {

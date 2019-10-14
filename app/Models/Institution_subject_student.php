@@ -79,4 +79,31 @@ class Institution_subject_student extends Model  {
         return $exists ? true :false;
     }
 
+    
+     public function student(){
+        return $this->belongsTo('App\Models\Security_user','student_id');
+    }
+    
+    public static function getStudentsCount(){
+         $total_male_students = self::with(['student' => function($query) {
+                        $query->where('student.gender_id', '=', 1);
+                    }])->whereHas('student', function ($query) {
+                    $query->where('gender_id', '=', 1);
+                })->where('institution_subject_id', '=', $institution_subject_id)->count();
+
+        $total_female_students = self::with(['student' => function($query) {
+                        $query->where('student.gender_id', '=', 2);
+                    }])->whereHas('student', function ($query) {
+                    $query->where('gender_id', '=', 2);
+                })->where('institution_subject_id', '=', $institution_subject_id)->count();
+
+        $totalStudents = $total_female_students + $total_male_students;
+        
+        
+        return [
+            'total'=> $totalStudents,
+            'total_female_students' => $total_female_students,
+            'total_male_students' => $total_male_students
+        ];
+    }
 }
