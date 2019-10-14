@@ -10,9 +10,10 @@
 
 
             <a href="https://onedrive.live.com/download?resid=367F7CD71188D7DA%211012&authkey=%21AL4A-jLv8V-fhEI&em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True" target="_blank"><button class="btn btn-success"> Download Template</button></a>
+              <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Template for  Excel2007</button></a>
             <form style="border: 4px solid #a1a1a1;margin-top: 15px;padding: 10px;" action="{{ url('upload') }}" class="form-horizontal" method="post" enctype="multipart/form-data">
                 @csrf
- 
+
                 @if ($errors->any())
                     <div class="alert alert-danger">
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
@@ -23,7 +24,7 @@
                         </ul>
                     </div>
                 @endif
- 
+
                 @if (Session::has('success'))
                     <div class="alert alert-success">
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
@@ -68,6 +69,7 @@
                 </select>
                 <button class="btn btn-primary">Export File</button>
             </form>-->
+
 
           </div>
         </div>
