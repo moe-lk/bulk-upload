@@ -19,6 +19,7 @@ Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEAC
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
+Route::post('exportExcel', 'ImportExport@export');
 
 //Auth::routes();
 Auth::routes(['register' => false]);

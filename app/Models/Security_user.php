@@ -19,6 +19,10 @@ class Security_user extends Base_Model  {
     public $timestamps = false;
 
     protected $table = 'security_users';
+    
+    protected $appends = [
+      'special_need_name'  
+    ];
 
     /**
      * Attributes that should be mass-assignable.
@@ -63,7 +67,12 @@ class Security_user extends Base_Model  {
         
     ];
     
+    
 
+
+    public function getSpecialNeedNameAttribute() {
+        return optional($this->special_needs())->special_need_difficulty_id;
+    }
 
     /**
      * The attributes that should be casted to native types.
@@ -112,6 +121,14 @@ class Security_user extends Base_Model  {
 
     public function uploads(){
        return $this->hasMany('App\Models\Upload');
+    }
+    
+    public function class(){
+        return $this->belongsTo('App\Models\Institution_class_student','id','student_id');
+    }
+    
+    public function special_needs(){
+        return $this->hasMany('App\Models\User_special_need','id','security_user_id');
     }
 
     public static function boot()

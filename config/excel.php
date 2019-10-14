@@ -194,7 +194,7 @@ return [
 
     'columns' => [
         "remarks",
-        "student_id_leave_blank_for_new_student" ,
+        "stdeunt_id",
         "full_name" ,
         "gender_mf",
         "date_of_birth_yyyy_mm_dd",

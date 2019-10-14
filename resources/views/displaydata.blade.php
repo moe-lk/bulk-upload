@@ -10,7 +10,6 @@
                     <th>Id</th>
                     <th>Original file</th>
                     <th>Error file</th>
-                    <th>Class</th>
                     <th>Created</th>
                     <th>Updated</th>
                     <th>Email Status</th>
@@ -28,7 +27,6 @@
                         { data: 'id', name: 'id' },
                         { data: 'filename', name: 'filename' },
                         { data: 'error', name: 'error' },
-                        { data: 'created_at' , name: 'Uploaded'},
                         { data: 'updated_at' , name: 'updated_at'},
                         { data: 'is_processed', name: 'Status'},
                         { data: 'is_email_sent' , name: 'Email Status'}
