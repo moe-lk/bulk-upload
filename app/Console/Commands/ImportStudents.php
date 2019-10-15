@@ -181,7 +181,7 @@ class ImportStudents extends Command
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1]);
+                    ->update(['insert' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
                 }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
@@ -189,7 +189,7 @@ class ImportStudents extends Command
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1]);
+                    ->update(['update' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                 }
 
@@ -201,9 +201,9 @@ class ImportStudents extends Command
                  }else if($sheet == 2){
                     $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                  }
-                DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2]);
+                 DB::table('uploads')
+                     ->where('id',  $file['id'])
+                     ->update(['is_processed' =>2]);
 
             }
 
@@ -245,7 +245,7 @@ class ImportStudents extends Command
             $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         }
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
+        $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
         if(gettype($failures) == 'array'){
