@@ -31,7 +31,7 @@ class EmptyFile extends Mailable
             'link' =>  env('APP_URL').'bulk-upload/'
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "No data Found ". $file['filename']. 'Please upload the file with data',
+            'name'=>$this->user->first_name, "body" => "No data Found in". $file['filename']. 'Please upload the file with data',
             'link' =>  env('APP_URL').'bulk-upload/'
         ];
     }
