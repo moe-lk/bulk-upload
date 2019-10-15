@@ -210,7 +210,6 @@ class ImportStudents extends Command
                     ->update(['update' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                 }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 1) {
-                    dd('empty');
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
