@@ -35,10 +35,30 @@ class FilesController extends Controller
                 };
 
             })
+            ->editColumn('update', function ($data) {
+                if ($data->update === 0) {
+                    return "No Processes";
+                }elseif($data->update === 1 ){
+                    return 'Success';
+                }else{
+                    return 'Failed';
+                };
+
+            })
+            ->editColumn('insert', function ($data) {
+                if ($data->insert === 0) {
+                    return "No Processes";
+                }elseif($data->insert === 1 ){
+                    return 'Success';
+                }else{
+                    return 'Failed';
+                };
+
+            })
             ->editColumn('filename', function ($data) {
                 if(env('APP_ENV','local') == 'local'){
                      return '<a href="/download_file/'.$data->filename.'">'.$data->filename.'</a>';
-                    
+
                 }else{
                     return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.$data->filename.'</a>';
                 }
@@ -47,7 +67,7 @@ class FilesController extends Controller
              ->editColumn('error', function ($data) {
                 if(env('APP_ENV','local') == 'local'){
                      return '<a href="/download/'.$data->filename.'">'.$data->filename.'</a>';
-                    
+
                 }else{
                     return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
                 }
