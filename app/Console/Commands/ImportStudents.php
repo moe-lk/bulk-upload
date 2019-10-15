@@ -175,7 +175,7 @@ class ImportStudents extends Command
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-                if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
+                if (($this->getHigestRow($file, $sheet,$column) > 3) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
 
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
@@ -184,7 +184,7 @@ class ImportStudents extends Command
                     ->update(['insert' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 3) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
