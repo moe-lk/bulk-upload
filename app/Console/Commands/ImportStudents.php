@@ -238,7 +238,7 @@ class ImportStudents extends Command
         }catch(\Exception $e){
             $reader->setActiveSheetIndex(0);
         }
-        return  $reader->getActiveSheet()->getHighestDataRow($column);
+        return  $reader->getActiveSheet()->getHighestRow($column);
     }
 
 
@@ -251,7 +251,7 @@ class ImportStudents extends Command
             $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         }
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
+//        $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
         if(gettype($failures) == 'array'){
