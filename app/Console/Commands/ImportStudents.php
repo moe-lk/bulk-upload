@@ -178,7 +178,7 @@ class ImportStudents extends Command
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
 //                dd($this->getHigestRow($file, $sheet,$column));
-                if (($this->getHigestRow($file, $sheet,$column) > 1) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
+                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
 
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
@@ -187,19 +187,19 @@ class ImportStudents extends Command
                     ->update(['insert' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 1) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 1)  && $sheet == 1) {
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 1) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
                     $this->processFailedEmail($file,$user, 'Fresh Student Data Upload Empty File');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 1)  && $sheet == 2) {
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 2) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
@@ -252,9 +252,9 @@ class ImportStudents extends Command
         }
         $higestRow = 0;
         $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-        for ($row = 0; $row <= $this->highestRow; $row++) {
-            $rowData = $reader->getActiveSheet()->rangeToArray('A' . $row . ':' . $column . $row, NULL, TRUE, FALSE);
-            if (isEmptyRow(reset($rowData))) {
+        for ($row = 3; $row <= $this->highestRow; $row++) {
+            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+            if (empty($rowData) || $rowData == null) {
                 continue;
             } else {
                 $higestRow += 1;
