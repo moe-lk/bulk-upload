@@ -68,12 +68,12 @@ class ImportStudents extends Command
         //     exit();
         // }
     }
-    
-    
+
+
     protected function  process($files){
         array_walk($files, array($this,'processSheet'));
     }
-    
+
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
                         ->where('updated_at','>=', \Carbon\Carbon::now()->subHour())
@@ -88,19 +88,19 @@ class ImportStudents extends Command
                     ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
             })
             ->get()->toArray();
-         return $files;   
+         return $files;
     }
 
     protected function checkTime(){
         $time = Carbon::now()->tz('Asia/Colombo');
         $morning = Carbon::create($time->year, $time->month, $time->day, env('CRON_START_TIME',0), 29, 0)->tz('Asia/Colombo')->setHour(0); //set time to 05:59
-        
+
         $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(23); //set time to 18:00
-         
+
         $check = $time->between($morning,$evening, true);
         return $check;
     }
-    
+
     public function processSuccessEmail($file,$user,$subject) {
         $file['subject'] = $subject;
         try {
@@ -114,7 +114,7 @@ class ImportStudents extends Command
                     ->update(['is_processed' => 1, 'is_email_sent' => 2]);
         }
     }
-    
+
     public function processFailedEmail($file,$user,$subject) {
         $file['subject'] = $subject;
         try {
@@ -138,10 +138,10 @@ class ImportStudents extends Command
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 3]);
                 DB::commit();
-                
+
                 $this->import($file,1,'C');
                 $this->import($file,2,'B');
-               
+
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 try {
                     Mail::to($user->email)->send(new IncorrectTemplate($file));
@@ -159,7 +159,7 @@ class ImportStudents extends Command
             exit();
         }
     }
-    
+
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
@@ -183,7 +183,7 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
-                    
+
                 }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
@@ -192,7 +192,7 @@ class ImportStudents extends Command
                     ->update(['is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                 }
-                
+
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
@@ -204,12 +204,12 @@ class ImportStudents extends Command
                 DB::table('uploads')
                     ->where('id',  $file['id'])
                     ->update(['is_processed' =>2]);
-               
+
             }
-    
+
     }
-    
-    
+
+
 
     protected function processErrors($failure){
             $error_mesg = implode(',',$failure->errors());
@@ -219,7 +219,7 @@ class ImportStudents extends Command
                 'attribute' => $failure->attribute()
             ];
             return $failure;
-        
+
     }
 
     protected function getHigestRow($file,$sheet,$column){
@@ -235,7 +235,7 @@ class ImportStudents extends Command
         return  $reader->getActiveSheet()->getHighestDataRow($column);
     }
 
-    
+
     protected function writeErrors($e,$file,$sheet){
         ini_set('memory_limit', '2048M');
         $failures = $e->failures();
@@ -245,16 +245,17 @@ class ImportStudents extends Command
             $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         }
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-        // $objPHPExcel->setReadDataOnly(true);
+//        $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
         $reader->setActiveSheetIndex($sheet);
         if(gettype($failures) == 'array'){
             $failures = array_map(array($this,'processErrors'),$failures );
             array_walk($failures , 'append_errors_to_excel',$reader);
+            $objWriter = new \PHPExcel_Writer_Excel2007($reader);
+            Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
+            $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
+            unset($objWriter);
         }
-        $objWriter = new \PHPExcel_Writer_Excel2007($reader);
-        Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
-        $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
-        unset($objWriter);
+
     }
 }
