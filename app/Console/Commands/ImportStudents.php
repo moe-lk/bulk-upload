@@ -7,6 +7,7 @@ use App\Imports\UsersImport;
 use App\Imports\StudentUpdate;
 use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
+use App\Mail\EmptyEmail;
 use App\Mail\IncorrectTemplate;
 use App\Models\Upload;
 use App\Models\User;
@@ -129,6 +130,20 @@ class ImportStudents extends Command
         }
     }
 
+    public function processEmptyEmail($file,$user,$subject) {
+        $file['subject'] = $subject;
+        try {
+            Mail::to($user->email)->send(new EmptyFile($file));
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+        } catch (\Exception $ex) {
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+        }
+    }
+
     protected function processSheet($file){
         $user = User::find($file['security_user_id']);
         if ($this->checkTime()) {
@@ -198,12 +213,12 @@ class ImportStudents extends Command
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
-                    $this->processFailedEmail($file,$user, 'Fresh Student Data Upload Empty File');
+                    $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
                 }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 2) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
-                    $this->processFailedEmail($file,$user, 'Existing Student Data Update Empty File');
+                    $this->processEmptyEmail($file,$user, 'Existing Student Data Update');
                 }
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
