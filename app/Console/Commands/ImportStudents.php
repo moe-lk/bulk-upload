@@ -181,7 +181,7 @@ class ImportStudents extends Command
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['insert' => 1]);
+                    ->update(['insert' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
                 }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
@@ -189,7 +189,7 @@ class ImportStudents extends Command
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['update' => 1]);
+                    ->update(['update' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                 }
 
