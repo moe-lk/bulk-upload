@@ -197,8 +197,14 @@ class ImportStudents extends Command
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
+                     DB::table('uploads')
+                         ->where('id', $file['id'])
+                         ->update(['insert' => 2]);
                     $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                  }else if($sheet == 2){
+                     DB::table('uploads')
+                         ->where('id', $file['id'])
+                         ->update(['update' => 2]);
                     $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                  }
                  DB::table('uploads')

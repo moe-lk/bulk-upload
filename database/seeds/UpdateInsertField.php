@@ -13,6 +13,7 @@ class UpdateInsertField extends Seeder
     {
         //
         DB::table('uploads')->where('is_processed', 1)->update(['insert' => 1]);
+        DB::table('uploads')->where('is_processed', 2)->update(['insert' => 2]);
 
     }
 }
