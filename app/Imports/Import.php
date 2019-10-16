@@ -226,18 +226,29 @@ class Import
         $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
         $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
 
-        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
-            // dd(($row['date_of_birth_yyyy_mm_dd']));
-            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-            if ($BirthDivision !== null) {
-                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                                ->where('parent_id', '=', $BirthDivision->id)->first();
-                if ($BirthArea !== null) {
-                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+        if($this->checkKeys($row)){
+            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
+                // dd(($row['date_of_birth_yyyy_mm_dd']));
+                $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
+                if ($BirthDivision !== null) {
+                    $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
+                        ->where('parent_id', '=', $BirthDivision->id)->first();
+                    if ($BirthArea !== null) {
+                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+                    }
                 }
             }
-        }
+        }else{
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+        };
         return $row;
+    }
+
+    protected function checkKeys($row){
+       return array_key_exists('identity_type',$row) && array_key_exists('birth_divisional_secretariat',$row) && array_key_exists('date_of_birth_yyyy_mm_dd',$row) && array_key_exists('identity_number',$row) ;
     }
 
 
