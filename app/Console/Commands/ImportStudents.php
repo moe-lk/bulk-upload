@@ -7,6 +7,7 @@ use App\Imports\UsersImport;
 use App\Imports\StudentUpdate;
 use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
+use App\Mail\EmptyFile;
 use App\Mail\IncorrectTemplate;
 use App\Models\Upload;
 use App\Models\User;
@@ -60,13 +61,18 @@ class ImportStudents extends Command
             $files = $this->getTerminated();
         }
         $files = array_chunk($files, 10);
-        array_walk($files, array($this,'process'));
-        unset($files);
-        // if($this->checkTime()){
-        //    $this->handle();
-        // }else{
-        //     exit();
-        // }
+        while ($this->checkTime()){
+            if($this->checkTime()){
+                try {
+                    array_walk($files, array($this,'process'));
+                    unset($files);
+                }catch (Exception $e){
+                    $this->handle();
+                }
+            }else{
+                exit();
+            }
+        }
     }
 
 
@@ -129,6 +135,20 @@ class ImportStudents extends Command
         }
     }
 
+    public function processEmptyEmail($file,$user,$subject) {
+        $file['subject'] = $subject;
+        try {
+            Mail::to($user->email)->send(new EmptyFile($file));
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+        } catch (\Exception $ex) {
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+        }
+    }
+
     protected function processSheet($file){
         $user = User::find($file['security_user_id']);
         if ($this->checkTime()) {
@@ -160,6 +180,8 @@ class ImportStudents extends Command
         }
     }
 
+
+
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
@@ -171,39 +193,55 @@ class ImportStudents extends Command
 
     protected function import($file,$sheet,$column){
             ini_set('memory_limit', '2048M');
-            sleep(3);
+            sleep(1);
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-                if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
+//                dd($this->getHigestRow($file, $sheet,$column));
+                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
 
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1]);
+                    ->update(['insert' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 2) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1]);
+                    ->update(['update' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 1) {
+                    DB::table('uploads')
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 1]);
+                    $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 2) {
+                    DB::table('uploads')
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 1]);
+                    $this->processEmptyEmail($file,$user, 'Existing Student Data Update');
                 }
-
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
+                     DB::table('uploads')
+                         ->where('id', $file['id'])
+                         ->update(['insert' => 2]);
                     $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                  }else if($sheet == 2){
+                     DB::table('uploads')
+                         ->where('id', $file['id'])
+                         ->update(['update' => 2]);
                     $this->processFailedEmail($file,$user, 'Existing Student Data Update');
                  }
-                DB::table('uploads')
-                    ->where('id',  $file['id'])
-                    ->update(['is_processed' =>2]);
+                 DB::table('uploads')
+                     ->where('id',  $file['id'])
+                     ->update(['is_processed' =>2]);
 
             }
 
@@ -225,14 +263,25 @@ class ImportStudents extends Command
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(true);
+         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         try{
             $reader->setActiveSheetIndex($sheet);
         }catch(\Exception $e){
             $reader->setActiveSheetIndex(0);
         }
-        return  $reader->getActiveSheet()->getHighestDataRow($column);
+        $higestRow = 0;
+        $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
+        for ($row = 3; $row <= $this->highestRow; $row++) {
+            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+            if (empty($rowData) || $rowData == null) {
+                continue;
+            } else {
+                $higestRow += 1;
+            }
+        }
+        return $higestRow;
+
     }
 
 

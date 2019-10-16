@@ -226,7 +226,7 @@ class Import
         $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
         $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
 
-        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
+        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
             // dd(($row['date_of_birth_yyyy_mm_dd']));
             $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
             if ($BirthDivision !== null) {
