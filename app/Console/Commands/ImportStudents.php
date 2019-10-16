@@ -64,9 +64,18 @@ class ImportStudents extends Command
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
-                    array_walk($files, array($this,'process'));
-                    unset($files);
+                    if(!empty($files)){
+                        array_walk($files, array($this,'process'));
+                        unset($files);
+                    }else{
+                        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                        $output->writeln('No files found,Waiting for files');
+                        $this->handle();
+                    }
+
                 }catch (Exception $e){
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln($e);
                     $this->handle();
                 }
             }else{
@@ -198,7 +207,7 @@ class ImportStudents extends Command
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
 //                dd($this->getHigestRow($file, $sheet,$column));
-                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 1)  {
+                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Insert Students')))  { //
 
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
@@ -207,7 +216,7 @@ class ImportStudents extends Command
                     ->update(['insert' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
 
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetCount($file) > 3) && $sheet == 2) {
+                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Update Students'))) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
@@ -258,6 +267,14 @@ class ImportStudents extends Command
             ];
             return $failure;
 
+    }
+
+    protected function  getSheetName($file,$sheet){
+        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+        $objPHPExcel->setReadDataOnly(true);
+        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+        return $reader->getSheetByName($sheet)->getTitle() == $sheet;
     }
 
     protected function getHigestRow($file,$sheet,$column){
