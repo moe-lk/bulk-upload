@@ -61,13 +61,18 @@ class ImportStudents extends Command
             $files = $this->getTerminated();
         }
         $files = array_chunk($files, 10);
-        array_walk($files, array($this,'process'));
-        unset($files);
-        // if($this->checkTime()){
-        //    $this->handle();
-        // }else{
-        //     exit();
-        // }
+        while ($this->checkTime()){
+            if($this->checkTime()){
+                try {
+                    array_walk($files, array($this,'process'));
+                    unset($files);
+                }catch (Exception $e){
+                    $this->handle();
+                }
+            }else{
+                exit();
+            }
+        }
     }
 
 
