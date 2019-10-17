@@ -219,14 +219,13 @@ class Import
 
         $keys = array_keys($row);
         array_walk($keys,array($this,'validateColumns'));
-        $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
-        $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
-        $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
-
         if($this->checkKeys($row)){
+            $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
+            $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
+            $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
                 // dd(($row['date_of_birth_yyyy_mm_dd']));
                 $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
@@ -248,7 +247,15 @@ class Import
     }
 
     protected function checkKeys($row){
-       return array_key_exists('identity_type',$row) && array_key_exists('birth_divisional_secretariat',$row) && array_key_exists('date_of_birth_yyyy_mm_dd',$row) && array_key_exists('identity_number',$row) ;
+       return array_key_exists('identity_type',$row)
+           && array_key_exists('birth_divisional_secretariat',$row)
+           && array_key_exists('date_of_birth_yyyy_mm_dd',$row)
+           && array_key_exists('bmi_date_yyyy_mm_dd',$row)
+           && array_key_exists('start_date_yyyy_mm_dd',$row)
+           && array_key_exists('fathers_date_of_birth_yyyy_mm_dd',$row)
+           && array_key_exists('mothers_date_of_birth_yyyy_mm_dd',$row)
+           && array_key_exists('guardians_date_of_birth_yyyy_mm_dd',$row)
+           && array_key_exists('identity_number',$row) ;
     }
 
 
