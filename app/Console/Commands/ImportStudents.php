@@ -163,7 +163,7 @@ class ImportStudents extends Command
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('******************************************************************');
+        $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);
         if ($this->checkTime()) {
             try {
@@ -310,9 +310,7 @@ class ImportStudents extends Command
         gc_enable();
         gc_collect_cycles();
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('-------------------------------------------------------------------');
-        $output->writeln('memory usage for.'. $file['institution_class_id']. ' '. (memory_get_usage() - $baseMemory));
-        $output->writeln('-------------------------------------------------------------------');
+        $output->writeln('memory usage for file '. $file['filename']. ' '. (memory_get_usage() - $baseMemory));
         $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
         $cacheSettings = array( ' memoryCacheSize ' => '256MB');
         \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
@@ -334,10 +332,10 @@ class ImportStudents extends Command
             Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
             $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
             $now = Carbon::now()->tz('Asia/Colombo');
-            $output->writeln( $file['institution_class_id'].' '. $reader->getActiveSheet()->getTitle() . 'Process completed at . '.' '. now());
+            $output->writeln( $file['filename'].' '. $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
             $output->writeln( 'Time taken to process '.   $now->diffInSeconds($this->startTime) .' Seconds');
-            $output->writeln('-------------------------------------------------------------------');
             $output->writeln(count($failures).' errors repoted for :'. $file['filename']);
+            $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
             unset($objWriter);
         }
 
