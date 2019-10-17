@@ -310,7 +310,6 @@ class ImportStudents extends Command
         gc_enable();
         gc_collect_cycles();
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('memory usage for file '. $file['filename']. ' '. (memory_get_usage() - $baseMemory));
         $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
         $cacheSettings = array( ' memoryCacheSize ' => '256MB');
         \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
@@ -332,9 +331,10 @@ class ImportStudents extends Command
             Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
             $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
             $now = Carbon::now()->tz('Asia/Colombo');
-            $output->writeln( $file['filename'].' '. $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
-            $output->writeln( 'Time taken to process '.   $now->diffInSeconds($this->startTime) .' Seconds');
-            $output->writeln(count($failures).' errors repoted for :'. $file['filename']);
+            $output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
+            $output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
+            $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+            $output->writeln(' errors reported               : '.count($failures));
             $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
             unset($objWriter);
         }
