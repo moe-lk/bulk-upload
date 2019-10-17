@@ -197,21 +197,28 @@ class Import
 
 
     protected function formateDate($row,$column,$format = 'Y-m-d'){
-        if($row[$column] !== null){
-            switch (gettype($row[$column])){
-                case 'string':
-                    $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
-                    $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                    $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                    break;
-                case 'double';
-                    // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
-                    break;
+        try {
+            if($row[$column] !== null){
+                switch (gettype($row[$column])){
+                    case 'string':
+                        $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
+                        $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                        $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                        break;
+                    case 'double';
+                        // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                        $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
+                        break;
+                }
             }
+            return $row;
+        }catch (Exception $e){
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
-        // dd($row);
-        return $row;
+
     }
 
 
@@ -219,13 +226,15 @@ class Import
 
         $keys = array_keys($row);
         array_walk($keys,array($this,'validateColumns'));
-        if($this->checkKeys($row)){
             $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
             $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
             $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
+            $this->checkKeys($row,'identity_type');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'identity_number');
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
                 // dd(($row['date_of_birth_yyyy_mm_dd']));
                 $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
@@ -237,25 +246,19 @@ class Import
                     }
                 }
             }
-        }else{
+
+        return $row;
+    }
+
+    protected function checkKeys($row,$key){
+       if(array_key_exists($key,$row)){
+           return true;
+       }else{
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
             $failures = [0 => $failure];
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         };
-        return $row;
-    }
-
-    protected function checkKeys($row){
-       return array_key_exists('identity_type',$row)
-           && array_key_exists('birth_divisional_secretariat',$row)
-           && array_key_exists('date_of_birth_yyyy_mm_dd',$row)
-           && array_key_exists('bmi_date_yyyy_mm_dd',$row)
-           && array_key_exists('start_date_yyyy_mm_dd',$row)
-           && array_key_exists('fathers_date_of_birth_yyyy_mm_dd',$row)
-           && array_key_exists('mothers_date_of_birth_yyyy_mm_dd',$row)
-           && array_key_exists('guardians_date_of_birth_yyyy_mm_dd',$row)
-           && array_key_exists('identity_number',$row) ;
     }
 
 

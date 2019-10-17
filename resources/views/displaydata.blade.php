@@ -31,6 +31,7 @@
                         { data: 'error', name: 'error' },
                         { data: 'insert', name: 'insert' },
                         { data: 'update', name: 'update' },
+                        { data: 'created_at' , name: 'created_at'},
                         { data: 'updated_at' , name: 'updated_at'},
                         { data: 'is_processed', name: 'Status'},
                         { data: 'is_email_sent' , name: 'Email Status'}
