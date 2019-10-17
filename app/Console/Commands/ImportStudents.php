@@ -223,12 +223,12 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 1) {
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && ($this->getSheetName($file,'Insert Students'))) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
                     $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 2) {
+                }else if(($this->getHigestRow($file, $sheet,$column) == 0)   && ($this->getSheetName($file,'Update Students'))) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
