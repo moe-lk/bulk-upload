@@ -230,13 +230,18 @@ class ImportStudents extends Command
                 }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
-                        ->update(['is_processed' => 1]);
+                        ->update(['is_processed' => 2]);
                     $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
                 }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
-                        ->update(['is_processed' => 1,'updated_at' => now()]);
+                        ->update(['is_processed' => 2,'updated_at' => now()]);
                     $this->processEmptyEmail($file,$user, 'Existing Student Data Update');
+                }else{
+                    DB::table('uploads')
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 2,'updated_at' => now()]);
+                    $this->processEmptyEmail($file,$user, 'No valid data found');
                 }
 
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
