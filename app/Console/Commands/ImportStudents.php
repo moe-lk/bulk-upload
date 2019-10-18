@@ -218,6 +218,7 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
+                    $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                 }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
@@ -225,6 +226,7 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
+                    $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                 }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
@@ -276,13 +278,7 @@ class ImportStudents extends Command
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        $all = count($reader->getAllSheets());
-        if($all > 0){
-            return $reader->getSheetByName($sheet)  !== null;
-        }else{
-            return false;
-        }
-
+        return $reader->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
@@ -307,6 +303,15 @@ class ImportStudents extends Command
         }
         return $higestRow;
 
+    }
+
+    protected function stdOut($title,$rows){
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln(   $title. ' Process completed at . '.' '. now());
+        $now = Carbon::now()->tz('Asia/Colombo');
+        $output->writeln('Total Processed lines: ' . $rows);
+        $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+        $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
     }
 
 
