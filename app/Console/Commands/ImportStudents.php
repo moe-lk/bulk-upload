@@ -210,7 +210,7 @@ class ImportStudents extends Command
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
 //                dd($this->getHigestRow($file, $sheet,$column));
-                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Insert Students')))  { //
+                if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
 
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
@@ -218,19 +218,19 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Update Students'))) {
+                }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && ($this->getSheetName($file,'Insert Students'))) {
+                }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1]);
                     $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)   && ($this->getSheetName($file,'Update Students'))) {
+                }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 1,'updated_at' => now()]);
