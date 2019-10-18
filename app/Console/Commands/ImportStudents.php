@@ -276,7 +276,13 @@ class ImportStudents extends Command
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetByName($sheet)  !== null;
+        $all = count($reader->getAllSheets());
+        if($all > 0){
+            return $reader->getSheetByName($sheet)  !== null;
+        }else{
+            return false;
+        }
+
     }
 
     protected function getHigestRow($file,$sheet,$column){
