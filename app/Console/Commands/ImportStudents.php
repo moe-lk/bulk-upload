@@ -292,7 +292,7 @@ class ImportStudents extends Command
             ];
             return $failure;
 
-    }
+    }//1571384344_14124_Grade-1_1553427268_student_bulk_data.xlsx
 
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
@@ -306,11 +306,11 @@ class ImportStudents extends Command
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        try{
+
+        try{$reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
         }catch(\Exception $e){
-            $reader->setActiveSheetIndex(0);
+            exit();
         }
         $higestRow = 0;
         $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
