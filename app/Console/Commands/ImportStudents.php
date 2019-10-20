@@ -221,6 +221,7 @@ class ImportStudents extends Command
 
 
     protected function import($file,$sheet,$column){
+            set_time_limit(300);
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
