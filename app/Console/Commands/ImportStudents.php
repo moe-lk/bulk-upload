@@ -159,6 +159,8 @@ class ImportStudents extends Command
         }
     }
 
+
+
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
@@ -289,7 +291,7 @@ class ImportStudents extends Command
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-         $objPHPExcel->setReadDataOnly(true);
+        $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         try{
             $reader->setActiveSheetIndex($sheet);
@@ -299,8 +301,9 @@ class ImportStudents extends Command
         $higestRow = 0;
         $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
         for ($row = 3; $row <= $this->highestRow; $row++) {
-            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
-            if (empty($rowData) || $rowData == null) {
+            $columnData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+            if (empty($columnData) || $columnData == null) {
+                $objPHPExcel->getActiveSheet()->removeRow($row);
                 continue;
             } else {
                 $higestRow += 1;
