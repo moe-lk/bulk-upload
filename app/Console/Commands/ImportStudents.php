@@ -159,7 +159,19 @@ class ImportStudents extends Command
         }
     }
 
-
+    protected function removeEmptyRows(){
+        $highestColumn = $this->worksheet->getHighestDataColumn(3);
+        $higestRow = 1;
+        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
+            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
+            if (isEmptyRow(reset($rowData))) {
+                reset($rowData);
+                continue;
+            } else {
+                $higestRow += 1;
+            }
+        }
+    }
 
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
@@ -301,9 +313,8 @@ class ImportStudents extends Command
         $higestRow = 0;
         $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
         for ($row = 3; $row <= $this->highestRow; $row++) {
-            $columnData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
-            if (empty($columnData) || $columnData == null) {
-                $objPHPExcel->getActiveSheet()->removeRow($row);
+            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+            if (empty($rowData) || $rowData == null) {
                 continue;
             } else {
                 $higestRow += 1;
