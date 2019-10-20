@@ -314,6 +314,13 @@ class ImportStudents extends Command
         try{$reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
         }catch(\Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2,'updated_at' => now()]);
+            DB::commit();
+            $this->processEmptyEmail($file,$user, 'No valid data found');
             exit();
         }
         $higestRow = 0;
