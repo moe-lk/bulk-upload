@@ -86,7 +86,12 @@ class ImportStudents extends Command
 
 
     protected function  process($files){
+        $time = Carbon::now()->tz('Asia/Colombo');
         array_walk($files, array($this,'processSheet'));
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $now = Carbon::now()->tz('Asia/Colombo');
+        $output->writeln('=============== Time taken to batch' .$now->diffInMinutes($time));
+
     }
 
     protected function getTerminated() {
@@ -292,7 +297,7 @@ class ImportStudents extends Command
             ];
             return $failure;
 
-    }//1571384344_14124_Grade-1_1553427268_student_bulk_data.xlsx
+    }//1571384344_14124_Grade-1_1553427268_student_bulk_data.xlsx , 1571384359_14124_Grade-2_1553427268_student_bulk_data.xlsx , 1571384370_14124_Grade-3_1553427268_student_bulk_data.xlsx
 
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
@@ -305,8 +310,7 @@ class ImportStudents extends Command
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
-
+//        $objPHPExcel->setReadDataOnly(true);
         try{$reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
         }catch(\Exception $e){
