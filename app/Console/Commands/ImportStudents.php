@@ -91,7 +91,8 @@ class ImportStudents extends Command
 
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-                        ->get()->toArray();
+            ->limit(10)
+            ->get()->toArray();
         return $files;
     }
 
@@ -100,7 +101,7 @@ class ImportStudents extends Command
             ->orWhere(function ($query){
                 $query->where('is_processed','=',3)
                     ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
-            })
+            })->limit(10)
             ->get()->toArray();
          return $files;
     }
