@@ -223,16 +223,16 @@ class ImportStudents extends Command
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetCount();
     }
-
+//1571402196_02163_Grade-6_1570619766_student_bulk_data.xlsx
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
+
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
 //                dd($this->getHigestRow($file, $sheet,$column));
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
-
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');
                     DB::table('uploads')
