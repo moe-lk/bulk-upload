@@ -165,19 +165,28 @@ class ImportStudents extends Command
         }
     }
 
-    protected function removeEmptyRows(){
-        $highestColumn = $this->worksheet->getHighestDataColumn(3);
-        $higestRow = 1;
-        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
-            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
-            if (isEmptyRow(reset($rowData))) {
-                reset($rowData);
-                continue;
-            } else {
-                $higestRow += 1;
-            }
-        }
-    }
+//    protected function removeEmptyRows(){
+////        $objPHPExcel->setReadDataOnly(true);
+//        try{
+//            $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+//            $reader->setActiveSheetIndex($sheet);
+//
+//        }catch (\Exception $e){
+//
+//        }
+//        $highestColumn = $this->worksheet->getHighestDataColumn(3);
+//        $higestRow = 1;
+//        $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
+//        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
+//            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
+//            if (isEmptyRow(reset($rowData))) {
+//                reset($rowData);
+//                continue;
+//            } else {
+//                $higestRow += 1;
+//            }
+//        }
+//    }
 
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
@@ -315,8 +324,8 @@ class ImportStudents extends Command
             $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
             $higestRow = 0;
-            $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-            for ($row = 3; $row <= $this->highestRow; $row++) {
+            $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
+            for ($row = 3; $row <= $highestRow; $row++) {
                 $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
                 if (empty($rowData) || $rowData == null) {
                     continue;
