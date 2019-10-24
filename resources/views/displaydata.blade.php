@@ -12,9 +12,11 @@
                     <th>Error file</th>
                     <th>Insert Status</th>
                     <th>Update Status</th>
+                    <th>General</th>
+                    <th>Email Status</th>
                     <th>Created</th>
                     <th>Updated</th>
-                    <th>Email Status</th>
+
                 </tr>
                 </thead>
             </table>
@@ -31,6 +33,7 @@
                         { data: 'error', name: 'error' },
                         { data: 'insert', name: 'insert' },
                         { data: 'update', name: 'update' },
+                        { data: 'is_processed', name: 'is_processed' },
                         { data: 'created_at' , name: 'created_at'},
                         { data: 'updated_at' , name: 'updated_at'},
                         { data: 'is_processed', name: 'Status'},

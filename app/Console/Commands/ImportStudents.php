@@ -297,7 +297,7 @@ class ImportStudents extends Command
             ];
             return $failure;
 
-    }//1571384344_14124_Grade-1_1553427268_student_bulk_data.xlsx , 1571384359_14124_Grade-2_1553427268_student_bulk_data.xlsx , 1571384370_14124_Grade-3_1553427268_student_bulk_data.xlsx
+    }
 
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
@@ -311,8 +311,20 @@ class ImportStudents extends Command
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
 //        $objPHPExcel->setReadDataOnly(true);
-        try{$reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+        try{
+            $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
+            $higestRow = 0;
+            $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
+            for ($row = 3; $row <= $this->highestRow; $row++) {
+                $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+                if (empty($rowData) || $rowData == null) {
+                    continue;
+                } else {
+                    $higestRow += 1;
+                }
+            }
+            return $higestRow;
         }catch(\Exception $e){
             $user = User::find($file['security_user_id']);
             DB::beginTransaction();
@@ -323,18 +335,6 @@ class ImportStudents extends Command
             $this->processEmptyEmail($file,$user, 'No valid data found');
             exit();
         }
-        $higestRow = 0;
-        $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-        for ($row = 3; $row <= $this->highestRow; $row++) {
-            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
-            if (empty($rowData) || $rowData == null) {
-                continue;
-            } else {
-                $higestRow += 1;
-            }
-        }
-        return $higestRow;
-
     }
 
     protected function stdOut($title,$rows){
@@ -348,39 +348,50 @@ class ImportStudents extends Command
 
 
     protected function writeErrors($e,$file,$sheet){
-        ini_set('memory_limit', '4096M');
-        $baseMemory = memory_get_usage();
-        gc_enable();
-        gc_collect_cycles();
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-        $cacheSettings = array( ' memoryCacheSize ' => '256MB');
-        \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
-        ini_set('memory_limit', -1);
-        $failures = $e->failures();
-        $excelFile = '/sis-bulk-data-files/processed/'.$file['filename'];
-        $exists = Storage::disk('local')->exists($excelFile);
-        if(!$exists){
-            $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        }
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
+        try {
+            ini_set('memory_limit', '4096M');
+            $baseMemory = memory_get_usage();
+            gc_enable();
+            gc_collect_cycles();
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
+            $cacheSettings = array( ' memoryCacheSize ' => '256MB');
+            \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+            ini_set('memory_limit', -1);
+            $failures = $e->failures();
+            $excelFile = '/sis-bulk-data-files/processed/'.$file['filename'];
+            $exists = Storage::disk('local')->exists($excelFile);
+            if(!$exists){
+                $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+            }
+            $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
 //        $objPHPExcel->setReadDataOnly(true);
-        $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
-        $reader->setActiveSheetIndex($sheet);
-        if(gettype($failures) == 'array'){
-            $failures = array_map(array($this,'processErrors'),$failures );
-            array_walk($failures , 'append_errors_to_excel',$reader);
-            $objWriter = new \PHPExcel_Writer_Excel2007($reader);
-            Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
-            $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
-            $now = Carbon::now()->tz('Asia/Colombo');
-            $output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
-            $output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
-            $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
-            $output->writeln(' errors reported               : '.count($failures));
-            $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
-            unset($objWriter);
-        }
+            $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
+            $reader->setActiveSheetIndex($sheet);
+            if(gettype($failures) == 'array'){
+                $failures = array_map(array($this,'processErrors'),$failures );
+                array_walk($failures , 'append_errors_to_excel',$reader);
+                $objWriter = new \PHPExcel_Writer_Excel2007($reader);
+                Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
+                $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
+                $now = Carbon::now()->tz('Asia/Colombo');
+                $output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
+                $output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
+                $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+                $output->writeln(' errors reported               : '.count($failures));
+                $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
+                unset($objWriter);
+            }
 
+        }catch (Eception $e){
+            $user = User::find($file['security_user_id']);
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2,'updated_at' => now()]);
+            DB::commit();
+            $this->processEmptyEmail($file,$user, 'No valid data found');
+            exit();
+        }
     }
 }
