@@ -223,6 +223,23 @@ class ImportStudents extends Command
         }
     }
 
+    protected function getSheetType($file){
+        $excelFile = '/sis-bulk-data-files/' . $file['filename'];
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $excelFile);
+        switch ($inputFileType){
+            case 'Xlsx':
+                return \Maatwebsite\Excel\Excel::XLSX;
+                break;
+            case 'Ods':
+                return \Maatwebsite\Excel\Excel::Ods;
+                break;
+            case 'Xls':
+                return \Maatwebsite\Excel\Excel::XLS;
+                break;
+            case 'Xml':
+                return \Maatwebsite\Excel\Excel::XML;
+        }
+    }
 
 
     protected function getSheetCount($file){
@@ -241,7 +258,7 @@ class ImportStudents extends Command
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
-                    Excel::import($import, $excelFile, 'local');
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -249,7 +266,7 @@ class ImportStudents extends Command
                     $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                 }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
-                    Excel::import($import, $excelFile, 'local');
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -309,7 +326,6 @@ class ImportStudents extends Command
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetByName($sheet)  !== null;
     }
@@ -317,7 +333,6 @@ class ImportStudents extends Command
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
         try{
             $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
@@ -378,7 +393,7 @@ class ImportStudents extends Command
                 libxml_disable_entity_loader(true);
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = new \PHPExcel_Writer_Excel2007($reader);
+                $objWriter = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
