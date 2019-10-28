@@ -239,7 +239,6 @@ class ImportStudents extends Command
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-//                dd($this->getHigestRow($file, $sheet,$column));
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local');

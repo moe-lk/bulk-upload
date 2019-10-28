@@ -63,7 +63,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
     public function sheets(): array {
         return [
-            1 => $this,
+            'Insert Students' => $this,
         ];
     }
 

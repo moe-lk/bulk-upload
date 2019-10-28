@@ -59,7 +59,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
     public function sheets(): array {
         return [
-            2 => $this
+            'Update Students' => $this
         ];
     }
 
