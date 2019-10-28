@@ -227,13 +227,10 @@ class ImportStudents extends Command
 
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-       libxml_disable_entity_loader(true);
-       $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(false);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetCount();
+       $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+       $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+       return $reader->getSheetCount();
     }
-//1571402196_02163_Grade-6_1570619766_student_bulk_data.xlsx
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
@@ -312,7 +309,7 @@ class ImportStudents extends Command
 
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $objPHPExcel->setReadDataOnly(true);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetByName($sheet)  !== null;
@@ -320,7 +317,7 @@ class ImportStudents extends Command
 
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
 //        $objPHPExcel->setReadDataOnly(true);
         try{
             $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
@@ -375,8 +372,7 @@ class ImportStudents extends Command
             if(!$exists){
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
             }
-            $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
+            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
             $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
