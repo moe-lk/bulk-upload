@@ -232,7 +232,18 @@ class Import
             $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
-            $this->checkKeys($row,'identity_type');
+            $this->checkKeys($row,'mothers_address_area');
+            $this->checkKeys($row,'mothers_nationality');
+            $this->checkKeys($row,'mothers_identity_type');
+            $this->checkKeys($row,'guardians_address_area');
+            $this->checkKeys($row,'guardians_nationality');
+            $this->checkKeys($row,'guardians_identity_type');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'fathers_address_area');
+            $this->checkKeys($row,'fathers_nationality');
+            $this->checkKeys($row,'fathers_identity_type');
+
+        $this->checkKeys($row,'identity_type');
             $this->checkKeys($row,'birth_divisional_secretariat');
             $this->checkKeys($row,'identity_number');
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
