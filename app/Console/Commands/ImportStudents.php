@@ -227,7 +227,8 @@ class ImportStudents extends Command
 
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+       libxml_disable_entity_loader(true);
+       $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         // $objPHPExcel->setReadDataOnly(false);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetCount();
@@ -236,6 +237,7 @@ class ImportStudents extends Command
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
+            libxml_disable_entity_loader(true);
 
              try {
                 $user = User::find($file['security_user_id']);
@@ -378,6 +380,7 @@ class ImportStudents extends Command
             $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
+                libxml_disable_entity_loader(true);
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
                 $objWriter = new \PHPExcel_Writer_Excel2007($reader);
