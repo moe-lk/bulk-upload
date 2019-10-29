@@ -254,6 +254,7 @@ class ImportStudents extends Command
             libxml_disable_entity_loader(true);
 
              try {
+                 DB::beginTransaction();
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
@@ -288,7 +289,7 @@ class ImportStudents extends Command
                         ->update(['is_processed' => 2,'updated_at' => now()]);
                     $this->processEmptyEmail($file,$user, 'No valid data found');
                 }
-
+                 DB::commit();
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
