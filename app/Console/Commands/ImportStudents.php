@@ -118,7 +118,7 @@ class ImportStudents extends Command
         $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(23); //set time to 18:00
 
         $check = $time->between($morning,$evening, true);
-        return $check;
+        return true;
     }
 
     public function processSuccessEmail($file,$user,$subject) {
@@ -223,27 +223,43 @@ class ImportStudents extends Command
         }
     }
 
+    protected function getSheetType($file){
+        $excelFile = '/sis-bulk-data-files/' . $file['filename'];
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $excelFile);
+        switch ($inputFileType){
+            case 'Xlsx':
+                return \Maatwebsite\Excel\Excel::XLSX;
+                break;
+            case 'Ods':
+                return \Maatwebsite\Excel\Excel::Ods;
+                break;
+            case 'Xls':
+                return \Maatwebsite\Excel\Excel::XLS;
+                break;
+            case 'Xml':
+                return \Maatwebsite\Excel\Excel::XML;
+        }
+    }
 
 
     protected function getSheetCount($file){
        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(false);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetCount();
+       $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
+       $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+       return $reader->getSheetCount();
     }
-//1571402196_02163_Grade-6_1570619766_student_bulk_data.xlsx
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
+            libxml_disable_entity_loader(true);
 
              try {
+                 DB::beginTransaction();
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-//                dd($this->getHigestRow($file, $sheet,$column));
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
-                    Excel::import($import, $excelFile, 'local');
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -251,7 +267,7 @@ class ImportStudents extends Command
                     $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                 }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
-                    Excel::import($import, $excelFile, 'local');
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -273,7 +289,7 @@ class ImportStudents extends Command
                         ->update(['is_processed' => 2,'updated_at' => now()]);
                     $this->processEmptyEmail($file,$user, 'No valid data found');
                 }
-
+                 DB::commit();
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                  self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
@@ -310,16 +326,14 @@ class ImportStudents extends Command
 
     protected function  getSheetName($file,$sheet){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
+        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         return $reader->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
+        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         try{
             $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
@@ -373,14 +387,14 @@ class ImportStudents extends Command
             if(!$exists){
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
             }
-            $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
+            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
             $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
+                libxml_disable_entity_loader(true);
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = new \PHPExcel_Writer_Excel2007($reader);
+                $objWriter = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');

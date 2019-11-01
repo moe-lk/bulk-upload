@@ -63,7 +63,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
     public function sheets(): array {
         return [
-            1 => $this,
+            'Insert Students' => $this,
         ];
     }
 
@@ -83,7 +83,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 }
             },
             BeforeImport::class => function (BeforeImport $event) {
-                $activeSeet = $event->getReader()->getDelegate()->setActiveSheetIndex(1);
+//                $activeSeet = $event->getReader()->getDelegate()->setActiveSheetIndex(1);
                 $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('C'));
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
