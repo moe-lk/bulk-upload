@@ -246,6 +246,10 @@ class ImportStudents extends Command
        return $objPHPExcel->getSheetCount();
     }
 
+    protected function handlePartialSuccess(){
+
+    }
+
     protected function import($file,$sheet,$column){
             set_time_limit(300);
              try {
@@ -259,7 +263,16 @@ class ImportStudents extends Command
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
+                            if(!isEmpty($import->failures())){
+                                self::writeErrors($import->failures(),$file,'Insert Students');
+                                DB::table('uploads')
+                                    ->where('id', $file['id'])
+                                    ->update(['insert' => 3,'updated_at' => now()]);
+                                $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success');
+                            }else{
+                                $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success');
+                            }
+
                             $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                         }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                             DB::table('uploads')
@@ -275,7 +288,15 @@ class ImportStudents extends Command
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
+                            if(!isEmpty($import->failures())){
+                                self::writeErrors($import->failures(),$file,'Update Students');
+                                DB::table('uploads')
+                                    ->where('id', $file['id'])
+                                    ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
+                                $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success');
+                            }else{
+                                $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success');
+                            }
                             $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                         }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                             DB::table('uploads')
@@ -291,13 +312,13 @@ class ImportStudents extends Command
                      DB::table('uploads')
                          ->where('id', $file['id'])
                          ->update(['insert' => 2,'updated_at' => now()]);
-                    $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                    $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Failed');
                  }else if($sheet == 2){
                      self::writeErrors($e,$file,'Update Students');
                      DB::table('uploads')
                          ->where('id', $file['id'])
                          ->update(['update' => 2,'updated_at' => now()]);
-                    $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                    $this->processFailedEmail($file,$user, 'Existing Student Data Update:Failed');
                  }
                  DB::table('uploads')
                      ->where('id',  $file['id'])

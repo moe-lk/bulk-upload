@@ -24,7 +24,7 @@ class StudentImportSuccess extends Mailable
         $institution = Institution_class::find($file['institution_class_id']);
 
         $this->user = User::find($file['security_user_id']);
-        $this->subject = 'SIS Bulk upload: '. $file['subject'] . 'Success ' .$institution->institution->code.': '. $institution->name.' ' . date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk upload: '. $file['subject'] .$institution->institution->code.': '. $institution->name.' ' . date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
