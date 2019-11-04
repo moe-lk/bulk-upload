@@ -59,7 +59,7 @@ use Exception;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class Import 
+class Import
 {
     //Parent class for import script
     use Importable,
@@ -242,6 +242,8 @@ class Import
             $this->checkKeys($row,'fathers_address_area');
             $this->checkKeys($row,'fathers_nationality');
             $this->checkKeys($row,'fathers_identity_type');
+            $this->checkKeys($row,'admission_no');
+            $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
 
         $this->checkKeys($row,'identity_type');
             $this->checkKeys($row,'birth_divisional_secretariat');

@@ -76,7 +76,9 @@ class ImportStudents extends Command
                 }catch (Exception $e){
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln($e);
+                    sleep(300);
                     $this->handle();
+
                 }
             }else{
                 exit();
@@ -329,8 +331,6 @@ class ImportStudents extends Command
             }
 
     }
-
-
 
     protected function processErrors($failure){
             $error_mesg = implode(',',$failure->errors());
