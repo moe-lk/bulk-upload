@@ -214,11 +214,12 @@ class ImportStudents extends Command
             case 'Ods':
                 return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
                 break;
-            case 'Xls':
-                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
-                break;
             case 'Xml':
                 return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
+                break;
+            default:
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
+                break;
         }
     }
 
@@ -230,11 +231,12 @@ class ImportStudents extends Command
             case 'Ods':
                 return \Maatwebsite\Excel\Excel::ODS;
                 break;
-            case 'Xls':
-                return \Maatwebsite\Excel\Excel::XLS;
-                break;
             case 'Xml':
                 return \Maatwebsite\Excel\Excel::XML;
+                break;
+            default:
+                return \Maatwebsite\Excel\Excel::XLS;
+                break;
         }
     }
 
