@@ -200,7 +200,7 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $file =  storage_path() . '/app/'.$file; 
+        $file =  storage_path() . 'app/sis-bulk-data-files/'.$file; 
         $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
         return $inputFileType;
     }
@@ -307,7 +307,7 @@ class ImportStudents extends Command
             $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
         }
         $excelFile = storage_path() . $excelFile;
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($excelFile));
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
     }
