@@ -200,7 +200,7 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $file =  storage_path() . 'app/sis-bulk-data-files/'.$file; 
+        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file; 
         $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
         return $inputFileType;
     }
