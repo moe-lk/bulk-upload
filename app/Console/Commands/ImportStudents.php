@@ -268,9 +268,9 @@ class ImportStudents extends Command
                                 DB::table('uploads')
                                     ->where('id', $file['id'])
                                     ->update(['insert' => 3,'updated_at' => now()]);
-                                $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success');
+                                $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
                             }else{
-                                $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success');
+                                $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
                             }
 
                             $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
@@ -278,7 +278,7 @@ class ImportStudents extends Command
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['is_processed' => 2]);
-                            $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
+                            $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload ');
                         }
                         break;
                     case 2;
@@ -293,9 +293,9 @@ class ImportStudents extends Command
                                 DB::table('uploads')
                                     ->where('id', $file['id'])
                                     ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
-                                $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success');
+                                $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
                             }else{
-                                $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success');
+                                $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
                             }
                             $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                         }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
@@ -398,6 +398,7 @@ class ImportStudents extends Command
 
     protected function writeErrors($e,$file,$sheet){
         try {
+            sleep(15);
             ini_set('memory_limit', '4096M');
             $baseMemory = memory_get_usage();
             gc_enable();
