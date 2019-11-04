@@ -337,7 +337,10 @@ class ImportStudents extends Command
 
     protected function getHigestRow($file,$sheet,$column){
         try{
-            $reader = $this->setReader($file);
+            $excelFile =  "sis-bulk-data-files/" . $file['filename'];
+            $excelFile = storage_path()."/app/" . $excelFile;
+            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+            $reader = $objPHPExcel->load($excelFile);
             $reader->setActiveSheetIndex($sheet);
             $higestRow = 0;
             $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
