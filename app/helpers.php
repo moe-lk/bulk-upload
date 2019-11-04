@@ -110,8 +110,8 @@ function append_errors_to_excel($error, $count, $reader){
     
     $column = array_keys($columns,$error['attribute']);
     if(!empty($column)){
-        $column= $column[0];
-         $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+        $column = $column[0];
+        $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
         $active_cell = ($selectedCells->getActiveCell());
 
         $active_sheet->getStyle($active_cell)

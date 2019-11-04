@@ -382,6 +382,7 @@ class ImportStudents extends Command
                 $output->writeln(' errors reported               : '.count($failures));
                 $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
                 unset($objWriter);
+                unset($failures);
             }
 
         }catch (Eception $e){
