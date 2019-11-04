@@ -328,8 +328,10 @@ class ImportStudents extends Command
     }
 
     protected function  getSheetName($file,$sheet){
-        $objPHPExcel = $this->setReader($file);
-        return $objPHPExcel->getSheetByName($sheet)  !== null;
+        $excelFile =  "sis-bulk-data-files/" . $file['filename'];
+        $excelFile = storage_path()."/app/" . $excelFile;
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+        return $reader->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
@@ -381,12 +383,12 @@ class ImportStudents extends Command
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
-            $reader =  $this->setReader($file);
+            $reader =  $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+                $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
