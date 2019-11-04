@@ -241,7 +241,7 @@ class ImportStudents extends Command
 
     protected function getSheetCount($file){
        $objPHPExcel = $this->setReader($file);
-       return $reader->getSheetCount();
+       return $objPHPExcel->getSheetCount();
     }
 
     protected function import($file,$sheet,$column){
@@ -264,7 +264,7 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                    $this->stdOut('Update Students',$this->getHigestRow($excelFile, $sheet,$column));
+                    $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                 }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
