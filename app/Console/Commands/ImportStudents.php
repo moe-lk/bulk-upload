@@ -200,28 +200,26 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file;
+        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file; 
         $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
         return $inputFileType;
     }
 
 
     protected function getSheetWriter($file,$reader){
-        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($reader, $this->getType($file['filename']));
-        // switch ($this->getType($file['filename'])){
-        //     case 'Xlsx':
-        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
-        //         break;
-        //     case 'Ods':
-        //         return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
-        //         break;
-        //     case 'Xls':
-        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
-        //         break;
-        //     case 'Xml':
-        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
-        // }
-        return $objWriter;
+        switch ($this->getType($file['filename'])){
+            case 'Xlsx':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+                break;
+            case 'Ods':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
+                break;
+            case 'Xls':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
+                break;
+            case 'Xml':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
+        }
     }
 
     protected function getSheetType($file){
@@ -243,7 +241,7 @@ class ImportStudents extends Command
 
     protected function getSheetCount($file){
        $objPHPExcel = $this->setReader($file);
-       return $objPHPExcel->getSheetCount();
+       return $reader->getSheetCount();
     }
 
     protected function import($file,$sheet,$column){
@@ -253,7 +251,7 @@ class ImportStudents extends Command
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
                 if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
-                    Excel::import($import, $excelFile, 'local');
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file['filename']));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -261,7 +259,7 @@ class ImportStudents extends Command
                     $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                 }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
-                    Excel::import($import, $file, 'local'); //$this->getSheetType($file['filename'])
+                    Excel::import($import, $file, 'local',$this->getSheetType($file['filename']));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -317,20 +315,16 @@ class ImportStudents extends Command
 
     }
 
-    protected function getSheet($file){
-        $excelFile =  'sis-bulk-data-files/processed/' . $file['filename'];
+    protected function setReader($file){
+        $excelFile =  '/sis-bulk-data-files/processed' . $file['filename'];
         $exists = Storage::disk('local')->exists($excelFile);
         if(!$exists){
-            $excelFile =  "sis-bulk-data-files/" . $file['filename'];
+            $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
         }
-        $excelFile = storage_path()."/app/" . $excelFile;
-        return $excelFile;
-    }
-
-    protected function setReader($file){
-        $excelFile = $this->getSheet($file);
-        $fileObject = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($excelFile);
-        return $fileObject->load($excelFile);
+        $excelFile = storage_path()."/app" . $excelFile;
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+        $objPHPExcel =  $reader->load($excelFile);
+        return $objPHPExcel;
     }
 
     protected function  getSheetName($file,$sheet){
@@ -392,7 +386,7 @@ class ImportStudents extends Command
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = $this->getSheetWriter($reader);
+                $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
