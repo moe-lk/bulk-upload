@@ -200,8 +200,7 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $excelFile);
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $file);
         return $inputFileType;
     }
 
@@ -234,28 +233,28 @@ class ImportStudents extends Command
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-                if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
+                if (($this->getSheetName($excelFile,'Insert Students')) && ($this->getHigestRow($excelFile, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
-                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($excelFile));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                     $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
-                }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
+                }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($excelFile, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
-                    Excel::import($import, $excelFile, 'local',$this->getSheetType($file));
+                    Excel::import($import, $excelFile, 'local',$this->getSheetType($excelFile));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                    $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
-                }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                    $this->stdOut('Update Students',$this->getHigestRow($excelFile, $sheet,$column));
+                }else if(($this->getSheetName($excelFile,'Insert Students')) && ($this->getHigestRow($excelFile, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 2]);
                     $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
-                }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                }else if(($this->getSheetName($excelFile,'Update Students')) && ($this->getHigestRow($excelFile, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 2,'updated_at' => now()]);
@@ -301,7 +300,7 @@ class ImportStudents extends Command
     }
 
     protected function setReader($file){
-        $excelFile = storage_path() . '/app' . '/sis-bulk-data-files/'.$file['filename'];
+        $excelFile = storage_path() . '/app' .$file;
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($excelFile));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
