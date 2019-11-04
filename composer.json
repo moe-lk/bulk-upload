@@ -15,9 +15,8 @@
         "laracademy/model-generator": "^1.2",
         "laravel/framework": "5.8.*",
         "laravel/tinker": "^1.0",
-        "maatwebsite/excel": "^3.1",
+        "mohamednizar/excel": "^3.1",
         "mohamednizar/phpexcel": "^1.8",
-        "mohamednizar/phpSpreadsheet" : "^1.9.1",
         "webpatser/laravel-uuid": "^3.0",
         "yajra/laravel-datatables-oracle": "^9.4"
     },

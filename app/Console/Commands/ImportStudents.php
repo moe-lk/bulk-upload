@@ -165,28 +165,6 @@ class ImportStudents extends Command
         }
     }
 
-//    protected function removeEmptyRows(){
-////        $objPHPExcel->setReadDataOnly(true);
-//        try{
-//            $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-//            $reader->setActiveSheetIndex($sheet);
-//
-//        }catch (\Exception $e){
-//
-//        }
-//        $highestColumn = $this->worksheet->getHighestDataColumn(3);
-//        $higestRow = 1;
-//        $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-//        for ($row = $this->startRow(); $row <= $this->highestRow; $row++) {
-//            $rowData = $this->worksheet->rangeToArray('A' . $row . ':' . $highestColumn . $row, NULL, TRUE, FALSE);
-//            if (isEmptyRow(reset($rowData))) {
-//                reset($rowData);
-//                continue;
-//            } else {
-//                $higestRow += 1;
-//            }
-//        }
-//    }
 
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
@@ -221,10 +199,14 @@ class ImportStudents extends Command
         }
     }
 
-    protected function getSheetType($file){
+    protected function getType($file){
         $excelFile = '/sis-bulk-data-files/' . $file['filename'];
         $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $excelFile);
-        switch ($inputFileType){
+        return $inputFileType;
+    }
+
+    protected function getSheetType($file){
+        switch ($this->getType($file)){
             case 'Xlsx':
                 return \Maatwebsite\Excel\Excel::XLSX;
                 break;
@@ -241,9 +223,7 @@ class ImportStudents extends Command
 
 
     protected function getSheetCount($file){
-       $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-       $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-       $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+       $objPHPExcel = $this->setReader($file);
        return $reader->getSheetCount();
     }
 
@@ -320,18 +300,22 @@ class ImportStudents extends Command
 
     }
 
+    protected function setReader($file){
+        $excelFile = storage_path() . '/app' . '/sis-bulk-data-files/'.$file['filename'];
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($excelFile));
+        $objPHPExcel =  $reader->load($excelFile);
+        return $objPHPExcel;
+    }
+
     protected function  getSheetName($file,$sheet){
-        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetByName($sheet)  !== null;
+        $objPHPExcel = $this->setReader($file);
+        return $objPHPExcel->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
         $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
         try{
-            $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
+            $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             $higestRow = 0;
             $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
@@ -383,8 +367,7 @@ class ImportStudents extends Command
             if(!$exists){
                 $excelFile = '/sis-bulk-data-files/'.$file['filename'];
             }
-            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-            $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
+            $reader =  $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
                 libxml_disable_entity_loader(true);
