@@ -234,7 +234,7 @@ class ImportStudents extends Command
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-                if (($this->getSheetName($excelFile,'Insert Students')) && ($this->getHigestRow($excelFile, $sheet,$column) > 0))  { //
+                if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                     $import = new UsersImport($file);
                     Excel::import($import, $excelFile, 'local',$this->getSheetType($excelFile));
                     DB::table('uploads')
@@ -242,20 +242,20 @@ class ImportStudents extends Command
                     ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
                     $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
-                }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($excelFile, $sheet,$column) > 0)) {
+                }else  if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                     $import = new StudentUpdate($file);
-                    Excel::import($import, $excelFile, 'local',$this->getSheetType($excelFile));
+                    Excel::import($import, $file, 'local',$this->getSheetType($excelFile));
                     DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
                     $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
                     $this->stdOut('Update Students',$this->getHigestRow($excelFile, $sheet,$column));
-                }else if(($this->getSheetName($excelFile,'Insert Students')) && ($this->getHigestRow($excelFile, $sheet,$column) == 0)) {
+                }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 2]);
                     $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
-                }else if(($this->getSheetName($excelFile,'Update Students')) && ($this->getHigestRow($excelFile, $sheet,$column) == 0)) {
+                }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                     DB::table('uploads')
                         ->where('id', $file['id'])
                         ->update(['is_processed' => 2,'updated_at' => now()]);
@@ -301,13 +301,12 @@ class ImportStudents extends Command
     }
 
     protected function setReader($file){
-        $excelFile =  storage_path() . '/app' . $file;
-        $excelFile = '/sis-bulk-data-files/processed/'.$file['filename'];
-        $exists = Storage::disk('local')->exists($excelFile);
+        $excelFile =  storage_path() . '/sis-bulk-data-files/processed' . $file['filename'];
+        $exists = Storage::disk('local')->directory()->exists($excelFile);
         if(!$exists){
-            $excelFile = '/sis-bulk-data-files/'.$file['filename'];
+            $excelFile =  storage_path() . "/sis-bulk-data-files/" . $file['filename'];
         }
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file));
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($excelFile));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
     }
@@ -318,7 +317,6 @@ class ImportStudents extends Command
     }
 
     protected function getHigestRow($file,$sheet,$column){
-        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
         try{
             $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
