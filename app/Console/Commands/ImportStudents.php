@@ -255,7 +255,7 @@ class ImportStudents extends Command
                     case 1;
                         if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                             $import = new UsersImport($file);
-                            Excel::import($import, $excelFile, 'local',$this->getSheetType($file['filename']));
+                            Excel::import($import, $excelFile, 'local');
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
@@ -271,7 +271,7 @@ class ImportStudents extends Command
                     case 2;
                         if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                             $import = new StudentUpdate($file);
-                            Excel::import($import, $file, 'local',$this->getSheetType($file['filename']));
+                            Excel::import($import, $file, 'local');
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
