@@ -330,7 +330,8 @@ class ImportStudents extends Command
     protected function  getSheetName($file,$sheet){
         $excelFile =  "sis-bulk-data-files/" . $file['filename'];
         $excelFile = storage_path()."/app/" . $excelFile;
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+        $reader = $objPHPExcel->load($excelFile);
         return $reader->getSheetByName($sheet)  !== null;
     }
 
