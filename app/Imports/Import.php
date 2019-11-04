@@ -59,7 +59,7 @@ use Exception;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class Import
+class Import 
 {
     //Parent class for import script
     use Importable,
