@@ -211,7 +211,7 @@ class ImportStudents extends Command
                 return \Maatwebsite\Excel\Excel::XLSX;
                 break;
             case 'Ods':
-                return \Maatwebsite\Excel\Excel::Ods;
+                return \Maatwebsite\Excel\Excel::ODS;
                 break;
             case 'Xls':
                 return \Maatwebsite\Excel\Excel::XLS;
