@@ -207,8 +207,7 @@ class ImportStudents extends Command
 
 
     protected function getSheetWriter($file,$reader){
-        $spreadsheet = $this->getSheet($file);
-        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, $this->getType($file['filename']));
+        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($reader, $this->getType($file['filename']));
         // switch ($this->getType($file['filename'])){
         //     case 'Xlsx':
         //         return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
@@ -393,7 +392,7 @@ class ImportStudents extends Command
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = $this->getSheetWriter($file,$reader);
+                $objWriter = $this->getSheetWriter($reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
