@@ -329,8 +329,8 @@ class ImportStudents extends Command
 
     protected function setReader($file){
         $excelFile = $this->getSheet($file);
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelFile);
-        return $reader;
+        $fileObject = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($excelFile);
+        return $fileObject->load($excelFile);
     }
 
     protected function  getSheetName($file,$sheet){
