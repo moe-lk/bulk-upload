@@ -29,6 +29,9 @@ use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
 use App\Rules\admissionAge;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use function foo\func;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -52,10 +55,11 @@ use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 
-class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation {
+class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure {
 
     use Importable,
-        RegistersEventListeners;
+        RegistersEventListeners,
+        SkipsFailures;
 
     public function sheets(): array {
         return [

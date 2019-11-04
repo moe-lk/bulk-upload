@@ -333,7 +333,8 @@ class ImportStudents extends Command
 
 
     protected function processErrors($failure){
-            $error_mesg = implode(',',$failure->errors());
+            $errors = (gettype($failure) == 'array') ? $failure : $failure->errors();
+            $error_mesg = implode(',',);
             $failure = [
                 'row'=> $failure->row(),
                 'errors' => [ $error_mesg],
