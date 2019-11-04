@@ -200,7 +200,8 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify(storage_path() . '/app' . $file);
+        $excelFile =  storage_path() . '/app' . $file;
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($excelFile);
         return $inputFileType;
     }
 
@@ -300,8 +301,7 @@ class ImportStudents extends Command
     }
 
     protected function setReader($file){
-        $excelFile = storage_path() . '/app' .$file;
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($excelFile));
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
     }
