@@ -306,7 +306,7 @@ class ImportStudents extends Command
         if(!$exists){
             $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
         }
-        $excelFile = storage_path() . $excelFile;
+        $excelFile = storage_path()."app" . $excelFile;
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
