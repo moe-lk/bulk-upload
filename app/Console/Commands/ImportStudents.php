@@ -200,7 +200,7 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file; 
+        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file;
         $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
         return $inputFileType;
     }
@@ -282,13 +282,14 @@ class ImportStudents extends Command
                     $this->processEmptyEmail($file,$user, 'No valid data found');
                 }
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                 self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
+                     self::writeErrors($e,$file,'Insert Students');
                      DB::table('uploads')
                          ->where('id', $file['id'])
                          ->update(['insert' => 2,'updated_at' => now()]);
                     $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
                  }else if($sheet == 2){
+                     self::writeErrors($e,$file,'Update Students');
                      DB::table('uploads')
                          ->where('id', $file['id'])
                          ->update(['update' => 2,'updated_at' => now()]);
@@ -381,8 +382,8 @@ class ImportStudents extends Command
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
-            $reader =  $reader = $this->setReader($file);
-            $reader->setActiveSheetIndex($sheet);
+            $reader = $this->setReader($file);
+            $reader->setActiveSheetIndexByName($sheet);
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
