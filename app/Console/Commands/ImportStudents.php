@@ -319,9 +319,9 @@ class ImportStudents extends Command
         $excelFile =  'sis-bulk-data-files/processed/' . $file['filename'];
         $exists = Storage::disk('local')->exists($excelFile);
         if(!$exists){
-            $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+            $excelFile =  "sis-bulk-data-files/" . $file['filename'];
         }
-        $excelFile = storage_path()."/app" . $excelFile;
+        $excelFile = storage_path()."app/" . $excelFile;
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
         $objPHPExcel =  $reader->load($excelFile);
         return $objPHPExcel;
