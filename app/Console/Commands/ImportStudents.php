@@ -328,19 +328,13 @@ class ImportStudents extends Command
     }
 
     protected function  getSheetName($file,$sheet){
-        $excelFile =  "sis-bulk-data-files/" . $file['filename'];
-        $excelFile = storage_path()."/app/" . $excelFile;
-        $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
-        $reader = $objPHPExcel->load($excelFile);
-        return $reader->getSheetByName($sheet)  !== null;
+        $objPHPExcel = $this->setReader($file);
+        return $objPHPExcel->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
         try{
-            $excelFile =  "sis-bulk-data-files/" . $file['filename'];
-            $excelFile = storage_path()."/app/" . $excelFile;
-            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
-            $reader = $objPHPExcel->load($excelFile);
+            $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             $higestRow = 0;
             $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
@@ -387,14 +381,7 @@ class ImportStudents extends Command
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
-            $excelFile =  'sis-bulk-data-files/processed/' . $file['filename'];
-            $exists = Storage::disk('local')->exists($excelFile);
-            if(!$exists){
-                $excelFile =  "sis-bulk-data-files/" . $file['filename'];
-            }
-            $excelFile = storage_path()."/app/" . $excelFile;
-            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
-            $reader =  $objPHPExcel->load($excelFile);
+            $reader =  $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
