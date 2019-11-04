@@ -302,7 +302,7 @@ class ImportStudents extends Command
 
     protected function setReader($file){
         $excelFile =  storage_path() . '/sis-bulk-data-files/processed' . $file['filename'];
-        $exists = Storage::disk('local')->directory()->exists($excelFile);
+        $exists = Storage::disk('local')->exists($excelFile);
         if(!$exists){
             $excelFile =  storage_path() . "/sis-bulk-data-files/" . $file['filename'];
         }
