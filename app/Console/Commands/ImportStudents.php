@@ -207,19 +207,22 @@ class ImportStudents extends Command
 
 
     protected function getSheetWriter($file,$reader){
-        switch ($this->getType($file['filename'])){
-            case 'Xlsx':
-                return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
-                break;
-            case 'Ods':
-                return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
-                break;
-            case 'Xls':
-                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
-                break;
-            case 'Xml':
-                return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
-        }
+        $spreadsheet = $this->getSheet($file);
+        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, $this->getType($file['filename']));
+        // switch ($this->getType($file['filename'])){
+        //     case 'Xlsx':
+        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+        //         break;
+        //     case 'Ods':
+        //         return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
+        //         break;
+        //     case 'Xls':
+        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
+        //         break;
+        //     case 'Xml':
+        //         return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
+        // }
+        return $objWriter;
     }
 
     protected function getSheetType($file){
@@ -241,7 +244,7 @@ class ImportStudents extends Command
 
     protected function getSheetCount($file){
        $objPHPExcel = $this->setReader($file);
-       return $reader->getSheetCount();
+       return $objPHPExcel->getSheetCount();
     }
 
     protected function import($file,$sheet,$column){
@@ -315,13 +318,18 @@ class ImportStudents extends Command
 
     }
 
-    protected function setReader($file){
+    protected function getSheet($file){
         $excelFile =  'sis-bulk-data-files/processed/' . $file['filename'];
         $exists = Storage::disk('local')->exists($excelFile);
         if(!$exists){
             $excelFile =  "sis-bulk-data-files/" . $file['filename'];
         }
         $excelFile = storage_path()."/app/" . $excelFile;
+        return $excelFile;
+    }
+
+    protected function setReader($file){
+        $excelFile = $this->getSheet($file);
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelFile);
         return $reader;
     }
