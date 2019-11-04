@@ -200,8 +200,7 @@ class ImportStudents extends Command
     }
 
     protected function getType($file){
-        $excelFile =  storage_path() . '/app' . $file;
-        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($excelFile);
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
         return $inputFileType;
     }
 
