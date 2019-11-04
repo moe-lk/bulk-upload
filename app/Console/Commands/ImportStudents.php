@@ -387,7 +387,14 @@ class ImportStudents extends Command
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
-            $reader =  $reader = $this->setReader($file);
+            $excelFile =  'sis-bulk-data-files/processed/' . $file['filename'];
+            $exists = Storage::disk('local')->exists($excelFile);
+            if(!$exists){
+                $excelFile =  "sis-bulk-data-files/" . $file['filename'];
+            }
+            $excelFile = storage_path()."/app/" . $excelFile;
+            $objPHPExcel = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+            $reader =  $objPHPExcel->load($excelFile);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
                 $failures = array_map(array($this,'processErrors'),$failures );
