@@ -205,6 +205,23 @@ class ImportStudents extends Command
         return $inputFileType;
     }
 
+
+    protected function getSheetWriter($file,$reader){
+        switch ($this->getType($file['filename'])){
+            case 'Xlsx':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+                break;
+            case 'Ods':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
+                break;
+            case 'Xls':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
+                break;
+            case 'Xml':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
+        }
+    }
+
     protected function getSheetType($file){
         switch ($this->getType($file)){
             case 'Xlsx':
@@ -229,8 +246,6 @@ class ImportStudents extends Command
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
-            libxml_disable_entity_loader(true);
-
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
@@ -369,10 +384,9 @@ class ImportStudents extends Command
             $reader =  $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
             if(gettype($failures) == 'array'){
-                libxml_disable_entity_loader(true);
                 $failures = array_map(array($this,'processErrors'),$failures );
                 array_walk($failures , 'append_errors_to_excel',$reader);
-                $objWriter = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+                $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
