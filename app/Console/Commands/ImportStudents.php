@@ -266,7 +266,7 @@ class ImportStudents extends Command
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            if(!empty($import->failures())){
+                            if(!empty((array)$import->failures())){
                                 self::writeErrors($import,$file,'Insert Students');
                                 DB::table('uploads')
                                     ->where('id', $file['id'])
@@ -292,7 +292,7 @@ class ImportStudents extends Command
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            if(!empty($import->failures())){
+                            if(!empty((array)$import->failures())){
                                 self::writeErrors($import,$file,'Update Students');
                                 DB::table('uploads')
                                     ->where('id', $file['id'])

@@ -121,7 +121,6 @@ function append_errors_to_excel($error, $count, $reader){
             ->setARGB('FF0000');
 
         }
-
 }
 
 function colorizeCell($column,$error,$active_sheet){
