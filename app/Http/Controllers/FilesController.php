@@ -40,6 +40,8 @@ class FilesController extends Controller
                     return "No Processes";
                 }elseif($data->update === 1 ){
                     return 'Success';
+                }elseif($data->update === 3 ){
+                    return 'Partial Success';
                 }else{
                     return 'Failed';
                 };
@@ -50,6 +52,8 @@ class FilesController extends Controller
                     return "No Processes";
                 }elseif($data->insert === 1 ){
                     return 'Success';
+                }elseif($data->insert === 3 ){
+                    return 'Partial Success';
                 }else{
                     return 'Failed';
                 };
