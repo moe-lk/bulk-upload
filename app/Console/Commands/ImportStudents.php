@@ -105,10 +105,11 @@ class ImportStudents extends Command
 
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
-            ->orWhere(function ($query){
-                $query->where('is_processed','=',3)
-                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
-            })->limit(10)
+//            ->orWhere(function ($query){
+//                $query->where('is_processed','=',3)
+//                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
+//            })
+             ->limit(10)
             ->get()->toArray();
          return $files;
     }
