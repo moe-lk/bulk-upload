@@ -107,11 +107,11 @@ function append_errors_to_excel($error, $count, $reader){
     $active_sheet->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
 
     $columns = Illuminate\Support\Facades\Config::get('excel.columns');
-    
+
     $column = array_keys($columns,$error['attribute']);
     if(!empty($column)){
-        $column= $column[0];
-         $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+        $column = $column[0]+1;
+        $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
         $active_cell = ($selectedCells->getActiveCell());
 
         $active_sheet->getStyle($active_cell)
@@ -119,7 +119,7 @@ function append_errors_to_excel($error, $count, $reader){
             ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
             ->getStartColor()
             ->setARGB('FF0000');
-            
+
         }
 
 }

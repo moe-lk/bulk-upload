@@ -26,7 +26,7 @@ class StudentImport implements WithMultipleSheets, WithEvents
     public function sheets(): array
     {
         return [
-            
+
             0 => $this
         ];
     }

@@ -29,6 +29,9 @@ use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
 use App\Rules\admissionAge;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use function foo\func;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -52,14 +55,15 @@ use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 
-class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation {
+class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure {
 
     use Importable,
-        RegistersEventListeners;
+        RegistersEventListeners,
+        SkipsFailures;
 
     public function sheets(): array {
         return [
-            2 => $this
+            'Update Students' => $this
         ];
     }
 
@@ -412,8 +416,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,name',
             '*.option_*' => 'nullable|exists:education_subjects,name',
-            '*.bmi_height' => 'nullable|numeric|required_with:bmi_*',
-            '*.bmi_weight' => 'nullable|numeric|required_with:bmi_*',
+            '*.bmi_height' => 'nullable|numeric|required_with:bmi_*|max:200|min:60',
+            '*.bmi_weight' => 'nullable|numeric|required_with:bmi_*|max:200|min:10',
             '*.bmi_date_yyyy_mm_dd' => 'nullable|required_with:bmi_*',
             '*.bmi_academic_period' => 'nullable|required_with:bmi_*|exists:academic_periods,name',
             '*.admission_no' => 'nullable|max:12|min:4',

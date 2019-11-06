@@ -76,7 +76,9 @@ class ImportStudents extends Command
                 }catch (Exception $e){
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln($e);
+                    sleep(300);
                     $this->handle();
+
                 }
             }else{
                 exit();
@@ -86,13 +88,18 @@ class ImportStudents extends Command
 
 
     protected function  process($files){
+        $time = Carbon::now()->tz('Asia/Colombo');
         array_walk($files, array($this,'processSheet'));
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $now = Carbon::now()->tz('Asia/Colombo');
+        $output->writeln('=============== Time taken to batch' .$now->diffInMinutes($time));
+
     }
 
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-                        ->where('updated_at','>=', \Carbon\Carbon::now()->subHour())
-                        ->get()->toArray();
+            ->limit(10)
+            ->get()->toArray();
         return $files;
     }
 
@@ -101,7 +108,7 @@ class ImportStudents extends Command
             ->orWhere(function ($query){
                 $query->where('is_processed','=',3)
                     ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
-            })
+            })->limit(10)
             ->get()->toArray();
          return $files;
     }
@@ -113,20 +120,22 @@ class ImportStudents extends Command
         $evening = Carbon::create($time->year, $time->month, $time->day, env('CRON_END_TIME',0), 30, 0)->tz('Asia/Colombo')->setHour(23); //set time to 18:00
 
         $check = $time->between($morning,$evening, true);
-        return $check;
+        return true;
     }
 
     public function processSuccessEmail($file,$user,$subject) {
         $file['subject'] = $subject;
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('Processing the file: '.$file['filename']);
         try {
             Mail::to($user->email)->send(new StudentImportSuccess($file));
             DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1, 'is_email_sent' => 1]);
+                    ->update(['is_processed' => 1, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
             DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 1, 'is_email_sent' => 2]);
+                    ->update(['is_processed' => 1, 'is_email_sent' => 2,'updated_at' => now()]);
         }
     }
 
@@ -136,11 +145,11 @@ class ImportStudents extends Command
             Mail::to($user->email)->send(new StudentImportFailure($file));
             DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+                    ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
             DB::table('uploads')
                     ->where('id', $file['id'])
-                    ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+                    ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
         }
     }
 
@@ -150,23 +159,26 @@ class ImportStudents extends Command
             Mail::to($user->email)->send(new EmptyFile($file));
             DB::table('uploads')
                 ->where('id', $file['id'])
-                ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+                ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
             DB::table('uploads')
                 ->where('id', $file['id'])
-                ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+                ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
         }
     }
 
+
     protected function processSheet($file){
+        $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('##########################################################################################################################');
+        $output->writeln('Processing the file: '.$file['filename']);
         if ($this->checkTime()) {
             try {
-                DB::beginTransaction();
                 DB::table('uploads')
                         ->where('id', $file['id'])
-                        ->update(['is_processed' => 3]);
-                DB::commit();
+                        ->update(['is_processed' => 3,'updated_at' => now()]);
 
                 $this->import($file,1,'C');
                 $this->import($file,2,'B');
@@ -176,12 +188,12 @@ class ImportStudents extends Command
                     Mail::to($user->email)->send(new IncorrectTemplate($file));
                     DB::table('uploads')
                             ->where('id', $file['id'])
-                            ->update(['is_processed' => 2, 'is_email_sent' => 1]);
+                            ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
                 } catch (\Exception $ex) {
                     $this->handle();
                     DB::table('uploads')
                             ->where('id', $file['id'])
-                            ->update(['is_processed' => 2, 'is_email_sent' => 2]);
+                            ->update(['is_processed' => 2, 'is_email_sent' => 2 ,'updated_at' => now()]);
                 }
             }
         } else {
@@ -189,74 +201,136 @@ class ImportStudents extends Command
         }
     }
 
-
-
-    protected function getSheetCount($file){
-       $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        // $objPHPExcel->setReadDataOnly(false);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetCount();
+    protected function getType($file){
+        $file =  storage_path() . '/app/sis-bulk-data-files/'.$file;
+        $inputFileType =  \PhpOffice\PhpSpreadsheet\IOFactory::identify($file);
+        return $inputFileType;
     }
 
 
+    protected function getSheetWriter($file,$reader){
+        switch ($this->getType($file['filename'])){
+            case 'Xlsx':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($reader);
+                break;
+            case 'Ods':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Ods($reader);
+                break;
+            case 'Xml':
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xml($reader);
+                break;
+            default:
+                return new \PhpOffice\PhpSpreadsheet\Writer\Xls($reader);
+                break;
+        }
+    }
+
+    protected function getSheetType($file){
+        switch ($this->getType($file)){
+            case 'Xlsx':
+                return \Maatwebsite\Excel\Excel::XLSX;
+                break;
+            case 'Ods':
+                return \Maatwebsite\Excel\Excel::ODS;
+                break;
+            case 'Xml':
+                return \Maatwebsite\Excel\Excel::XML;
+                break;
+            default:
+                return \Maatwebsite\Excel\Excel::XLS;
+                break;
+        }
+    }
+
+
+    protected function getSheetCount($file){
+       $objPHPExcel = $this->setReader($file);
+       return $objPHPExcel->getSheetCount();
+    }
+
+    protected function handlePartialSuccess(){
+
+    }
+
     protected function import($file,$sheet,$column){
-            ini_set('memory_limit', '2048M');
-            sleep(1);
+            set_time_limit(300);
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-//                dd($this->getHigestRow($file, $sheet,$column));
-                if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Insert Students')))  { //
+                switch ($sheet){
+                    case 1;
+                        if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
+                            $import = new UsersImport($file);
+                            $import->import($excelFile,'local',$this->getSheetType($file['filename']));
+//                            Excel::import($import, $excelFile, 'local');
+                            DB::table('uploads')
+                                ->where('id', $file['id'])
+                                ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
+                            if(!empty($import->failures())){
+                                self::writeErrors($import,$file,'Insert Students');
+                                DB::table('uploads')
+                                    ->where('id', $file['id'])
+                                    ->update(['insert' => 3,'updated_at' => now()]);
+                                $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
+                            }else{
+                                $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
+                            }
 
-                    $import = new UsersImport($file);
-                    Excel::import($import, $excelFile, 'local');
-                    DB::table('uploads')
-                    ->where('id', $file['id'])
-                    ->update(['insert' => 1,'is_processed' => 1]);
-                    $this->processSuccessEmail($file,$user,'Fresh Student Data Upload');
-
-                }else  if (($this->getHigestRow($file, $sheet,$column) > 0) && ($this->getSheetName($file,'Update Students'))) {
-                    $import = new StudentUpdate($file);
-                    Excel::import($import, $excelFile, 'local');
-                    DB::table('uploads')
-                    ->where('id', $file['id'])
-                    ->update(['update' => 1,'is_processed' => 1]);
-                    $this->processSuccessEmail($file,$user, 'Existing Student Data Update');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 1) {
-                    DB::table('uploads')
-                        ->where('id', $file['id'])
-                        ->update(['is_processed' => 1]);
-                    $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload');
-                }else if(($this->getHigestRow($file, $sheet,$column) == 0)  && $sheet == 2) {
-                    DB::table('uploads')
-                        ->where('id', $file['id'])
-                        ->update(['is_processed' => 1]);
-                    $this->processEmptyEmail($file,$user, 'Existing Student Data Update');
+                            $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
+                        }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                            DB::table('uploads')
+                                ->where('id', $file['id'])
+                                ->update(['is_processed' => 2]);
+                            $this->processEmptyEmail($file,$user, 'Fresh Student Data Upload ');
+                        }
+                        break;
+                    case 2;
+                        if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
+                            $import = new StudentUpdate($file);
+//                            Excel::import($import, $excelFile, 'local',$this->getSheetType($file['filename']));
+                            $import->import($excelFile,'local',$this->getSheetType($file['filename']));
+                            DB::table('uploads')
+                                ->where('id', $file['id'])
+                                ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
+                            if(!empty($import->failures())){
+                                self::writeErrors($import,$file,'Update Students');
+                                DB::table('uploads')
+                                    ->where('id', $file['id'])
+                                    ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
+                                $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
+                            }else{
+                                $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
+                            }
+                            $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
+                        }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                            DB::table('uploads')
+                                ->where('id', $file['id'])
+                                ->update(['is_processed' => 2,'updated_at' => now()]);
+                            $this->processEmptyEmail($file,$user, 'Existing Student Data Update');
+                        }
+                        break;
                 }
-
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                 self::writeErrors($e,$file,$sheet);
                  if($sheet == 1){
+                     self::writeErrors($e,$file,'Insert Students');
                      DB::table('uploads')
                          ->where('id', $file['id'])
-                         ->update(['insert' => 2]);
-                    $this->processFailedEmail($file,$user,'Fresh Student Data Upload');
+                         ->update(['insert' => 2,'updated_at' => now()]);
+                    $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Failed');
                  }else if($sheet == 2){
+                     self::writeErrors($e,$file,'Update Students');
                      DB::table('uploads')
                          ->where('id', $file['id'])
-                         ->update(['update' => 2]);
-                    $this->processFailedEmail($file,$user, 'Existing Student Data Update');
+                         ->update(['update' => 2,'updated_at' => now()]);
+                    $this->processFailedEmail($file,$user, 'Existing Student Data Update:Failed');
                  }
                  DB::table('uploads')
                      ->where('id',  $file['id'])
-                     ->update(['is_processed' =>2]);
+                     ->update(['is_processed' =>2 , 'updated_at' => now()]);
 
             }
 
     }
-
-
 
     protected function processErrors($failure){
             $error_mesg = implode(',',$failure->errors());
@@ -269,59 +343,101 @@ class ImportStudents extends Command
 
     }
 
+    protected function setReader($file){
+        $excelFile =  '/sis-bulk-data-files/processed/' . $file['filename'];
+        $exists = Storage::disk('local')->exists($excelFile);
+        if(!$exists){
+
+            $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+        }
+        $excelFile = storage_path()."/app" . $excelFile;
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+        $objPHPExcel =  $reader->load($excelFile);
+        return $objPHPExcel;
+    }
+
     protected function  getSheetName($file,$sheet){
-        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-        $objPHPExcel->setReadDataOnly(true);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
-        return $reader->getSheetByName($sheet)->getTitle() == $sheet;
+        $objPHPExcel = $this->setReader($file);
+        return $objPHPExcel->getSheetByName($sheet)  !== null;
     }
 
     protected function getHigestRow($file,$sheet,$column){
-        $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() . '/app' . $excelFile);
-         $objPHPExcel->setReadDataOnly(true);
-        $reader = $objPHPExcel->load(storage_path() . '/app' . $excelFile);
         try{
+            $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
-        }catch(\Exception $e){
-            $reader->setActiveSheetIndex(0);
-        }
-        $higestRow = 0;
-        $this->highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-        for ($row = 3; $row <= $this->highestRow; $row++) {
-            $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
-            if (empty($rowData) || $rowData == null) {
-                continue;
-            } else {
-                $higestRow += 1;
+            $higestRow = 0;
+            $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
+            for ($row = 3; $row <= $highestRow; $row++) {
+                $rowData = $reader->getActiveSheet()->getCell($column.$row)->getValue();
+                if (empty($rowData) || $rowData == null) {
+                    continue;
+                } else {
+                    $higestRow += 1;
+                }
             }
+            return $higestRow;
+        }catch(\Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2,'updated_at' => now()]);
+            DB::commit();
+            $this->processEmptyEmail($file,$user, 'No valid data found');
+            exit();
         }
-        return $higestRow;
+    }
 
+    protected function stdOut($title,$rows){
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln(   $title. ' Process completed at . '.' '. now());
+        $now = Carbon::now()->tz('Asia/Colombo');
+        $output->writeln('Total Processed lines: ' . $rows);
+        $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+        $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
     }
 
 
     protected function writeErrors($e,$file,$sheet){
-        ini_set('memory_limit', '2048M');
-        $failures = $e->failures();
-        $excelFile = '/sis-bulk-data-files/processed/'.$file['filename'];
-        $exists = Storage::disk('local')->exists($excelFile);
-        if(!$exists){
-            $excelFile = '/sis-bulk-data-files/'.$file['filename'];
-        }
-        $objPHPExcel = \PHPExcel_IOFactory::createReaderForFile(storage_path() .'/app'. $excelFile);
-//        $objPHPExcel->setReadDataOnly(true);
-        $reader = $objPHPExcel->load(storage_path().'/app' . $excelFile);
-        $reader->setActiveSheetIndex($sheet);
-        if(gettype($failures) == 'array'){
-            $failures = array_map(array($this,'processErrors'),$failures );
-            array_walk($failures , 'append_errors_to_excel',$reader);
-            $objWriter = new \PHPExcel_Writer_Excel2007($reader);
-            Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
-            $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
-            unset($objWriter);
-        }
+        try {
+            sleep(15);
+            ini_set('memory_limit', '4096M');
+            $baseMemory = memory_get_usage();
+            gc_enable();
+            gc_collect_cycles();
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
+            $cacheSettings = array( ' memoryCacheSize ' => '256MB');
+            \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+            ini_set('memory_limit', -1);
+            $failures = $e->failures();
+            $reader = $this->setReader($file);
+            $reader->setActiveSheetIndexByName($sheet);
+            if(gettype($failures) == 'array' || 'object'){
+                $failures = array_map(array($this,'processErrors'),iterator_to_array($failures));
+                array_walk($failures , 'append_errors_to_excel',$reader);
+                $objWriter = $this->getSheetWriter($file,$reader);
+                Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
+                $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
+                $now = Carbon::now()->tz('Asia/Colombo');
+                $output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
+                $output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
+                $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+                $output->writeln(' errors reported               : '.count($failures));
+                $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
+                unset($objWriter);
+                unset($failures);
+            }
 
+        }catch (Eception $e){
+            $user = User::find($file['security_user_id']);
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 2,'updated_at' => now()]);
+            DB::commit();
+            $this->processEmptyEmail($file,$user, 'No valid data found');
+            exit();
+        }
     }
 }

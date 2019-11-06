@@ -58,12 +58,12 @@ use Webpatser\Uuid\Uuid;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
+class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation ,SkipsOnFailure  {
 
-class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation  {
-
+    use Importable, SkipsFailures;
     public function sheets(): array {
         return [
-            1 => $this,
+            'Insert Students' => $this,
         ];
     }
 
@@ -83,7 +83,6 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 }
             },
             BeforeImport::class => function (BeforeImport $event) {
-                $activeSeet = $event->getReader()->getDelegate()->setActiveSheetIndex(1);
                 $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('C'));
                 if ($this->highestRow < 3) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
@@ -461,11 +460,11 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
-            '*.bmi_height' => 'required|numeric',
-            '*.bmi_weight' => 'required|numeric',
+            '*.bmi_height' => 'required|numeric|max:200|min:60',
+            '*.bmi_weight' => 'required|numeric|max:200|min:10',
             '*.bmi_date_yyyy_mm_dd' => 'required',
             '*.bmi_academic_period' => 'required|exists:academic_periods,name',
-            '*.admission_no' => 'required|max:12|min:4',
+            '*.admission_no' => 'required|max:12|min:1',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name',
