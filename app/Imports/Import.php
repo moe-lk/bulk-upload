@@ -232,6 +232,9 @@ class Import
             $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
+            $this->checkKeys($row ,'birth_registrar_office_as_in_birth_certificate');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'identity_number');
             $this->checkKeys($row,'mothers_address_area');
             $this->checkKeys($row,'mothers_nationality');
             $this->checkKeys($row,'mothers_identity_type');
