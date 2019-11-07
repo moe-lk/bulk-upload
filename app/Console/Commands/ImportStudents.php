@@ -273,6 +273,7 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['insert' => 3,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
+                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
                                 $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
@@ -298,6 +299,7 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
+                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
                                 $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
