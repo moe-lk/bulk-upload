@@ -67,10 +67,12 @@ class ImportStudents extends Command
                     if(!empty($files)){
                         array_walk($files, array($this,'process'));
                         unset($files);
+                        exit();
+
                     }else{
                         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                         $output->writeln('No files found,Waiting for files');
-                        $this->handle();
+
                     }
 
                 }catch (Exception $e){
@@ -98,7 +100,7 @@ class ImportStudents extends Command
 
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-            ->limit(10)
+            ->limit(40)
             ->get()->toArray();
         return $files;
     }
@@ -109,7 +111,7 @@ class ImportStudents extends Command
 //                $query->where('is_processed','=',3)
 //                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
 //            })
-             ->limit(10)
+             ->limit(100)
             ->get()->toArray();
          return $files;
     }
@@ -273,6 +275,7 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['insert' => 3,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
+                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
                                 $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
@@ -298,6 +301,7 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
+                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
                                 $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
