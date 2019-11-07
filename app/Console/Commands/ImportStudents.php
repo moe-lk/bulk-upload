@@ -67,10 +67,12 @@ class ImportStudents extends Command
                     if(!empty($files)){
                         array_walk($files, array($this,'process'));
                         unset($files);
+                        exit();
+
                     }else{
                         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                         $output->writeln('No files found,Waiting for files');
-                        $this->handle();
+
                     }
 
                 }catch (Exception $e){
@@ -98,7 +100,7 @@ class ImportStudents extends Command
 
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-            ->limit(10)
+            ->limit(40)
             ->get()->toArray();
         return $files;
     }
@@ -109,7 +111,7 @@ class ImportStudents extends Command
 //                $query->where('is_processed','=',3)
 //                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
 //            })
-             ->limit(10)
+             ->limit(100)
             ->get()->toArray();
          return $files;
     }
