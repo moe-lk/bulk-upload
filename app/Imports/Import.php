@@ -252,6 +252,7 @@ class Import
             $this->checkKeys($row,'birth_divisional_secretariat');
             $this->checkKeys($row,'identity_number');
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
+                $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
                 // dd(($row['date_of_birth_yyyy_mm_dd']));
                 $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
                 if ($BirthDivision !== null) {
