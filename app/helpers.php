@@ -105,7 +105,6 @@ function append_errors_to_excel($error, $count, $reader){
     $prev_value = $active_sheet->getCell('A'.$error['row'])->getValue();
     $active_sheet->setCellValue('A'. ($error['row']) ,  $prev_value.','.implode(',',$error['errors']));
     $active_sheet->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
-
     $columns = Illuminate\Support\Facades\Config::get('excel.columns');
 
     $column = array_keys($columns,$error['attribute']);

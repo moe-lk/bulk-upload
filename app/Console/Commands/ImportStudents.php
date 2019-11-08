@@ -60,18 +60,18 @@ class ImportStudents extends Command
         if(count($files) == 0){
             $files = $this->getTerminated();
         }
-        $files = array_chunk($files, 10);
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
                     if(!empty($files)){
-                        array_walk($files, array($this,'process'));
+                        $this->process($files);
                         unset($files);
                         exit();
 
                     }else{
                         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                         $output->writeln('No files found,Waiting for files');
+                        exit();
 
                     }
 
@@ -91,10 +91,11 @@ class ImportStudents extends Command
 
     protected function  process($files){
         $time = Carbon::now()->tz('Asia/Colombo');
-        array_walk($files, array($this,'processSheet'));
+//        array_walk($files, array($this,'processSheet'));
+        $this->processSheet($files[0]);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
-        $output->writeln('=============== Time taken to batch' .$now->diffInMinutes($time));
+        $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
 
     }
 
@@ -107,11 +108,7 @@ class ImportStudents extends Command
 
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
-//            ->orWhere(function ($query){
-//                $query->where('is_processed','=',3)
-//                    ->where('updated_at','>=', \Carbon\Carbon::now()->subHour());
-//            })
-             ->limit(100)
+             ->limit(1)
             ->get()->toArray();
          return $files;
     }
@@ -264,6 +261,7 @@ class ImportStudents extends Command
                     case 1;
                         if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                             $import = new UsersImport($file);
+                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
 //                            Excel::import($import, $excelFile, 'local');
                             DB::table('uploads')
@@ -290,7 +288,7 @@ class ImportStudents extends Command
                     case 2;
                         if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                             $import = new StudentUpdate($file);
-//                            Excel::import($import, $excelFile, 'local',$this->getSheetType($file['filename']));
+                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
                             DB::table('uploads')
                                 ->where('id', $file['id'])
