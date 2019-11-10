@@ -58,7 +58,7 @@ use Webpatser\Uuid\Uuid;
 use App\Imports\StudentUpdate;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
-class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation ,SkipsOnFailure ,SkipsErrors  {
+class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation ,SkipsOnFailure ,SkipsOnError  {
 
     use Importable, SkipsFailures , SkipsErrors;
     public function sheets(): array {
