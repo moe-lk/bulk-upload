@@ -361,7 +361,7 @@ class Import
         if ($check === null) {
             return $prefix . $newStamp;
         } else {
-            $newStamp = $latestOpenemisNo + random_int(1, 40);
+            $newStamp = $latestOpenemisNo;
             return $newStamp;
         }
     }

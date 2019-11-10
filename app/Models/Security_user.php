@@ -19,9 +19,9 @@ class Security_user extends Base_Model  {
     public $timestamps = false;
 
     protected $table = 'security_users';
-    
+
     protected $appends = [
-      'special_need_name'  
+      'special_need_name'
     ];
 
     /**
@@ -30,22 +30,22 @@ class Security_user extends Base_Model  {
      * @var array
      */
     protected $fillable = [
-        'openemis_no', 
-        'first_name', 
-        'last_name', 
-        'address', 
-        'address_area_id', 
-        'birthplace_area_id', 
+        'openemis_no',
+        'first_name',
+        'last_name',
+        'address',
+        'address_area_id',
+        'birthplace_area_id',
         'gender_id',
         'remember_token',
-        'date_of_birth', 
-        'nationality_id', 
-        'identity_type_id', 
-        'identity_number', 
-        'is_student', 
-        'modified_user_id', 
-        'modified', 
-        'created_user_id', 
+        'date_of_birth',
+        'nationality_id',
+        'identity_type_id',
+        'identity_number',
+        'is_student',
+        'modified_user_id',
+        'modified',
+        'created_user_id',
         'created',
         'username',
         'password',
@@ -58,16 +58,16 @@ class Security_user extends Base_Model  {
      */
     protected $hidden = [
         'password',
-        'modified_user_id', 
-        'middle_name', 
-        'third_name', 
-        'modified', 
-        'created_user_id', 
+        'modified_user_id',
+        'middle_name',
+        'third_name',
+        'modified',
+        'created_user_id',
         'created'
-        
+
     ];
-    
-    
+
+
 
 
     public function getSpecialNeedNameAttribute() {
@@ -85,11 +85,12 @@ class Security_user extends Base_Model  {
         return $this->hasOne(Institution_student::class,'student_id');
     }
 
-   
+
 
     public function institutionStudentsClass(){
         return $this->hasOne(Institution_student::class, 'student_id');
     }
+
 
 
     /**
@@ -122,11 +123,11 @@ class Security_user extends Base_Model  {
     public function uploads(){
        return $this->hasMany('App\Models\Upload');
     }
-    
+
     public function class(){
         return $this->belongsTo('App\Models\Institution_class_student','id','student_id');
     }
-    
+
     public function special_needs(){
         return $this->hasMany('App\Models\User_special_need','id','security_user_id');
     }
