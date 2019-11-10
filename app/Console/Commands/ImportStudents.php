@@ -60,17 +60,19 @@ class ImportStudents extends Command
         if(count($files) == 0){
             $files = $this->getTerminated();
         }
-        $files = array_chunk($files, 10);
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
                     if(!empty($files)){
-                        array_walk($files, array($this,'process'));
+                        $this->process($files);
                         unset($files);
+                        exit();
+
                     }else{
                         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                         $output->writeln('No files found,Waiting for files');
-                        $this->handle();
+                        exit();
+
                     }
 
                 }catch (Exception $e){
@@ -89,23 +91,24 @@ class ImportStudents extends Command
 
     protected function  process($files){
         $time = Carbon::now()->tz('Asia/Colombo');
-        array_walk($files, array($this,'processSheet'));
+//        array_walk($files, array($this,'processSheet'));
+        $this->processSheet($files[0]);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
-        $output->writeln('=============== Time taken to batch' .$now->diffInMinutes($time));
+        $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
 
     }
 
     protected function getTerminated() {
         $files = Upload::where('is_processed', '=', 3)
-            ->limit(10)
+            ->limit(40)
             ->get()->toArray();
         return $files;
     }
 
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
-             ->limit(10)
+             ->limit(1)
             ->get()->toArray();
          return $files;
     }
@@ -250,7 +253,6 @@ class ImportStudents extends Command
     }
 
     protected function import($file,$sheet,$column){
-
             set_time_limit(300);
              try {
                 $user = User::find($file['security_user_id']);
@@ -259,22 +261,23 @@ class ImportStudents extends Command
                     case 1;
                         if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
                             $import = new UsersImport($file);
+                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
 //                            Excel::import($import, $excelFile, 'local');
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['insert' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            if(!empty((array)$import->failures())){
+                            if($import->failures()->count() > 0){
                                 self::writeErrors($import,$file,'Insert Students');
                                 DB::table('uploads')
                                     ->where('id', $file['id'])
                                     ->update(['insert' => 3,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
+                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
+                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                             }
-
-                            $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
                         }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                             DB::table('uploads')
                                 ->where('id', $file['id'])
@@ -285,21 +288,22 @@ class ImportStudents extends Command
                     case 2;
                         if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
                             $import = new StudentUpdate($file);
-//                            Excel::import($import, $excelFile, 'local',$this->getSheetType($file['filename']));
+                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['update' => 1,'is_processed' => 1,'updated_at' => now()]);
-                            if(!empty((array)$import->failures())){
+                            if($import->failures()->count() > 0){
                                 self::writeErrors($import,$file,'Update Students');
                                 DB::table('uploads')
                                     ->where('id', $file['id'])
                                     ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
+                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                             }else{
                                 $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
+                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                             }
-                            $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
                         }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
                             DB::table('uploads')
                                 ->where('id', $file['id'])
@@ -398,8 +402,7 @@ class ImportStudents extends Command
 
     protected function writeErrors($e,$file,$sheet){
         try {
-            sleep(15);
-            ini_set('memory_limit', '4096M');
+            ini_set('memory_limit', '2048M');
             $baseMemory = memory_get_usage();
             gc_enable();
             gc_collect_cycles();
@@ -411,8 +414,13 @@ class ImportStudents extends Command
             $failures = $e->failures();
             $reader = $this->setReader($file);
             $reader->setActiveSheetIndexByName($sheet);
+<<<<<<< HEAD
             if(gettype($failures) == 'array' || 'object'){
                 $failures = gettype($failures) == 'object' ? array_map(array($this,'processErrors'),iterator_to_array($failures)) : array_map(array($this,'processErrors'),$failures);
+=======
+            $failures = gettype($failures) == 'object' ? array_map(array($this,'processErrors'),iterator_to_array($failures)) : array_map(array($this,'processErrors'),($failures));
+            if(count($failures) > 0){
+>>>>>>> 6d3af62145a78a6b17cc357d6f7e520e784f8b2b
                 array_walk($failures , 'append_errors_to_excel',$reader);
                 $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
