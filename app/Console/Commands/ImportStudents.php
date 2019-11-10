@@ -414,13 +414,8 @@ class ImportStudents extends Command
             $failures = $e->failures();
             $reader = $this->setReader($file);
             $reader->setActiveSheetIndexByName($sheet);
-<<<<<<< HEAD
-            if(gettype($failures) == 'array' || 'object'){
-                $failures = gettype($failures) == 'object' ? array_map(array($this,'processErrors'),iterator_to_array($failures)) : array_map(array($this,'processErrors'),$failures);
-=======
             $failures = gettype($failures) == 'object' ? array_map(array($this,'processErrors'),iterator_to_array($failures)) : array_map(array($this,'processErrors'),($failures));
             if(count($failures) > 0){
->>>>>>> 6d3af62145a78a6b17cc357d6f7e520e784f8b2b
                 array_walk($failures , 'append_errors_to_excel',$reader);
                 $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
