@@ -136,7 +136,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $openemisStudent = $this->getUniqueOpenemisId();
                 \Log::debug('Security_user');
-                $student =  $openemisStudent = $this->getUniqueOpenemisId();::create([
+                $student =  Security_user::create([
                             'username' => $openemisStudent,
                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
