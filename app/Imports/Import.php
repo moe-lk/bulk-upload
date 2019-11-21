@@ -335,7 +335,7 @@ class Import
      * @return string
      */
     public static function getUniqueOpenemisId($options = []) {
-        $prefix = self::getNode();
+        $prefix = (new self)->getNode();
         $latest = Security_user::orderBy('id', 'DESC')
                 ->first();
 
