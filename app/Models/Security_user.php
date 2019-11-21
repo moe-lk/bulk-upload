@@ -92,6 +92,7 @@ class Security_user extends Base_Model  {
     }
 
 
+
     /**
      * The attributes that should be mutated to dates.
      *
@@ -130,5 +131,4 @@ class Security_user extends Base_Model  {
     public function special_needs(){
         return $this->hasMany('App\Models\User_special_need','id','security_user_id');
     }
-
 }
