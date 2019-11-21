@@ -111,6 +111,7 @@ class ImportStudents extends Command
 
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
+             ->orderBy('created_at','DESC')
              ->limit(1)
             ->get()->toArray();
          return $files;
