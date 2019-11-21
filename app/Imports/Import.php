@@ -334,8 +334,8 @@ class Import
      * @param array $options
      * @return string
      */
-    public static function getUniqueOpenemisId($options = []) {
-        $prefix = (new self)->getNode();
+    public  function getUniqueOpenemisId($options = []) {
+        $prefix = $this->getNode();
         $latest = Security_user::orderBy('id', 'DESC')
                 ->first();
 
@@ -362,7 +362,7 @@ class Import
             return $prefix . $newStamp;
         } else {
             $newStamp = $latestOpenemisNo + random_int(1, 40);
-            return $newStamp;
+            return  $prefix . $newStamp;
         }
     }
 
