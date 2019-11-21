@@ -134,11 +134,11 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                $openemisStudent = $this::getUniqueOpenemisId();
+                // $openemisStudent = $this::getUniqueOpenemisId();
                 \Log::debug('Security_user');
                 $student = Security_user::create([
                             'username' => $openemisStudent,
-                            'openemis_no' => $openemisStudent,
+                            // 'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => genNameWithInitials($row['full_name']),
                             'gender_id' => $genderId,
@@ -271,7 +271,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                         $father = Security_user::create([
                                     'username' => $openemisFather,
-                                    'openemis_no' => $openemisFather,
+                                    // 'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
                                     'gender_id' => 1,
@@ -315,7 +315,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     if ($mother === null) {
                         $mother = Security_user::create([
                                     'username' => $openemisMother,
-                                    'openemis_no' => $openemisMother,
+                                    // 'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
                                     'gender_id' => 2,
@@ -370,7 +370,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     if ($guardian === null) {
                         $guardian = Security_user::create([
                                     'username' => $openemisGuardian,
-                                    'openemis_no' => $openemisGuardian,
+                                    // 'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
                                     'gender_id' => $genderId,

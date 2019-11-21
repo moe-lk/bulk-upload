@@ -15,8 +15,8 @@ class ProcessesErrors extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->jsonb('errors')->default(false);
-            $table->boolean('sent_errors')->default(false);
+            $table->jsonb('errors');
+            $table->boolean('sent_errors');
         });
     }
 
