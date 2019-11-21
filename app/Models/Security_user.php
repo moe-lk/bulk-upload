@@ -131,13 +131,4 @@ class Security_user extends Base_Model  {
     public function special_needs(){
         return $this->hasMany('App\Models\User_special_need','id','security_user_id');
     }
-
-    public static function boot()
-    {
-        parent::boot();
-        self::updating(function ($model) {
-            $model->created = now();
-        });
-    }
-
 }

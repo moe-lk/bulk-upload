@@ -326,17 +326,16 @@ class Import
         }
     }
 
+    public function getNode(){
+        return $this->file['node'];
+    }
+
     /**
      * @param array $options
      * @return string
      */
-    public static function getUniqueOpenemisId($options = []) {
-        $prefix = '';
-
-        $prefix = DB::table('config_items')->where('code', '=', 'openemis_id_prefix')->get();
-        $prefix = explode(",", $prefix);
-        $prefix = ($prefix[1] > 0) ? $prefix[0] : '';
-
+    public  function getUniqueOpenemisId($options = []) {
+        $prefix = $this->getNode();
         $latest = Security_user::orderBy('id', 'DESC')
                 ->first();
 
@@ -362,8 +361,8 @@ class Import
         if ($check === null) {
             return $prefix . $newStamp;
         } else {
-            $newStamp = $latestOpenemisNo;
-            return $newStamp;
+            $newStamp = $latestOpenemisNo + random_int(1, 40);
+            return  $prefix . $newStamp;
         }
     }
 

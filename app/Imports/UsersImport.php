@@ -134,9 +134,9 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                $openemisStudent = $this::getUniqueOpenemisId();
+                $openemisStudent = $this->getUniqueOpenemisId();
                 \Log::debug('Security_user');
-                $student = Security_user::create([
+                $student =  Security_user::create([
                             'username' => $openemisStudent,
                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
@@ -255,7 +255,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this::getUniqueOpenemisId();
+                    $openemisFather = $this->getUniqueOpenemisId();
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -300,7 +300,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this::getUniqueOpenemisId();
+                    $openemisMother = $this->getUniqueOpenemisId();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -355,7 +355,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this::getUniqueOpenemisId();
+                    $openemisGuardian = $this->getUniqueOpenemisId();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;

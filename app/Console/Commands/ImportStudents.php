@@ -21,6 +21,7 @@ use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
+use Webpatser\Uuid\Uuid;
 
 class ImportStudents extends Command
 {
@@ -30,7 +31,7 @@ class ImportStudents extends Command
      *
      * @var string
      */
-    protected $signature = 'import:students';
+    protected $signature = 'import:students {node}';
 
     /**
      * The console command description.
@@ -92,6 +93,8 @@ class ImportStudents extends Command
     protected function  process($files){
         $time = Carbon::now()->tz('Asia/Colombo');
 //        array_walk($files, array($this,'processSheet'));
+        $node = $this->argument('node');
+        $files[0]['node'] = $node;
         $this->processSheet($files[0]);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
