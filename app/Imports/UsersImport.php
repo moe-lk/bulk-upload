@@ -134,11 +134,11 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                // $openemisStudent = $this::getUniqueOpenemisId();
+                 $openemisStudent = $this::getUniqueOpenemisId();
                 \Log::debug('Security_user');
                 $student = Security_user::create([
                             'username' => $openemisStudent,
-                            // 'openemis_no' => $openemisStudent,
+                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => genNameWithInitials($row['full_name']),
                             'gender_id' => $genderId,
