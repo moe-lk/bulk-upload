@@ -114,6 +114,11 @@ class ImportStudents extends Command
              ->orderBy('created_at','DESC')
              ->limit(1)
             ->get()->toArray();
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $files[0]['id'])
+                ->update(['is_processed' => 3,'updated_at' => now()]);
+            DB::commit();
          return $files;
     }
 
@@ -180,12 +185,6 @@ class ImportStudents extends Command
         $output->writeln('Processing the file: '.$file['filename']);
         if ($this->checkTime()) {
             try {
-                DB::beginTransaction();
-                DB::table('uploads')
-                        ->where('id', $file['id'])
-                        ->update(['is_processed' => 3,'updated_at' => now()]);
-                DB::commit();
-
                 $this->import($file,1,'C');
                 $this->import($file,2,'B');
 
