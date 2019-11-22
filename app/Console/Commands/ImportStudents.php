@@ -259,6 +259,7 @@ class ImportStudents extends Command
 
     protected function import($file,$sheet,$column){
             set_time_limit(300);
+            $this->getFileSize($file);
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
@@ -348,6 +349,21 @@ class ImportStudents extends Command
             ];
             return $failure;
 
+    }
+
+    protected function  getFileSize($file){
+        $excelFile =  '/sis-bulk-data-files/' . $file['filename'];
+        $size = Storage::disk('local')->size($excelFile);
+        $user = User::find($file['security_user_id']);
+        if( $size > 0){
+            return true;
+        }else{
+            DB::table('uploads')
+                ->where('id',  $file['id'])
+                ->update(['is_processed' =>2 , 'updated_at' => now()]);
+            $this->stdOut('No valid data found :Please re-upload the file',0);
+            $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
+        }
     }
 
     protected function setReader($file){
