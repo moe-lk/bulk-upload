@@ -215,7 +215,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this::getUniqueOpenemisId();
+                    $openemisFather = $this->getUniqueOpenemisId();;
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -259,7 +259,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this::getUniqueOpenemisId();
+                    $openemisMother = $this->getUniqueOpenemisId();;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -305,7 +305,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this::getUniqueOpenemisId();
+                    $openemisGuardian = $this->getUniqueOpenemisId();;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
