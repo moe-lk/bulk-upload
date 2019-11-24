@@ -237,6 +237,9 @@ class Import
             $this->checkKeys($row,'identity_number');
             $this->checkKeys($row,'mothers_address_area');
             $this->checkKeys($row,'mothers_nationality');
+            $this->checkKeys($row,'mothers_identity_number');
+            $this->checkKeys($row,'fathers_identity_number');
+            $this->checkKeys($row,'guardians_identity_number');
             $this->checkKeys($row,'mothers_identity_type');
             $this->checkKeys($row,'guardians_address_area');
             $this->checkKeys($row,'guardians_nationality');
