@@ -122,6 +122,20 @@ function append_errors_to_excel($error, $count, $reader){
         }
 }
 
+function rows($error){
+    return $error['row'];
+}
+
+function rowIndex($row){
+    return $row->getRowIndex();
+}
+
+function removeRows($row,$param){
+    if(in_array($row,$param['rows'])){
+        $param['reader']->getActiveSheet()->removeRow($row);
+    }
+}
+
 function colorizeCell($column,$error,$active_sheet){
     $column = array_keys($column,$error['attribute']);
     $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);

@@ -5,8 +5,9 @@ namespace App\Libraries\ShaHash;
 
 
 use Illuminate\Contracts\Hashing\Hasher as HasherContract;
+use Illuminate\Hashing\HashManager;
 
-class SHAHasher implements  HasherContract
+class SHAHasher  extends HashManager implements HasherContract
 {
 
 

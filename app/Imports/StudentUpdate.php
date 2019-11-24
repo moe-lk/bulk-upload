@@ -188,7 +188,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
 
-                if (!empty($row['bmi_height']) && !empty(($row['bmi_weight']))) {
+                if (!empty($row['bmi_height']) && (!empty($row['bmi_weight']))) {
 
                     // convert Meeter to CM
                     $hight = $row['bmi_height'] / 100;
