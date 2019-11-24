@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,10 +19,10 @@ class Base_Model extends Model{
 
         parent::boot();
         self::creating(function ($model) {
-            $model->created = now();
+            $model->created = Carbon::now();
         });
         self::updating(function ($model) {
-            $model->modified = now();
+            $model->modified = Carbon::now();
         });
     }
 

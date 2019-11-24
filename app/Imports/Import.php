@@ -198,7 +198,7 @@ class Import
 
     protected function formateDate($row,$column,$format = 'Y-m-d'){
         try {
-            if($row[$column] !== null){
+            if(!empty($row[$column]) && ($row[$column] !== null)){
                 switch (gettype($row[$column])){
                     case 'string':
                         $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
@@ -403,8 +403,5 @@ class Import
             Institution_subject_student::updateOrInsert($subject);
         }
     }
-
-
-
 
 }
