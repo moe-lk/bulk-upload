@@ -153,6 +153,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
                     'identity_number' => $row['identity_number'] ? $identityNUmber : $studentInfo['identity_number'],
                     'is_student' => 1,
+                    'modified' => now(),
                     'modified_user_id' => $this->file['security_user_id']
                 ]);
 
