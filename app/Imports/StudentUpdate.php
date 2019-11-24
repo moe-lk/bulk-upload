@@ -124,7 +124,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
 
 
-                $date = $row['date_of_birth_yyyy_mm_dd'];
+//                $date = $row['date_of_birth_yyyy_mm_dd'];
 
                 $identityType = $identityType !== null ? $identityType->id : null;
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -146,7 +146,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                     'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
                     'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
-                    'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
+//                    'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
                     'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
                     'birthplace_area_id' => $row['birth_registrar_office_as_in_birth_certificate'] ? $BirthArea : $studentInfo['birthplace_area_id'],
                     'nationality_id' => $row['nationality'] ? $nationalityId : $studentInfo['nationality_id'],
