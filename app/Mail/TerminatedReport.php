@@ -2,10 +2,11 @@
 
 namespace App\Mail;
 
+use App\Models\Institution_class;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
 class TerminatedReport extends Mailable
 {
@@ -24,9 +25,13 @@ class TerminatedReport extends Mailable
         $this->subject = 'SIS Bulk Upload: Process Terminated'.$institution->institution->code.': '. $institution->name.' '. date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
+        $this->with = [
+            'name' => $this->user->first_name,
+            'link' =>  env('APP_URL').'bulk-upload/'
+        ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "Apologize , The process of you file has been terminated in the middle,
-             We advice you to checck the student data and re upload with only with correct data which are not in the system ",
+             We advice you to check the student data and re-upload with only with correct data which are not in the system ",
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
     }

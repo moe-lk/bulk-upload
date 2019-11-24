@@ -32,7 +32,8 @@ class StudentImportFailure extends Mailable
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re upload it',
+            'name'=>$this->user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re-upload  only with incorrect data,
+            We uploaded the correct data to the system',
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
     }

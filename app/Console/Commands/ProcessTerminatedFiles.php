@@ -47,7 +47,9 @@ class ProcessTerminatedFiles extends Command
         $files = $this->getTerminated();
             try {
                 if(!empty($files)){
-                    $this->process($files);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('No files found,Waiting for files :'.count($files));
+                    array_walk($files, array($this,'process'));
                     unset($files);
                     exit();
 
@@ -68,8 +70,22 @@ class ProcessTerminatedFiles extends Command
 
     }
 
+    protected function  process($file){
+        $time = Carbon::now()->tz('Asia/Colombo');
+//        $node = $this->argument('node');
+//        $files[0]['node'] = $node;
+        $this->processSheet($file);
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $now = Carbon::now()->tz('Asia/Colombo');
+        $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
+
+    }
+
     protected function getTerminated() {
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln( Carbon::now()->tz('Asia/Colombo')->subHours(3));
         $files = Upload::where('is_processed', '=', 3)
+            ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(40)
             ->get()->toArray();
         return $files;

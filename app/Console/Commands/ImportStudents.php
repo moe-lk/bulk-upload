@@ -245,21 +245,24 @@ class ImportStudents extends Command
        return $objPHPExcel->getSheetCount();
     }
 
-    protected function handlePartialSuccess(){
 
-    }
 
-    protected function import($file,$sheet,$column){
+    /**
+     * @param $file
+     * @param $sheet
+     * @param $column
+     */
+    protected function import($file, $sheet, $column){
             set_time_limit(300);
             $this->getFileSize($file);
              try {
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
+                $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                 switch ($sheet){
                     case 1;
-                        if (($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) > 0))  { //
+                        if (($this->getSheetName($file,'Insert Students')) && $this->higestRow > 0)  { //
                             $import = new UsersImport($file);
-                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
 //                            Excel::import($import, $excelFile, 'local');
                             DB::table('uploads')
@@ -271,12 +274,12 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['insert' => 3,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Fresh Student Data Upload:Partial Success ');
-                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
+                                $this->stdOut('Insert Students',$this->higestRow);
                             }else{
                                 $this->processSuccessEmail($file,$user,'Fresh Student Data Upload:Success ');
-                                $this->stdOut('Insert Students',$this->getHigestRow($file, $sheet,$column));
+                                $this->stdOut('Insert Students',$this->higestRow);
                             }
-                        }else if(($this->getSheetName($file,'Insert Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                        }else if(($this->getSheetName($file,'Insert Students')) && $this->higestRow > 0) {
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['is_processed' => 2]);
@@ -284,9 +287,8 @@ class ImportStudents extends Command
                         }
                         break;
                     case 2;
-                        if (($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) > 0)) {
+                        if (($this->getSheetName($file,'Update Students')) && $this->higestRow > 0) {
                             $import = new StudentUpdate($file);
-                            $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
                             DB::table('uploads')
                                 ->where('id', $file['id'])
@@ -297,12 +299,12 @@ class ImportStudents extends Command
                                     ->where('id', $file['id'])
                                     ->update(['update' => 3,'is_processed' => 1,'updated_at' => now()]);
                                 $this->processFailedEmail($file,$user,'Existing Student Data Update:Partial Success ');
-                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
+                                $this->stdOut('Update Students',$this->higestRow);
                             }else{
                                 $this->processSuccessEmail($file,$user, 'Existing Student Data Update:Success ');
-                                $this->stdOut('Update Students',$this->getHigestRow($file, $sheet,$column));
+                                $this->stdOut('Update Students',$this->higestRow);
                             }
-                        }else if(($this->getSheetName($file,'Update Students')) && ($this->getHigestRow($file, $sheet,$column) == 0)) {
+                        }else if(($this->getSheetName($file,'Update Students')) && $this->higestRow == 0) {
                             DB::table('uploads')
                                 ->where('id', $file['id'])
                                 ->update(['is_processed' => 2,'updated_at' => now()]);
@@ -413,6 +415,18 @@ class ImportStudents extends Command
     }
 
 
+
+    protected function removeRows($row,$count,$params){
+        $reader = $params['reader'];
+        $sheet = $reader->getActiveSheet();
+        if(!in_array($row,$params['rows'])){
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $output->writeln(    ' removing row . '.' '. $row);
+            $reader->getActiveSheet()->getCellCollection()->removeRow($row);
+        }
+    }
+
+
     protected function writeErrors($e,$file,$sheet){
         try {
             ini_set('memory_limit', '2048M');
@@ -427,9 +441,18 @@ class ImportStudents extends Command
             $failures = $e->failures();
             $reader = $this->setReader($file);
             $reader->setActiveSheetIndexByName($sheet);
+
             $failures = gettype($failures) == 'object' ? array_map(array($this,'processErrors'),iterator_to_array($failures)) : array_map(array($this,'processErrors'),($failures));
             if(count($failures) > 0){
+                $rows = array_map('rows',$failures);
+                $rows = array_unique($rows);
+                $rowIndex =   range(3,$this->higestRow+2);
+                $params = [
+                    'rows' =>$rows,
+                    'reader' => $reader
+                ];
                 array_walk($failures , 'append_errors_to_excel',$reader);
+                array_walk($rowIndex , array($this,'removeRows'),$params);
                 $objWriter = $this->getSheetWriter($file,$reader);
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
