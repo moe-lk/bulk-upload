@@ -20,6 +20,9 @@ class Base_Model extends Model{
         self::creating(function ($model) {
             $model->created = now();
         });
+        self::updating(function ($model) {
+            $model->modified = now();
+        });
     }
 
 }
