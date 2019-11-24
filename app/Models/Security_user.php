@@ -10,13 +10,15 @@ use Webpatser\Uuid\Uuid;
 
 class Security_user extends Base_Model  {
 
+    public const CREATED_AT = 'created';
+    public const UPDATED_AT = 'modified';
     /**
      * The database table used by the model.
      *
      * @var string
      */
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'security_users';
 
@@ -113,7 +115,7 @@ class Security_user extends Base_Model  {
         ];
     }
 
-    
+
 
 
 
