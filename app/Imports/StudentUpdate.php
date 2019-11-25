@@ -424,7 +424,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:*.fathers_full_name|date',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.fathers_full_name|date',
             '*.fathers_address' => 'required_with:*.fathers_full_name',
             '*.fathers_address_area' => 'required_with:*.fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:*.fathers_full_name',
