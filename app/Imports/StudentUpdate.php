@@ -158,7 +158,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
 
-                if (!empty($row['identity_number']) && !empty($row['identity_type'])) {
+                if (!empty($row['identity_number']) && $identityType !== null) {
                     User_identity::create([
                         'identity_type_id' => $identityType,
                         'number' => $identityNUmber,
