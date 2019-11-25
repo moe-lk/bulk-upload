@@ -195,21 +195,24 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $bodyMass = ($row['bmi_weight']) / pow($hight, 2);
 
                     $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
+                    $count = User_body_mass::where('academic_period_id' ,'=',$bmiAcademic->id )
+                            ->where('security_user_id','=',$student->student_id)->count();
 
                     \Log::debug('User_body_mass');
-                    User_body_mass::create([
-                        'height' => $row['bmi_height'],
-                        'weight' => $row['bmi_weight'],
-                        'date' => $row['bmi_date_yyyy_mm_dd'],
-                        'body_mass_index' => $bodyMass,
-                        'academic_period_id' => $bmiAcademic->id,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                    if(!($count > 0)){
+                        User_body_mass::create([
+                            'height' => $row['bmi_height'],
+                            'weight' => $row['bmi_weight'],
+                            'date' => $row['bmi_date_yyyy_mm_dd'],
+                            'body_mass_index' => $bodyMass,
+                            'academic_period_id' => $bmiAcademic->id,
+                            'security_user_id' => $student->student_id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    }
                 }
 
                 if (!empty($row['fathers_full_name']) && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
@@ -413,7 +416,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' => 'user_unique:identity_number',
             '*.academic_period' => 'nullable|exists:academic_periods,name',
-            '*.education_grade' => 'nullable|exists:education_grades,name',
+            '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'nullable|numeric|required_with:bmi_*|max:200|min:60',
             '*.bmi_weight' => 'nullable|numeric|required_with:bmi_*|max:200|min:10',
