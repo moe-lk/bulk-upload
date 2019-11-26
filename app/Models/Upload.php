@@ -41,6 +41,8 @@ class Upload extends Model  {
      */
     protected $dates = ['deleted_at'];
 
+    public $timestamps = true;
+
     public function user(){
         return $this->belongsTo('App\Models\Security_user','security_user_id');
     }

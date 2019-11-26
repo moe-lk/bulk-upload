@@ -197,21 +197,28 @@ class Import
 
 
     protected function formateDate($row,$column,$format = 'Y-m-d'){
-        if($row[$column] !== null){
-            switch (gettype($row[$column])){
-                case 'string':
-                    $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
-                    $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                    $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                    break;
-                case 'double';
-                    // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                    $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
-                    break;
+        try {
+            if(!empty($row[$column]) && ($row[$column] !== null)){
+                switch (gettype($row[$column])){
+                    case 'string':
+                        $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
+                        $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                        $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
+                        break;
+                    case 'double';
+                        // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
+                        $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
+                        break;
+                }
             }
+            return $row;
+        }catch (Exception $e){
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
-        // dd($row);
-        return $row;
+
     }
 
 
@@ -219,25 +226,59 @@ class Import
 
         $keys = array_keys($row);
         array_walk($keys,array($this,'validateColumns'));
-        $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
-        $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
-        $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
-        $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
+            $row = $this->formateDate($row,'start_date_yyyy_mm_dd');
+            $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
+            $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
+            $this->checkKeys($row ,'birth_registrar_office_as_in_birth_certificate');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'identity_number');
+            $this->checkKeys($row,'mothers_address_area');
+            $this->checkKeys($row,'mothers_nationality');
+            $this->checkKeys($row,'mothers_identity_number');
+            $this->checkKeys($row,'fathers_identity_number');
+            $this->checkKeys($row,'guardians_identity_number');
+            $this->checkKeys($row,'mothers_identity_type');
+            $this->checkKeys($row,'guardians_address_area');
+            $this->checkKeys($row,'guardians_nationality');
+            $this->checkKeys($row,'guardians_identity_type');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'fathers_address_area');
+            $this->checkKeys($row,'fathers_nationality');
+            $this->checkKeys($row,'fathers_identity_type');
+            $this->checkKeys($row,'admission_no');
+            $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
 
-        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null)) {
-            // dd(($row['date_of_birth_yyyy_mm_dd']));
-            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-            if ($BirthDivision !== null) {
-                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                                ->where('parent_id', '=', $BirthDivision->id)->first();
-                if ($BirthArea !== null) {
-                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+        $this->checkKeys($row,'identity_type');
+            $this->checkKeys($row,'birth_divisional_secretariat');
+            $this->checkKeys($row,'identity_number');
+            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
+                $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
+                // dd(($row['date_of_birth_yyyy_mm_dd']));
+                $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
+                if ($BirthDivision !== null) {
+                    $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
+                        ->where('parent_id', '=', $BirthDivision->id)->first();
+                    if ($BirthArea !== null) {
+                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+                    }
                 }
             }
-        }
+
         return $row;
+    }
+
+    protected function checkKeys($row,$key){
+       if(array_key_exists($key,$row)){
+           return true;
+       }else{
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+        };
     }
 
 
@@ -288,17 +329,16 @@ class Import
         }
     }
 
+    public function getNode(){
+        return $this->file['node'];
+    }
+
     /**
      * @param array $options
      * @return string
      */
-    public static function getUniqueOpenemisId($options = []) {
-        $prefix = '';
-
-        $prefix = DB::table('config_items')->where('code', '=', 'openemis_id_prefix')->get();
-        $prefix = explode(",", $prefix);
-        $prefix = ($prefix[1] > 0) ? $prefix[0] : '';
-
+    public  function getUniqueOpenemisId($options = []) {
+        $prefix = $this->getNode();
         $latest = Security_user::orderBy('id', 'DESC')
                 ->first();
 
@@ -324,8 +364,8 @@ class Import
         if ($check === null) {
             return $prefix . $newStamp;
         } else {
-            $newStamp = $latestOpenemisNo + random_int(1, 40);
-            return $newStamp;
+            $newStamp = $latestOpenemisNo + 1;
+            return  $prefix . $newStamp;
         }
     }
 
@@ -363,8 +403,5 @@ class Import
             Institution_subject_student::updateOrInsert($subject);
         }
     }
-
-
-
 
 }

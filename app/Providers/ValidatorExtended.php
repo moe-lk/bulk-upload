@@ -55,7 +55,7 @@ class ValidatorExtended extends IlluminateValidator {
             } elseif ($gradeEntity !== null) {
                 $admissionAge = $gradeEntity->admission_age;
                 $studentAge =  ($value)->format('Y') ;
-              
+
                 $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
                 // if(($studentAge === 5) && ($value)->format('M') === 1  ){
                 //     $studentAge = 5;
@@ -101,10 +101,10 @@ class ValidatorExtended extends IlluminateValidator {
         }else{
             return false;
         }
-       
+
     }
-    protected function validateNic($attribute, $value, $perameters, $validator){  
-       $valid =  preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/', $value);
+    protected function validateNic($attribute, $value, $perameters, $validator){
+        $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
        if(!$valid){
              $this->_custom_messages['nic'] = $attribute. ' is not valid,  Please check the NIC number';
              $this->_set_custom_stuff();

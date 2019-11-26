@@ -73,11 +73,12 @@ class FileController extends Controller
 
 
     public function downloadTemplate(){
-        $filename = 'censusNo_className_sis_students_bulk_upload_2007.xlsx';
-        $file_path = storage_path() .'/app/public/'. $filename;;
+        $filename = 'censusNo_className_sis_students_bulk_upload';
+        $version = '2007_V1.5_20191111.xlsx';
+        $file_path = storage_path() .'/app/public/'. $filename.'_'.$version;;
         if (file_exists($file_path))
         {
-            return Response::download($file_path, Auth::user()->openemis_no.'_'.$filename, [
+            return Response::download($file_path, Auth::user()->openemis_no.'_'.$filename.$version, [
                 'Content-Length: '. filesize($file_path)
             ]);
         }

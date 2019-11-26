@@ -29,6 +29,10 @@ use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
 use App\Rules\admissionAge;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
 use function foo\func;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -52,14 +56,16 @@ use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 
-class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation {
+class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
 
     use Importable,
-        RegistersEventListeners;
+        RegistersEventListeners,
+        SkipsFailures,
+        SkipsErrors;
 
     public function sheets(): array {
         return [
-            2 => $this
+            'Update Students' => $this
         ];
     }
 
@@ -134,27 +140,25 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 \Log::debug('Security_user');
 
                 $studentInfo = Security_user::where('openemis_no', '=', $row['student_id'])->first();
-//                dd($studentInfo);
-                $student = Security_user::where('openemis_no', '=', $row['student_id'])
+                Security_user::where('openemis_no', $studentInfo['openemis_no'])
                         ->update([
-                    'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
-                    'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
-                    'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
-                    'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
-                    'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
-                    'birthplace_area_id' => $row['birth_registrar_office_as_in_birth_certificate'] ? $BirthArea : $studentInfo['birthplace_area_id'],
-                    'nationality_id' => $row['nationality'] ? $nationalityId : $studentInfo['nationality_id'],
-                    'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
-                    'identity_number' => $row['identity_number'] ? $identityNUmber : $studentInfo['identity_number'],
-                    'is_student' => 1,
-                    'modified_user_id' => $this->file['security_user_id']
-                ]);
-
+                            'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                            'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
+                            'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
+                            'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
+                            'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
+                            'birthplace_area_id' => $row['birth_registrar_office_as_in_birth_certificate'] ? $BirthArea : $studentInfo['birthplace_area_id'],
+                            'nationality_id' => $row['nationality'] ? $nationalityId : $studentInfo['nationality_id'],
+                            'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
+                            'identity_number' => $row['identity_number'] ? $identityNUmber : $studentInfo['identity_number'],
+                            'is_student' => 1,
+                            'modified' => now(),
+                            'modified_user_id' => $this->file['security_user_id']
+                            ]);
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
-//                dd($student);
 
-                if (!empty($row['identity_number'])) {
+                if (!empty($row['identity_number']) && $identityType !== null) {
                     User_identity::create([
                         'identity_type_id' => $identityType,
                         'number' => $identityNUmber,
@@ -182,7 +186,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
 
-                if (!empty($row['bmi_height']) && !empty(($row['bmi_weight']))) {
+                if (!empty($row['bmi_height']) && (!empty($row['bmi_weight']))) {
 
                     // convert Meeter to CM
                     $hight = $row['bmi_height'] / 100;
@@ -191,25 +195,28 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $bodyMass = ($row['bmi_weight']) / pow($hight, 2);
 
                     $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
+                    $count = User_body_mass::where('academic_period_id' ,'=',$bmiAcademic->id )
+                            ->where('security_user_id','=',$student->student_id)->count();
 
                     \Log::debug('User_body_mass');
-                    User_body_mass::create([
-                        'height' => $row['bmi_height'],
-                        'weight' => $row['bmi_weight'],
-                        'date' => $row['bmi_date_yyyy_mm_dd'],
-                        'body_mass_index' => $bodyMass,
-                        'academic_period_id' => $bmiAcademic->id,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                    if(!($count > 0)){
+                        User_body_mass::create([
+                            'height' => $row['bmi_height'],
+                            'weight' => $row['bmi_weight'],
+                            'date' => $row['bmi_date_yyyy_mm_dd'],
+                            'body_mass_index' => $bodyMass,
+                            'academic_period_id' => $bmiAcademic->id,
+                            'security_user_id' => $student->student_id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    }
                 }
 
                 if (!empty($row['fathers_full_name']) && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this::getUniqueOpenemisId();
+                    $openemisFather = $this->getUniqueOpenemisId();;
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -253,7 +260,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this::getUniqueOpenemisId();
+                    $openemisMother = $this->getUniqueOpenemisId();;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -299,7 +306,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this::getUniqueOpenemisId();
+                    $openemisGuardian = $this->getUniqueOpenemisId();;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -376,7 +383,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             }
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-//            $failure = new Failure(3, 'remark', [3 => ], [null]);
             $failures = $e->failures();
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
             Log::info('email-sent', [$e]);
@@ -402,7 +408,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.student_id' => 'required|exists:security_users,openemis_no|is_student_in_class:'.$this->file['institution_class_id'],
             '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.gender_mf' => 'nullable|in:M,F',
-            '*.date_of_birth_yyyy_mm_dd' => 'nullable|date',
+            '*.date_of_birth_yyyy_mm_dd' => 'date|nullable',
             '*.address' => 'nullable',
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
@@ -410,25 +416,25 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.identity_type' => 'required_with:identity_number',
             '*.identity_number' => 'user_unique:identity_number',
             '*.academic_period' => 'nullable|exists:academic_periods,name',
-            '*.education_grade' => 'nullable|exists:education_grades,name',
+            '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
-            '*.bmi_height' => 'nullable|numeric|required_with:bmi_*',
-            '*.bmi_weight' => 'nullable|numeric|required_with:bmi_*',
-            '*.bmi_date_yyyy_mm_dd' => 'nullable|required_with:bmi_*',
-            '*.bmi_academic_period' => 'nullable|required_with:bmi_*|exists:academic_periods,name',
+            '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
+            '*.bmi_weight' => 'required_with:*.bmi_height|nullable|numeric|max:200|min:10',
+            '*.bmi_date_yyyy_mm_dd' => 'required_with:*.bmi_height|nullable|date',
+            '*.bmi_academic_period' => 'required_with:*.bmi_weight|nullable|exists:academic_periods,name',
             '*.admission_no' => 'nullable|max:12|min:4',
-            '*.start_date_yyyy_mm_dd' => 'nullable',
+            '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:*.fathers_full_name',
+            '*.fathers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.fathers_full_name',
             '*.fathers_address' => 'required_with:*.fathers_full_name',
             '*.fathers_address_area' => 'required_with:*.fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_nationality' => 'required_with:*.fathers_full_name',
             '*.fathers_identity_type' => 'required_with:*.fathers_identity_number',
             '*.fathers_identity_number' => 'nullable|required_with:*.fathers_identity_type|nic:fathers_identity_number',
             '*.mothers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
-            '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:*.mothers_full_name',
+            '*.mothers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.mothers_full_name',
             '*.mothers_address' => 'required_with:*.mothers_full_name',
             '*.mothers_address_area' => 'required_with:*.mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_nationality' => "required_with:*.mothers_full_name",
@@ -436,7 +442,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.mothers_identity_number' => 'nullable|required_with:*.mothers_identity_type|nic:mothers_identity_number',
             '*.guardians_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.guardians_gender_mf' => 'required_with:*.guardians_full_name',
-            '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:*.guardians_full_name',
+            '*.guardians_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.guardians_full_name',
             '*.guardians_address' => 'required_with:*.guardians_full_name',
             '*.guardians_address_area' => 'required_with:*.guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_nationality' => 'required_with:*.guardians_full_name',

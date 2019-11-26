@@ -105,13 +105,12 @@ function append_errors_to_excel($error, $count, $reader){
     $prev_value = $active_sheet->getCell('A'.$error['row'])->getValue();
     $active_sheet->setCellValue('A'. ($error['row']) ,  $prev_value.','.implode(',',$error['errors']));
     $active_sheet->getStyle('A'. ($error['row']))->getAlignment()->setWrapText(true);
-
     $columns = Illuminate\Support\Facades\Config::get('excel.columns');
-    
+
     $column = array_keys($columns,$error['attribute']);
     if(!empty($column)){
-        $column= $column[0];
-         $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
+        $column = $column[0]+1;
+        $selectedCells = $active_sheet->setSelectedCellByColumnAndRow($column,$error['row']);
         $active_cell = ($selectedCells->getActiveCell());
 
         $active_sheet->getStyle($active_cell)
@@ -119,9 +118,22 @@ function append_errors_to_excel($error, $count, $reader){
             ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
             ->getStartColor()
             ->setARGB('FF0000');
-            
-        }
 
+        }
+}
+
+function rows($error){
+    return $error['row'];
+}
+
+function rowIndex($row){
+    return $row->getRowIndex();
+}
+
+function removeRows($row,$param){
+    if(in_array($row,$param['rows'])){
+        $param['reader']->getActiveSheet()->removeRow($row);
+    }
 }
 
 function colorizeCell($column,$error,$active_sheet){
