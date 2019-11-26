@@ -6,12 +6,11 @@ use App\Mail\IncorrectTemplate;
 use App\Mail\TerminatedReport;
 use App\Models\Upload;
 use App\Models\User;
-use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
-class ProcessTerminatedFiles extends Command
+class ProcessTerminatedFiles extends ImportStudents
 {
     /**
      * The name and signature of the console command.
@@ -44,12 +43,10 @@ class ProcessTerminatedFiles extends Command
      */
     public function handle()
     {
-        $files = $this->getTerminated();
+            $files = $this->getFiles();
             try {
                 if(!empty($files)){
-                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                    $output->writeln('No files found,Waiting for files :'.count($files));
-                    array_walk($files, array($this,'process'));
+                    $this->process($files);
                     unset($files);
                     exit();
 
@@ -70,25 +67,29 @@ class ProcessTerminatedFiles extends Command
 
     }
 
+    protected function getFiles(){
+        $files = Upload::where('is_processed', '=', 3)
+            ->orderBy('created_at','DESC')
+            ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
+            ->limit(1)
+            ->get()->toArray();
+        if(!empty($files)){
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $files[0]['id'])
+                ->update(['is_processed' => 3,'updated_at' => now()]);
+            DB::commit();
+        }
+        return $files;
+    }
+
     protected function  process($file){
         $time = Carbon::now()->tz('Asia/Colombo');
-//        $node = $this->argument('node');
-//        $files[0]['node'] = $node;
-        $this->processSheet($file);
+        $this->processSheet($file[0]);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
         $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
 
-    }
-
-    protected function getTerminated() {
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln( Carbon::now()->tz('Asia/Colombo')->subHours(3));
-        $files = Upload::where('is_processed', '=', 3)
-            ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
-            ->limit(40)
-            ->get()->toArray();
-        return $files;
     }
 
     protected function processSheet($file){
@@ -97,7 +98,26 @@ class ProcessTerminatedFiles extends Command
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);
-        Mail::to($user->email)->send(new TerminatedReport($file));
+        if ($this->checkTime()) {
+            try {
+                $this->import($file,2,'B');
+
+            } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                try {
+                    Mail::to($user->email)->send(new IncorrectTemplate($file));
+                    DB::table('uploads')
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
+                } catch (\Exception $ex) {
+                    $this->handle();
+                    DB::table('uploads')
+                        ->where('id', $file['id'])
+                        ->update(['is_processed' => 2, 'is_email_sent' => 2 ,'updated_at' => now()]);
+                }
+            }
+        } else {
+            exit();
+        }
     }
 
 
