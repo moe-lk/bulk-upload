@@ -70,6 +70,7 @@ class Import
         $this->sheetNames = [];
         $this->file = $file;
         $this->sheetData = [];
+        $this->template = false;
         $this->worksheet = '';
         $this->failures = [];
         $this->request = new Request;
@@ -235,7 +236,10 @@ class Import
             $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
             $columns = Config::get('excel.columns');
-            array_walk($columns, array($this,'checkKeys'),$row);
+            if(!$this->template) {
+                array_walk($columns, array($this, 'checkKeys'), $row);
+                $this->template = true;
+            }
             $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
                 $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
