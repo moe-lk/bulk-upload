@@ -29,6 +29,7 @@ use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
 use App\Rules\admissionAge;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Request;
@@ -157,6 +158,7 @@ class Import
         ];
 
 
+
         if ( ($column !== "") && (!in_array($column,$columns))) {
             // dd($column);
             $this->isValidSheet = false;
@@ -206,7 +208,6 @@ class Import
                         $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
                         break;
                     case 'double';
-                        // $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
                         $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
                         break;
                 }
@@ -225,6 +226,7 @@ class Import
     protected function mapFields($row){
 
         $keys = array_keys($row);
+
         array_walk($keys,array($this,'validateColumns'));
             $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
@@ -232,28 +234,9 @@ class Import
             $row = $this->formateDate($row,'fathers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'mothers_date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'guardians_date_of_birth_yyyy_mm_dd');
-            $this->checkKeys($row ,'birth_registrar_office_as_in_birth_certificate');
-            $this->checkKeys($row,'birth_divisional_secretariat');
-            $this->checkKeys($row,'identity_number');
-            $this->checkKeys($row,'mothers_address_area');
-            $this->checkKeys($row,'mothers_nationality');
-            $this->checkKeys($row,'mothers_identity_number');
-            $this->checkKeys($row,'fathers_identity_number');
-            $this->checkKeys($row,'guardians_identity_number');
-            $this->checkKeys($row,'mothers_identity_type');
-            $this->checkKeys($row,'guardians_address_area');
-            $this->checkKeys($row,'guardians_nationality');
-            $this->checkKeys($row,'guardians_identity_type');
-            $this->checkKeys($row,'birth_divisional_secretariat');
-            $this->checkKeys($row,'fathers_address_area');
-            $this->checkKeys($row,'fathers_nationality');
-            $this->checkKeys($row,'fathers_identity_type');
-            $this->checkKeys($row,'admission_no');
+            $columns = Config::get('excel.columns');
+            array_walk($columns, array($this,'checkKeys'),$row);
             $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
-
-        $this->checkKeys($row,'identity_type');
-            $this->checkKeys($row,'birth_divisional_secretariat');
-            $this->checkKeys($row,'identity_number');
             if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
                 $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
                 // dd(($row['date_of_birth_yyyy_mm_dd']));
@@ -270,14 +253,14 @@ class Import
         return $row;
     }
 
-    protected function checkKeys($row,$key){
+    protected function checkKeys($key,$count,$row){
        if(array_key_exists($key,$row)){
            return true;
        }else{
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failure = new Failure($count, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'. $key ,' Is missing form the template'], [null]);
             $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+            new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         };
     }
 
