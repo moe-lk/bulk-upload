@@ -69,6 +69,7 @@ class ProcessTerminatedFiles extends ImportStudents
 
     protected function getFiles(){
         $files = Upload::where('is_processed', '=', 3)
+            ->where('insert','=',0)
             ->orderBy('created_at','DESC')
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
