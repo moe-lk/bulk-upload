@@ -414,7 +414,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
             '*.identity_type' => 'required_with:identity_number',
-            '*.identity_number' => 'user_unique:identity_number',
+//            '*.identity_number' => 'user_unique:identity_number',
             '*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
