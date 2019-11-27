@@ -406,7 +406,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
         return [
             '*.student_id' => 'required|exists:security_users,openemis_no|is_student_in_class:'.$this->file['institution_class_id'],
-            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
+            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:100',
             '*.gender_mf' => 'nullable|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|nullable',
             '*.address' => 'nullable',
