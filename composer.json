@@ -10,6 +10,7 @@
     "require": {
         "php": "^7.1.3",
         "aws/aws-sdk-php": "^3.112",
+        "doctrine/dbal": "^2.9",
         "fideloper/proxy": "^4.0",
         "gossi/php-code-formatter": "dev-master",
         "guzzlehttp/guzzle": "^6.4",
