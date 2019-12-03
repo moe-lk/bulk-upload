@@ -183,6 +183,7 @@ return [
          * Extended validation provider
          */
         App\Providers\ValidationExtensionServiceProvider::class,
+        Laravel\Passport\PassportServiceProvider::class,
 
     ],
 

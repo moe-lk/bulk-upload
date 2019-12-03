@@ -17,4 +17,9 @@ class ShaHashServiceProvider extends HashServiceProvider
         });
     }
 
+    public function provides() {
+        return array('hash');
+    }
+
+
 }

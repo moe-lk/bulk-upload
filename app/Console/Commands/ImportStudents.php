@@ -58,6 +58,9 @@ class ImportStudents extends Command
     public function handle()
     {
         $files = $this->getFiles();
+        if(empty($files)){
+            $files = $this->getTerminatedFiles();
+        }
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
@@ -99,9 +102,23 @@ class ImportStudents extends Command
 
     }
 
+    protected function getTerminatedFiles(){
+        $files = Upload::where('is_processed', '=', 3)
+            ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
+            ->limit(1)
+            ->get()->toArray();
+        if(!empty($files)){
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $files[0]['id'])
+                ->update(['is_processed' => 3,'updated_at' => now()]);
+            DB::commit();
+        }
+        return $files;
+    }
+
     protected function getFiles(){
          $files = Upload::where('is_processed', '=', 0)
-//             ->orderBy('created_at','DESC')
              ->limit(1)
             ->get()->toArray();
          if(!empty($files)){
