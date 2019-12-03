@@ -103,11 +103,14 @@ class ImportStudents extends Command
     }
 
     protected function getTerminatedFiles(){
+
         $files = Upload::where('is_processed', '=', 3)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
             ->get()->toArray();
         if(!empty($files)){
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $output->writeln('******************* Processing a terminated file **********************');
             DB::beginTransaction();
             DB::table('uploads')
                 ->where('id', $files[0]['id'])
