@@ -106,7 +106,7 @@ class ImportStudents extends Command
         $files = Upload::where('is_processed', '=', 3)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
-            ->orderBy('updated_at','DECS')
+            ->orderBy('updated_at','desc')
             ->get()->toArray();
         if(!empty($files)){
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
