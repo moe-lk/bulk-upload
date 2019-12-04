@@ -114,7 +114,7 @@ class ImportStudents extends Command
             DB::beginTransaction();
             DB::table('uploads')
                 ->where('id', $files[0]['id'])
-                ->update(['is_processed' => 3,'updated_at' => now()]);
+                ->update(['is_processed' => 4,'updated_at' => now()]);
             DB::commit();
         }
         return $files;
