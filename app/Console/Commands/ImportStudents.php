@@ -273,8 +273,8 @@ class ImportStudents extends Command
      */
     protected function import($file, $sheet, $column){
             set_time_limit(300);
-            $this->getFileSize($file);
              try {
+                $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
                 $this->higestRow = $this->getHigestRow($file, $sheet,$column);
