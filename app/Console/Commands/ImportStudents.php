@@ -103,7 +103,6 @@ class ImportStudents extends Command
     }
 
     protected function getTerminatedFiles(){
-
         $files = Upload::where('is_processed', '=', 3)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
