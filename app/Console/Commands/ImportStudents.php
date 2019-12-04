@@ -393,8 +393,18 @@ class ImportStudents extends Command
     }
 
     protected function  getSheetName($file,$sheet){
-        $objPHPExcel = $this->setReader($file);
-        return $objPHPExcel->getSheetByName($sheet)  !== null;
+        try{
+            $objPHPExcel = $this->setReader($file);
+            return $objPHPExcel->getSheetByName($sheet)  !== null;
+        }catch (Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::table('uploads')
+                ->where('id',  $file['id'])
+                ->update(['is_processed' =>2 , 'updated_at' => now()]);
+            $this->stdOut('No valid data found :Please re-upload the file',0);
+            $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
+        }
+
     }
 
     protected function getHigestRow($file,$sheet,$column){
