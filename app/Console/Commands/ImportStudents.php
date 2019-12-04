@@ -58,9 +58,9 @@ class ImportStudents extends Command
     public function handle()
     {
         $files = $this->getFiles();
-        if(empty($files)){
-            $files = $this->getTerminatedFiles();
-        }
+//        if(empty($files)){
+//            $files = $this->getTerminatedFiles();
+//        }
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
