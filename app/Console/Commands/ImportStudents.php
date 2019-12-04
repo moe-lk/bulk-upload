@@ -380,16 +380,25 @@ class ImportStudents extends Command
     }
 
     protected function setReader($file){
-        $excelFile =  '/sis-bulk-data-files/processed/' . $file['filename'];
-        $exists = Storage::disk('local')->exists($excelFile);
-        if(!$exists){
+        try{
+            $excelFile =  '/sis-bulk-data-files/processed/' . $file['filename'];
+            $exists = Storage::disk('local')->exists($excelFile);
+            if(!$exists){
 
-            $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+                $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+            }
+            $excelFile = storage_path()."/app" . $excelFile;
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+            $objPHPExcel =  $reader->load($excelFile);
+            return $objPHPExcel;
+        }catch (Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::table('uploads')
+                ->where('id',  $file['id'])
+                ->update(['is_processed' =>2 , 'updated_at' => now()]);
+            $this->stdOut('No valid data found :Please re-upload the file',0);
+            $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
         }
-        $excelFile = storage_path()."/app" . $excelFile;
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
-        $objPHPExcel =  $reader->load($excelFile);
-        return $objPHPExcel;
     }
 
     protected function  getSheetName($file,$sheet){
@@ -404,7 +413,6 @@ class ImportStudents extends Command
             $this->stdOut('No valid data found :Please re-upload the file',0);
             $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
         }
-
     }
 
     protected function getHigestRow($file,$sheet,$column){
