@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Institution_class;
 use App\Jobs\ProcessImportFiles;
+use Illuminate\View\View;
 
 
 class FileController extends Controller
@@ -74,7 +75,7 @@ class FileController extends Controller
 
     public function downloadTemplate(){
         $filename = 'censusNo_className_sis_students_bulk_upload';
-        $version = '2007_V1.6_20191206.xlsx';
+        $version = '2007_V1.6_20191218.xlsx';
         $file_path = storage_path() .'/app/public/'. $filename.'_'.$version;;
         if (file_exists($file_path))
         {
@@ -96,7 +97,8 @@ class FileController extends Controller
     public function downloadErrorFile($filename){
 
         $file_path = storage_path().'/app/sis-bulk-data-files/processed/'. $filename;
-        if (file_exists($file_path))
+        $exists = Storage::disk('local')->exists($file_path);
+        if ($exists)
         {
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
@@ -104,14 +106,15 @@ class FileController extends Controller
         }
         else
         {
-            return View::make('errors.404');
+            abort(404, 'We did not found an error file.');
         }
     }
 
 
     public function downloadFile($filename){
         $file_path = storage_path().'/app/sis-bulk-data-files/'. $filename;
-        if (file_exists($file_path))
+        $exists = Storage::disk('local')->exists($file_path);
+        if ($exists)
         {
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
@@ -119,7 +122,8 @@ class FileController extends Controller
         }
         else
         {
-            return View::make('errors.404');
+
+            abort(404, 'We did not found an error file.');
         }
     }
 }
