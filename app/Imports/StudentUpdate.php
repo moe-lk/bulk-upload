@@ -108,7 +108,10 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             if (!empty($institutionClass)) {
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
-                $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+                $genderId = null;
+                if($row['gender_mf'] !== null){
+                    $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+                }
                 switch ($row['gender_mf']) {
                     case 'M':
                         $this->maleStudentsCount += 1;
