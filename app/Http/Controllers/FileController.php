@@ -97,8 +97,7 @@ class FileController extends Controller
     public function downloadErrorFile($filename){
 
         $file_path = storage_path().'/app/sis-bulk-data-files/processed/'. $filename;
-        $exists = Storage::disk('local')->exists($file_path);
-        if ($exists)
+        if (file_exists($file_path))
         {
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
@@ -113,8 +112,7 @@ class FileController extends Controller
 
     public function downloadFile($filename){
         $file_path = storage_path().'/app/sis-bulk-data-files/'. $filename;
-        $exists = Storage::disk('local')->exists($file_path);
-        if ($exists)
+        if (file_exists($file_path))
         {
             return Response::download($file_path, $filename, [
                 'Content-Length: '. filesize($file_path)
