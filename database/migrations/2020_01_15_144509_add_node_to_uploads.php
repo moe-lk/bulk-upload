@@ -15,7 +15,7 @@ class AddNodeToUploads extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->string('node')->default(null);
+            $table->string('node')->default('None');
         });
     }
 
