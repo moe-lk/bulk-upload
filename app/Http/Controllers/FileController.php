@@ -64,6 +64,7 @@ class FileController extends Controller
         $upload = new Upload;
         $upload->fileName =$fileName;
         $upload->model = 'Student';
+        $upload->node = 'None';
         $upload->institution_class_id = $class->id;
         $upload->user()->associate(auth()->user());
         $upload->save();
