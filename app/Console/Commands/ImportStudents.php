@@ -58,9 +58,9 @@ class ImportStudents extends Command
     public function handle()
     {
         $files = $this->getFiles();
-        if(empty($files)){
-            $files = $this->getTerminatedFiles();
-        }
+//        if(empty($files)){
+//            $files = $this->getTerminatedFiles();
+//        }
         while ($this->checkTime()){
             if($this->checkTime()){
                 try {
@@ -106,6 +106,7 @@ class ImportStudents extends Command
         $files = Upload::where('is_processed', '=', 3)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
+            ->orderBy('updated_at','desc')
             ->get()->toArray();
         if(!empty($files)){
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
@@ -113,7 +114,7 @@ class ImportStudents extends Command
             DB::beginTransaction();
             DB::table('uploads')
                 ->where('id', $files[0]['id'])
-                ->update(['is_processed' => 3,'updated_at' => now()]);
+                ->update(['is_processed' => 4,'updated_at' => now()]);
             DB::commit();
         }
         return $files;
@@ -123,11 +124,12 @@ class ImportStudents extends Command
          $files = Upload::where('is_processed', '=', 0)
              ->limit(1)
             ->get()->toArray();
+        $node = $this->argument('node');
          if(!empty($files)){
              DB::beginTransaction();
              DB::table('uploads')
                  ->where('id', $files[0]['id'])
-                 ->update(['is_processed' => 3,'updated_at' => now()]);
+                 ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
              DB::commit();
          }
          return $files;
@@ -187,10 +189,22 @@ class ImportStudents extends Command
         }
     }
 
+    protected function checkNode($file){
+        $node = $this->argument('node');
+        if($node == $file['node']){
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $output->writeln('Processing from:' . $node);
+            return true;
+        }else{
+            exit;
+            return false;
+        }
+    }
 
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
+        $this->checkNode($file);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);
@@ -273,8 +287,8 @@ class ImportStudents extends Command
      */
     protected function import($file, $sheet, $column){
             set_time_limit(300);
-            $this->getFileSize($file);
              try {
+                $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
                 $this->higestRow = $this->getHigestRow($file, $sheet,$column);
@@ -380,21 +394,39 @@ class ImportStudents extends Command
     }
 
     protected function setReader($file){
-        $excelFile =  '/sis-bulk-data-files/processed/' . $file['filename'];
-        $exists = Storage::disk('local')->exists($excelFile);
-        if(!$exists){
+        try{
+            $excelFile =  '/sis-bulk-data-files/processed/' . $file['filename'];
+            $exists = Storage::disk('local')->exists($excelFile);
+            if(!$exists){
 
-            $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+                $excelFile =  "/sis-bulk-data-files/" . $file['filename'];
+            }
+            $excelFile = storage_path()."/app" . $excelFile;
+            $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
+            $objPHPExcel =  $reader->load($excelFile);
+            return $objPHPExcel;
+        }catch (Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::table('uploads')
+                ->where('id',  $file['id'])
+                ->update(['is_processed' =>2 , 'updated_at' => now()]);
+            $this->stdOut('No valid data found :Please re-upload the file',0);
+            $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
         }
-        $excelFile = storage_path()."/app" . $excelFile;
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($this->getType($file['filename']));
-        $objPHPExcel =  $reader->load($excelFile);
-        return $objPHPExcel;
     }
 
     protected function  getSheetName($file,$sheet){
-        $objPHPExcel = $this->setReader($file);
-        return $objPHPExcel->getSheetByName($sheet)  !== null;
+        try{
+            $objPHPExcel = $this->setReader($file);
+            return $objPHPExcel->getSheetByName($sheet)  !== null;
+        }catch (Exception $e){
+            $user = User::find($file['security_user_id']);
+            DB::table('uploads')
+                ->where('id',  $file['id'])
+                ->update(['is_processed' =>2 , 'updated_at' => now()]);
+            $this->stdOut('No valid data found :Please re-upload the file',0);
+            $this->processEmptyEmail($file,$user, 'No valid data found :Please re-upload the file');
+        }
     }
 
     protected function getHigestRow($file,$sheet,$column){

@@ -294,7 +294,6 @@ class Import
     public function validateClass() {
 
         $institutionClass = Institution_class::find($this->file['institution_class_id']);
-
         $totalMaleStudents = $institutionClass->total_male_students;
         $totalFemaleStudents = $institutionClass->total_female_students;
         $totalStudents = $totalMaleStudents + $totalFemaleStudents;

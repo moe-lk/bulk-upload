@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddIsFailedColumn extends Migration
+class AddNodeToUploads extends Migration
 {
     /**
      * Run the migrations.
@@ -15,8 +15,7 @@ class AddIsFailedColumn extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->boolean('update')->default(false);
-            $table->boolean('insert')->default(false);
+            $table->string('node')->default('None');
         });
     }
 
@@ -29,8 +28,7 @@ class AddIsFailedColumn extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->removeColumn('update');
-            $table->removeColumn('insert');
+            $table->removeColumn('node');
         });
     }
 }

@@ -97,5 +97,9 @@ class User extends Authenticatable   {
         return $this->hasMany('App\Models\Institution_class','staff_id','id');
     }
 
+    public function findForPassport($username) {
+        return self::where('username', $username)->first(); // change column name whatever you use in credentials
+    }
+
 
 }
