@@ -76,6 +76,23 @@ class FilesController extends Controller
                     return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
                 }
 
+            })->editColumn('actions', function ($data) {
+
+                $nowTime = \Carbon\Carbon::now();
+                $to = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $nowTime);
+                $from = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $data->updated_at);
+
+                $diff_in_hours = $to->diffInHours($from);
+
+                if($diff_in_hours >= 2 && $data->is_processed == 3){
+                    return '<div><h6>Processing <span class="badge badge-success text-uppercase">Successful</span></h6></div>';
+                }else {
+                    return '
+                    <div class="btn-group">
+                            <button onclick="updateProcess('.($data->id).',100)" class="btn btn-danger text-uppercase">reprocess</button>
+                            <button onclick="updateProcess('.($data->id).',200)" class="btn btn-success text-uppercase">pause</button>
+                            </div>';
+                }
             })
             ->rawColumns(['filename','error'])
             ->make(true);
