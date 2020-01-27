@@ -97,7 +97,7 @@ class FilesController extends Controller
                             </div>';
                 }
             })
-            ->rawColumns(['filename','error'])
+            ->rawColumns(['filename','error','actions'])
             ->make(true);
     }
 
