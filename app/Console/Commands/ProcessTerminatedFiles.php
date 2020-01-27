@@ -95,6 +95,7 @@ class ProcessTerminatedFiles extends ImportStudents
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
+        $this->checkNode($file);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);

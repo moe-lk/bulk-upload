@@ -124,11 +124,12 @@ class ImportStudents extends Command
          $files = Upload::where('is_processed', '=', 0)
              ->limit(1)
             ->get()->toArray();
+        $node = $this->argument('node');
          if(!empty($files)){
              DB::beginTransaction();
              DB::table('uploads')
                  ->where('id', $files[0]['id'])
-                 ->update(['is_processed' => 3,'updated_at' => now()]);
+                 ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
              DB::commit();
          }
          return $files;
@@ -188,10 +189,22 @@ class ImportStudents extends Command
         }
     }
 
+    protected function checkNode($file){
+        $node = $this->argument('node');
+        if($node == $file['node']){
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $output->writeln('Processing from:' . $node);
+            return true;
+        }else{
+            exit;
+            return false;
+        }
+    }
 
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
+        $this->checkNode($file);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);
