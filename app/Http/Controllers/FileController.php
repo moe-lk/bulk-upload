@@ -74,7 +74,7 @@ class FileController extends Controller
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
     }
 
-    public function updateQueueWithUnprocessedFiles(Request $request, $id, $action){
+    public function updateQueueWithUnprocessedFiles($id, $action){
         if($action == 100){
             DB::table('uploads')
                 ->where('id', $id)
