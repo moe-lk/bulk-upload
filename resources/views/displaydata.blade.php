@@ -49,7 +49,7 @@
         function updateProcess($id, $action) {
             var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
             $.ajax({
-                url: '/updateUnprocessedFiles/'+$id+'/'+$action,
+                url: 'updateQueueWithUnprocessedFiles/'+$id+'/'+$action,
                 type: 'POST',
                 data: {_token: CSRF_TOKEN, id: $id, action: $action},
                 dataType: 'JSON',
