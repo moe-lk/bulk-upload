@@ -59,7 +59,7 @@
                 error: function() {
                     console.log("error")
                 }
-            })
+            }).done(location.reload())
         }
 
     </script>
