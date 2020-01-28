@@ -15,11 +15,20 @@ class FilesController extends Controller
     {
         return Datatables::of(Upload::with(['classRoom'])->where('security_user_id','=',Auth::user()->id))
             ->editColumn('is_processed', function ($data) {
-                if ($data->is_processed === 1) {
+
+                $nowTime = \Carbon\Carbon::now();
+                $to = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $nowTime);
+                $from = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $data->updated_at);
+                $diff_in_hours = $to->diffInHours($from);
+
+                if($diff_in_hours >= 2 && $data->is_processed == 3){
+                    return "Terminated";
+                }
+                elseif ($data->is_processed === 1) {
                     return "Success";
                 }elseif ($data->is_processed === 2){
                     return "Failed";
-                }elseif($data->is_processed == 3){
+                }elseif($diff_in_hours < 2 && $data->is_processed == 3){
                     return "Processing";
                 }elseif ($data->is_processed == 4){
                     return "Process Paused";
