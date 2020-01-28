@@ -52,8 +52,14 @@
                 url: '/updateUnprocessedFiles/'+$id+'/'+$action,
                 type: 'POST',
                 data: {_token: CSRF_TOKEN, id: $id, action: $action},
-                dataType: 'JSON'
-            }).done(location.reload());
+                dataType: 'JSON',
+                success: function () {
+                    console.log("success");
+                },
+                error: function() {
+                    console.log("error")
+                }
+            })
         }
 
     </script>
