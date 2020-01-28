@@ -47,26 +47,24 @@ class ValidatorExtended extends IlluminateValidator {
      *
      * admission age validation
      */
-    protected function validateAdmissionAge($attribute, $value, $parameters, $validator) {
-         $institutionClass = Institution_class::find($parameters[0]);
-         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-         $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-         $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
-            if (empty($value)) {
-                return false;
-            } elseif ($gradeEntity !== null) {
-                $admissionAge = $gradeEntity->admission_age;
-                $studentAge =  ($value)->format('Y') ;
 
-                $ageOfStudent = ($academicPeriod->start_year) - $studentAge; //$data['academic_period'];
-                // if(($studentAge === 5) && ($value)->format('M') === 1  ){
-                //     $studentAge = 5;
-                // }
-                $enrolmentMaximumAge = $admissionAge + 10;
-                return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
-            } else {
-                return false;
-            }
+    protected function validateAdmissionAge($attribute, $value, $parameters, $validator) {
+        $institutionClass = Institution_class::find($parameters[0]);
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
+        $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+        $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
+        if (empty($value)) {
+            return false;
+        } elseif ($gradeEntity !== null) {
+            $admissionAge = (($gradeEntity->admission_age)*12)-1;
+            $to = $academicPeriod->start_date;
+            $diff_in_months = $to->diffInMonths($value);
+            $ageOfStudent = $diff_in_months;
+            $enrolmentMaximumAge = $admissionAge + 120;
+            return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
+        } else {
+            return false;
+        }
     }
 
     protected function validateBmi($attribute, $value, $parameters)

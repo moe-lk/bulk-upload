@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Upload;
+use DateTime;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\DataTables;
 
@@ -19,7 +20,9 @@ class FilesController extends Controller
                 }elseif ($data->is_processed === 2){
                     return "Failed";
                 }elseif($data->is_processed == 3){
-                    return "Processing  ";
+                    return "Processing";
+                }elseif ($data->is_processed == 4){
+                    return "Process Paused";
                 }else{
                     return 'Pending';
                 };
@@ -61,23 +64,40 @@ class FilesController extends Controller
             })
             ->editColumn('filename', function ($data) {
                 if(env('APP_ENV','local') == 'local'){
-                     return '<a href="/download_file/'.$data->filename.'">'.$data->filename.'</a>';
+                    return '<a href="/download_file/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
 
                 }else{
-                    return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.$data->filename.'</a>';
+                    return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
                 }
 
             })
              ->editColumn('error', function ($data) {
                 if(env('APP_ENV','local') == 'local'){
-                     return '<a href="/download/'.$data->filename.'">'.$data->filename.'</a>';
+                    return '<a href="/download/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
 
                 }else{
-                    return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->filename.'</a>';
+                    return '<a href="/bulk-upload/download/'.$data->filename.'">'.substr($data->filename, 0,10).'</a>';
                 }
 
+            })->editColumn('actions', function ($data) {
+
+                $nowTime = \Carbon\Carbon::now();
+                $to = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $nowTime);
+                $from = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $data->updated_at);
+
+                $diff_in_hours = $to->diffInHours($from);
+
+                if($diff_in_hours >= 2 && $data->is_processed == 3){
+                    return '<div><h6>Processing <span class="badge badge-success text-uppercase">Successful</span></h6></div>';
+                }else {
+                    return '
+                    <div class="btn-group">
+                            <button onclick="updateProcess('.($data->id).',100)" class="btn btn-danger text-uppercase">reprocess</button>
+                            <button onclick="updateProcess('.($data->id).',200)" class="btn btn-success text-uppercase">pause</button>
+                            </div>';
+                }
             })
-            ->rawColumns(['filename','error'])
+            ->rawColumns(['filename','error','actions'])
             ->make(true);
     }
 
