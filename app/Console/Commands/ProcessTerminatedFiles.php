@@ -69,7 +69,7 @@ class ProcessTerminatedFiles extends ImportStudents
 
     protected function getFiles(){
         $files = Upload::where('is_processed', '=', 3)
-            ->where('insert','=',0)
+            ->where('is_email_sent','=',0)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
             ->limit(1)
             ->get()->toArray();
@@ -100,22 +100,10 @@ class ProcessTerminatedFiles extends ImportStudents
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);
         if ($this->checkTime()) {
-            try {
-                $this->import($file,2,'B');
-
-            } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                try {
-                    Mail::to($user->email)->send(new IncorrectTemplate($file));
-                    DB::table('uploads')
-                        ->where('id', $file['id'])
-                        ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
-                } catch (\Exception $ex) {
-                    $this->handle();
-                    DB::table('uploads')
-                        ->where('id', $file['id'])
-                        ->update(['is_processed' => 2, 'is_email_sent' => 2 ,'updated_at' => now()]);
-                }
-            }
+            Mail::to($user->email)->send(new TerminatedReport($file));
+            DB::table('uploads')
+                ->where('id', $file['id'])
+                ->update(['is_processed' => 3, 'is_email_sent' => 1,'updated_at' => now()]);
         } else {
             exit();
         }
