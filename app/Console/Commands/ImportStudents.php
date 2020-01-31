@@ -158,6 +158,7 @@ class ImportStudents extends Command
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1, 'is_email_sent' => 2,'updated_at' => now()]);
+            dd($ex);
         }
     }
 
@@ -172,6 +173,7 @@ class ImportStudents extends Command
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
+            dd($ex);
         }
     }
 
@@ -186,6 +188,7 @@ class ImportStudents extends Command
             DB::table('uploads')
                 ->where('id', $file['id'])
                 ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
+            dd($ex);
         }
     }
 
@@ -485,13 +488,13 @@ class ImportStudents extends Command
 
     protected function writeErrors($e,$file,$sheet){
         try {
-            ini_set('memory_limit', '128M');
+            ini_set('memory_limit', '2048M');
             $baseMemory = memory_get_usage();
             gc_enable();
             gc_collect_cycles();
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-            $cacheSettings = array( ' memoryCacheSize ' => '16MB');
+            $cacheSettings = array( ' memoryCacheSize ' => '512MB');
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
