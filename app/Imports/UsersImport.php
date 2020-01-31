@@ -61,6 +61,8 @@ use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation ,SkipsOnFailure ,SkipsOnError  {
 
     use Importable, SkipsFailures , SkipsErrors;
+
+
     public function sheets(): array {
         return [
             'Insert Students' => $this,
@@ -230,25 +232,27 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 }
 
 
+                if(!empty($row['bmi_weight']) && !empty($row['bmi_weight']) && !empty($row['bmi_date_yyyy_mm_dd'])){
+                    // convert Meeter to CM
+                    $hight = $row['bmi_height'] / 100;
 
-                // convert Meeter to CM
-                $hight = $row['bmi_height'] / 100;
+                    //calculate BMI
+                    $bodyMass = ($row['bmi_weight']) / pow($hight, 2);
 
-                //calculate BMI
-                $bodyMass = ($row['bmi_weight']) / pow($hight, 2);
+                    $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
 
-                $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
+                    \Log::debug('User_body_mass');
+                    User_body_mass::create([
+                        'height' => $row['bmi_height'],
+                        'weight' => $row['bmi_weight'],
+                        'date' => $row['bmi_date_yyyy_mm_dd'],
+                        'body_mass_index' => $bodyMass,
+                        'academic_period_id' => $bmiAcademic->id,
+                        'security_user_id' => $student->student_id,
+                        'created_user_id' => $this->file['security_user_id']
+                    ]);
+                }
 
-                \Log::debug('User_body_mass');
-                User_body_mass::create([
-                    'height' => $row['bmi_height'],
-                    'weight' => $row['bmi_weight'],
-                    'date' => $row['bmi_date_yyyy_mm_dd'],
-                    'body_mass_index' => $bodyMass,
-                    'academic_period_id' => $bmiAcademic->id,
-                    'security_user_id' => $student->student_id,
-                    'created_user_id' => $this->file['security_user_id']
-                ]);
 
                 if (!empty($row['fathers_full_name']) && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
 
@@ -460,10 +464,10 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
-            '*.bmi_height' => 'required|numeric|max:200|min:60',
-            '*.bmi_weight' => 'required|numeric|max:200|min:10',
-            '*.bmi_date_yyyy_mm_dd' => 'required',
-            '*.bmi_academic_period' => 'required|exists:academic_periods,name',
+            '*.bmi_height' => 'bail|bmi:'. $this->file['institution_class_id'].'|numeric|max:200|min:60',
+            '*.bmi_weight' => 'bail|bmi:'. $this->file['institution_class_id'].'|numeric|max:200|min:10',
+            '*.bmi_date_yyyy_mm_dd' => 'bail|bmi:'. $this->file['institution_class_id'],
+            '*.bmi_academic_period' => 'bail|bmi:'. $this->file['institution_class_id'].'exists:academic_periods,name',
             '*.admission_no' => 'required|max:12|min:1',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',

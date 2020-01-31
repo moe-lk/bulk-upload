@@ -20,6 +20,7 @@ Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
 Route::post('exportExcel', 'ImportExport@export');
+Route::post('updateQueueWithUnprocessedFiles/{id}/{action}', 'FileController@updateQueueWithUnprocessedFiles');
 
 //Auth::routes();
 Auth::routes(['register' => false]);

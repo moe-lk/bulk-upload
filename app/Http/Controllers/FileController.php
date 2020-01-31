@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Upload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -71,6 +72,18 @@ class FileController extends Controller
 
 
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
+    }
+
+    public function updateQueueWithUnprocessedFiles($id, $action){
+        if($action == 100){
+            DB::table('uploads')
+                ->where('id', $id)
+                ->update(['is_processed' => 0]);
+        }elseif ($action == 200) {
+            DB::table('uploads')
+                ->where('id', $id)
+                ->update(['is_processed' => 4]);
+        }
     }
 
 
