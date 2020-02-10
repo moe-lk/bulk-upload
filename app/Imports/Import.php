@@ -324,35 +324,36 @@ class Import
      * @return string
      */
     public  function getUniqueOpenemisId($options = []) {
-        $prefix = $this->getNode();
-        $latest = Security_user::orderBy('id', 'DESC')
-                ->first();
-
-        if (is_array($latest)) {
-            $latestOpenemisNo = $latest['SecurityUser']['openemis_no'];
-        } else {
-            $latestOpenemisNo = $latest->openemis_no;
-        }
-        if (empty($prefix)) {
-            $latestDbStamp = $latestOpenemisNo;
-        } else {
-            $latestDbStamp = substr($latestOpenemisNo, strlen($prefix));
-        }
-
-        $currentStamp = time();
-
-        if ($latestDbStamp >= $currentStamp) {
-            $newStamp = $latestDbStamp + 1;
-        } else {
-            $newStamp = $currentStamp;
-        }
-        $check = Security_user::where('openemis_no', '=', $prefix . $newStamp)->first();
-        if ($check === null) {
-            return $prefix . $newStamp;
-        } else {
-            $newStamp = $latestOpenemisNo + 1;
-            return  $prefix . $newStamp;
-        }
+        return Uuid::generate(4);
+//        $prefix = $this->getNode();
+//        $latest = Security_user::orderBy('id', 'DESC')
+//                ->first();
+//
+//        if (is_array($latest)) {
+//            $latestOpenemisNo = $latest['SecurityUser']['openemis_no'];
+//        } else {
+//            $latestOpenemisNo = $latest->openemis_no;
+//        }
+//        if (empty($prefix)) {
+//            $latestDbStamp = $latestOpenemisNo;
+//        } else {
+//            $latestDbStamp = substr($latestOpenemisNo, strlen($prefix));
+//        }
+//
+//        $currentStamp = time();
+//
+//        if ($latestDbStamp >= $currentStamp) {
+//            $newStamp = $latestDbStamp + 1;
+//        } else {
+//            $newStamp = $currentStamp;
+//        }
+//        $check = Security_user::where('openemis_no', '=', $prefix . $newStamp)->first();
+//        if ($check === null) {
+//            return $prefix . $newStamp;
+//        } else {
+//            $newStamp = $latestOpenemisNo + 1;
+//            return  $prefix . $newStamp;
+//        }
     }
 
 
