@@ -15,11 +15,20 @@ class FilesController extends Controller
     {
         return Datatables::of(Upload::with(['classRoom'])->where('security_user_id','=',Auth::user()->id))
             ->editColumn('is_processed', function ($data) {
-                if ($data->is_processed === 1) {
+
+                $nowTime = \Carbon\Carbon::now();
+                $to = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $nowTime);
+                $from = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $data->updated_at);
+                $diff_in_hours = $to->diffInHours($from);
+
+                if($diff_in_hours >= 2 && $data->is_processed == 3){
+                    return "Terminated";
+                }
+                elseif ($data->is_processed === 1) {
                     return "Success";
                 }elseif ($data->is_processed === 2){
                     return "Failed";
-                }elseif($data->is_processed == 3){
+                }elseif($diff_in_hours < 2 && $data->is_processed == 3){
                     return "Processing";
                 }elseif ($data->is_processed == 4){
                     return "Process Paused";
@@ -84,17 +93,18 @@ class FilesController extends Controller
                 $nowTime = \Carbon\Carbon::now();
                 $to = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $nowTime);
                 $from = \Carbon\Carbon::createFromFormat('Y-m-d H:s:i', $data->updated_at);
-
                 $diff_in_hours = $to->diffInHours($from);
 
                 if($diff_in_hours >= 2 && $data->is_processed == 3){
+                    return '<button onclick="updateProcess('.($data->id).',100)" class="btn btn-primary text-uppercase">reprocess</button>';
+                }elseif ($data->is_processed == 1){
                     return '<div><h6>Processing <span class="badge badge-success text-uppercase">Successful</span></h6></div>';
-                }else {
-                    return '
-                    <div class="btn-group">
-                            <button onclick="updateProcess('.($data->id).',100)" class="btn btn-danger text-uppercase">reprocess</button>
-                            <button onclick="updateProcess('.($data->id).',200)" class="btn btn-success text-uppercase">pause</button>
-                            </div>';
+                }elseif ($data->is_processed == 2){
+                    return '<div><h6>Processing <span class="badge badge-danger text-uppercase">Failed</span></h6></div>';
+                }elseif ($data->is_processed == 0){
+                    return '<button onclick="updateProcess('.($data->id).',200)" class="btn btn-block btn-warning text-uppercase">pause</button>';
+                }elseif ($data->is_processed == 4){
+                    return '<button onclick="updateProcess('.($data->id).',100)" class="btn btn-block btn-success text-uppercase">resume</button>';
                 }
             })
             ->rawColumns(['filename','error','actions'])
