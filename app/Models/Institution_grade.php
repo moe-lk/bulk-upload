@@ -42,8 +42,20 @@ class Institution_grade extends Model  {
      */
     protected $dates = ['start_date', 'end_date', 'modified', 'created'];
 
-    public function isPool(){
-        return true;
+    public function isPool($id, $institutionId)
+    {
+    }
+
+    public function MatchNumberOfClasses(int $id, int $institutionId, int $currentGrade, int $nextGrade)
+    {
+    }
+
+    public function GetNumberOfParallelClasses(int $id, int $institutionId)
+    {
+    }
+
+    public function GetNextGrade(int $id, int $institutionId, int $currentGrade)
+    {
     }
 
 }
