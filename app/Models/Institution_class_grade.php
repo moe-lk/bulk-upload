@@ -46,4 +46,7 @@ class Institution_class_grade extends Base_Model  {
             'education_subject_id' ,'education_subject_id');
     }
 
+    public function classes(){
+        return $this->belongsTo('App\Models\Institution_grade','institution_class_id','id');
+    }
 }
