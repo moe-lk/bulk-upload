@@ -16,7 +16,7 @@ class PromoteStudents extends Command
      *
      * @var string
      */
-    protected $signature = 'promote:students {year} {institution}';
+    protected $signature = 'promote:students {year}';
 
     /**
      * The console command description.
@@ -39,6 +39,8 @@ class PromoteStudents extends Command
         $this->institution_students = new Institution_student();
     }
 
+
+
     /**
      * Execute the console command.
      *
@@ -47,11 +49,9 @@ class PromoteStudents extends Command
     public function handle()
     {
         $year = $this->argument('year');
-        $institution = $this->argument('institution');
-        $institution = Institution::where('code',$institution)->get()->first();
         $institutionGrade = $this->instituion_grade->query()
-            ->where('institution_id',$institution->id)
-            ->where('promoted','=',$year-1)->first();
+            ->where('promoted','=',$year-1)
+            ->orderBy('institution_id')->first();
         $academicPeriod = $this->academic_period->query()->where('code',$year-1)->get()->first();
         $nextAcademicPeriod = $this->academic_period->query()->where('code',$year)->get()->first();
         if(!empty($institutionGrade)) {
@@ -66,7 +66,7 @@ class PromoteStudents extends Command
 
 
             if (!empty($isAvailableforPromotion)) {
-                $studentListToPromote = $this->institution_students->query()->where('institution_id', $institution->id)
+                $studentListToPromote = $this->institution_students->query()->where('institution_id', $institutionGrade->id)
                     ->where('education_grade_id', $institutionGrade->education_grade_id)
                     ->where('academic_period_id', $academicPeriod->id)->get()->toArray();
                 $params = [
