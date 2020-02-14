@@ -51,6 +51,8 @@ class PromoteStudents extends Command
         $year = $this->argument('year');
         $institutionGrade = $this->instituion_grade->query()
             ->where('promoted','=',$year-1)
+            ->where('institutions.institution_status_id',1)
+            ->join('institutions','institutions.id','=','institution_grades.institution_id')
             ->orderBy('institution_id')->first();
         $institution = Institution::where('id',$institutionGrade->institution_id)->get()->first();
         $educationGrade = Education_grade::where('id',$institutionGrade->education_grade_id)->get()->first();
