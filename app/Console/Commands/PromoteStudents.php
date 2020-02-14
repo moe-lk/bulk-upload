@@ -52,10 +52,12 @@ class PromoteStudents extends Command
         $institutionGrade = $this->instituion_grade->query()
             ->where('promoted','=',$year-1)
             ->orderBy('institution_id')->first();
+        $institution = Institution::where('id',$institutionGrade->institution_id)->get()->first();
+        $educationGrade = Education_grade::where('id',$institutionGrade->education_grade_id)->get()->first();
         $academicPeriod = $this->academic_period->query()->where('code',$year-1)->get()->first();
         $nextAcademicPeriod = $this->academic_period->query()->where('code',$year)->get()->first();
         if(!empty($institutionGrade)) {
-//            $this->instituion_grade->updatePromoted($year,$institutionGrade->id,$institutionGrade->id);
+            $this->instituion_grade->updatePromoted($year,$institutionGrade->id,$institutionGrade->id);
 
             $isAvailableforPromotion = 0;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade->education_grade_id);
@@ -66,7 +68,7 @@ class PromoteStudents extends Command
 
 
             if (!empty($isAvailableforPromotion)) {
-                $studentListToPromote = $this->institution_students->query()->where('institution_id', $institutionGrade->id)
+                $studentListToPromote = $this->institution_students->query()->where('institution_id', $institutionGrade->institution_id)
                     ->where('education_grade_id', $institutionGrade->education_grade_id)
                     ->where('academic_period_id', $academicPeriod->id)->get()->toArray();
                 $params = [
@@ -74,8 +76,10 @@ class PromoteStudents extends Command
                     $nextGrade
                 ];
                 array_walk($studentListToPromote,array($this,'promote'),$params);
-                dd(count($studentListToPromote));
 
+                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $output->writeln('##########################################################################################################################');
+                $output->writeln('Promoting from '. $educationGrade->name .' IN'.$institution->name.' No of Students: '. count($studentListToPromote));
             }
         }
         }
