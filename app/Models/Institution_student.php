@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Webpatser\Uuid\Uuid;
 
 
-class Institution_student extends Model  {
+class Institution_student extends Base_Model  {
 
 
     public const CREATED_AT = 'created';
@@ -21,7 +21,7 @@ class Institution_student extends Model  {
     protected $table = 'institution_students';
 
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * Attributes that should be mass-assignable.
@@ -56,6 +56,8 @@ class Institution_student extends Model  {
             $model->created = now();
         });
     }
+
+    protected $primaryKey = 'uuid';
 
     /**
      * @param $inputs

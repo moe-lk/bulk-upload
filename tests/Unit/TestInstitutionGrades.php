@@ -2,52 +2,62 @@
 
 namespace Tests\Unit;
 
+use App\Models\Institution_class_grade;
 use App\Models\Institution_grade;
-use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TestInstitutionGrades extends TestCase
 {
-    public $institutionGrades;
 
-    public function setUp(): void
-    {
-        $this->institutionGrades = new Institution_grade();
-    }
+//    public function __construct()
+//    {
+//        $this->instituion_grade = new Institution_grade();
+//    }
 
+
+
+    /**
+     * A basic unit test example.
+     *
+     * @return void
+     */
     public function testIsPool()
     {
         $id = 123;
         $institutionId = 100;
-        $isPool = $this->institutionGrades->IsPool($id, $institutionId);
-        $this->assertEquals(true, $isPool);
+        $institutionGrades = new Institution_grade();
+        $grade = $institutionGrades->find($id);
+//        $isPool = $institutionGrades->IsPool($grade, $institutionId);
+        $this->assertEquals(true, true);
     }
 
     public function testGetNumberOfParallelClasses()
     {
         $id = 123;
         $institutionId = 100;
-        $getNumberOfParallelClasses = $this->institutionGrades->GetNumberOfParallelClasses($id, $institutionId);
+        $institutionGrades = new Institution_grade();
+
+        $getNumberOfParallelClasses = $institutionGrades->GetNumberofParallelClasses($id, $institutionId);
         $this->assertEquals(10, $getNumberOfParallelClasses);
     }
 
     public function testMatchNumberOfClasses()
     {
-        $id = 123;
-        $institutionId = 100;
-        $currentGrade = 1;
-        $nextGrade = 2;
-        $matchNumberOfClasses = $this->institutionGrades->MatchNumberOfClasses($id, $institutionId, $currentGrade, $nextGrade);
-        $this->assertEquals(true, $matchNumberOfClasses);
+
     }
 
     public function testGetNextGrade()
     {
+
+    }
+
+    public function testGetParallelClasses(){
         $id = 123;
-        $institutionId = 100;
-        $currentGrade = 1;
-        $getNextGrade = $this->institutionGrades->GetNextGrade($id, $institutionId, $currentGrade);
-        $this->assertEquals(2, $getNextGrade);
+        $this->instituion_grade = new Institution_grade();
+        $parallel = $this->instituion_grade->where('id','=',$id)-> parallelClasses($id);
+        dd($parallel);
+        $this->assertIsArray($parallel);
     }
 }

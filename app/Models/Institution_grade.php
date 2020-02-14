@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class Institution_grade extends Model  {
+class Institution_grade extends Base_Model  {
 
     /**
      * The database table used by the model.
@@ -42,20 +42,32 @@ class Institution_grade extends Model  {
      */
     protected $dates = ['start_date', 'end_date', 'modified', 'created'];
 
-    public function isPool($id, $institutionId)
-    {
+    public function isPool($grade){
+        $classes = Institution_class_grade::query()->where('education_grade_id' ,'=',$grade->education_grade_id)
+            ->where('institution_id','=',$grade->institution_id)->get();
+        return true;
     }
 
-    public function MatchNumberOfClasses(int $id, int $institutionId, int $currentGrade, int $nextGrade)
-    {
+    public function getNumberOfParallelClasses($id){
+        $this->hasMany('App\Models\Institution_class_grade','education_grade_id','education_grade_id')->count();
     }
 
-    public function GetNumberOfParallelClasses(int $id, int $institutionId)
-    {
+    public function parallelClasses(){
+        $this->hasMany('App\Models\Institution_class_grade','education_grade_id');
+//        $this->hasManyThrough('App\Models\Institution_class_grade','App\Models\Institution_class','institution_class_id','education_grade_id');
     }
 
-    public function GetNextGrade(int $id, int $institutionId, int $currentGrade)
-    {
+    public function getParallelClasses($id){
+      return   self::find($id)->with(['parallelClasses'])->whereHas(['parallelClasses']);
+    }
+
+    public function updatePromoted($year,$id){
+        self::where('id',$id)->update(['promoted'=>$year]);
+    }
+
+    public function getInstitutionGrade($institutionId,$gradeId){
+         return self::where('education_grade_id',$gradeId)
+             ->where('institution_id',$institutionId)->get()->first();
     }
 
 }
