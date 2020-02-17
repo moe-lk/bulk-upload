@@ -51,8 +51,6 @@ class PromoteStudents extends Command
         $year = $this->argument('year');
         $institutionGrade = $this->instituion_grade->query()
             ->where('promoted','=',$year-1)
-            ->where('institutions.institution_status_id',1)
-            ->join('institutions','institutions.id','=','institution_grades.institution_id')
             ->orderBy('institution_id')->first();
         $institution = Institution::where('id',$institutionGrade->institution_id)->get()->first();
         $educationGrade = Education_grade::where('id',$institutionGrade->education_grade_id)->get()->first();
@@ -60,6 +58,8 @@ class PromoteStudents extends Command
         $nextAcademicPeriod = $this->academic_period->query()->where('code',$year)->get()->first();
         if(!empty($institutionGrade)) {
             $this->instituion_grade->updatePromoted($year,$institutionGrade->id,$institutionGrade->id);
+            $parallalClasses = $this->instituion_grade->getParallelClasses($institutionGrade->id,$institutionGrade->institution_id,$institutionGrade->education_grade_id);
+            dd($parallalClasses);
 
             $isAvailableforPromotion = 0;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade->education_grade_id);
@@ -67,7 +67,6 @@ class PromoteStudents extends Command
             if (!empty($nextGrade)) {
                 $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade->institution_id, $nextGrade[0]['id']);
             }
-
 
             if (!empty($isAvailableforPromotion)) {
                 $studentListToPromote = $this->institution_students->query()->where('institution_id', $institutionGrade->institution_id)
@@ -83,6 +82,8 @@ class PromoteStudents extends Command
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('Promoting from '. $educationGrade->name .' IN'.$institution->name.' No of Students: '. count($studentListToPromote));
             }
+
+
         }
         }
 

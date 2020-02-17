@@ -57,8 +57,13 @@ class Institution_grade extends Base_Model  {
 //        $this->hasManyThrough('App\Models\Institution_class_grade','App\Models\Institution_class','institution_class_id','education_grade_id');
     }
 
-    public function getParallelClasses($id){
-      return   self::find($id)->with(['parallelClasses'])->whereHas(['parallelClasses']);
+    public function getParallelClasses($id,$institutionId,$educationGradeId){
+      return   self::find($id)
+          ->where('institution_grades.education_grade_id',$educationGradeId)
+          ->where('institution_grades.institution_id',$institutionId)
+          ->join('institution_classes','institution_classes.institution_id','=','institution_grades.institution_id')
+          ->join('institution_class_grades','institution_class_grades.institution_class_id','=','institution_classes.id','left')
+          ->get()->toArray();
     }
 
     public function updatePromoted($year,$id){
@@ -69,5 +74,6 @@ class Institution_grade extends Base_Model  {
          return self::where('education_grade_id',$gradeId)
              ->where('institution_id',$institutionId)->get()->first();
     }
+
 
 }
