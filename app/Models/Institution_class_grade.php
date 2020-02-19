@@ -46,6 +46,17 @@ class Institution_class_grade extends Base_Model  {
             'education_subject_id' ,'education_subject_id');
     }
 
+    public function getParallelClasses($id,$educationGradeId,$institutionId){
+       return self::find($id)
+//          ->select('institution_grades.id as institution_grade_id','institution_classes.name as class_name')
+            ->where('institution_grades.id',$id)
+            ->where('institution_grades.education_grade_id',$educationGradeId)
+            ->where('institution_grades.institution_id',$institutionId)
+          ->join('institution_grades','institution_classes.id','=','institution_grades.institution_class_id')
+//          ->join('institution_class_grades','institution_class_grades.education_grade_id','=','institution_grades.education_grade_id','left')
+            ->get()->toArray();
+    }
+
     public function classes(){
         return $this->belongsTo('App\Models\Institution_grade','institution_class_id','id');
     }
