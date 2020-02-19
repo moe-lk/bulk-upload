@@ -1,4 +1,4 @@
-FROM bitnami/laravel:5-debian-9
+FROM bitnami/laravel:6.12.0-debian-10-r20
 
 COPY --chown=bitnami:bitnami . /app
 
