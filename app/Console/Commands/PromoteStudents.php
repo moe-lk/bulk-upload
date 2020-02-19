@@ -203,6 +203,11 @@ class PromoteStudents extends Command
 
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
         $class = $classes[$class];
+
+        if($count($classes) == 1){
+            $class = $classes[0];
+        }
+
         if(!is_null($class)){
 
             $studentObj = [

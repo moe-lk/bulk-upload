@@ -48,8 +48,9 @@ class Education_grade extends Model  {
             $order = $gradeObj->order;
             $gradeOptions = self::where( 'education_programme_id',$programmeId
             )->where('order',$order+1)->get()->first();
-            if(empty($gradeOptions)){
-                $programmeId = self::getNextProgrammeList($programmeId)->next_programme_id;
+            $nextProgramme = self::getNextProgrammeList($programmeId);
+            if(empty($gradeOptions) && !is_null($nextProgramme)){
+                $programmeId = $nextProgramme->next_programme_id;
                 $gradeOptions = self::where( 'education_programme_id',$programmeId
                 )->get()->first();
             }
