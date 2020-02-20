@@ -42,6 +42,7 @@ class Institution_class_grade extends Base_Model  {
     protected $dates = ['modified', 'created'];
 
     /**
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function educationSubject(){
