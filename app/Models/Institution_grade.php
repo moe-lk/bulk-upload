@@ -50,17 +50,23 @@ class Institution_grade extends Base_Model
         return true;
     }
 
+    /**
+     * @param $id
+     */
     public function getNumberOfParallelClasses($id)
     {
         $this->hasMany('App\Models\Institution_class_grade', 'education_grade_id', 'education_grade_id')->count();
     }
 
-    public function parallelClasses()
-    {
-        $this->hasMany('App\Models\Institution_class_grade', 'education_grade_id');
-//        $this->hasManyThrough('App\Models\Institution_class_grade','App\Models\Institution_class','institution_class_id','education_grade_id');
-    }
-
+    /**
+     * get parallel class information of a grade
+     *
+     * @param $id
+     * @param $institutionId
+     * @param $educationGradeId
+     * @param $academicPeriodId
+     * @return |null
+     */
     public function getParallelClasses($id, $institutionId, $educationGradeId, $academicPeriodId)
     {
         if (!is_null($id)) {
@@ -83,17 +89,34 @@ class Institution_grade extends Base_Model
     }
 
 
-
-    public function updatePromoted($year,$id){
+    /**
+     * update processed grade
+     *
+     * @param $year
+     * @param $id
+     */
+    public function updatePromoted($year, $id){
         self::where('id',$id)->update(['promoted'=>$year]);
     }
 
-    public function getInstitutionGrade($institutionId,$gradeId){
+    /**
+     * get grade of an institution
+     *
+     * @param $institutionId
+     * @param $gradeId
+     * @return mixed
+     */
+    public function getInstitutionGrade($institutionId, $gradeId){
          return self::where('education_grade_id',$gradeId)
              ->where('institution_id',$institutionId)->get()->first();
     }
 
-    public function getInstitutionGradeToPromoted($year,$institution = null){
+    /**
+     * @param $year
+     * @param null $institution
+     * @return mixed
+     */
+    public function getInstitutionGradeToPromoted($year, $institution = null){
         return self::query()
             ->select('education_grades.name','institutions.code','institutions.name as institution_name','institution_grades.id','institution_grades.institution_id','institution_grades.education_grade_id')
             ->where('promoted','=',$year-1)
@@ -106,6 +129,10 @@ class Institution_grade extends Base_Model
             ->get()->first();
     }
 
+    /**
+     * @param $year
+     * @return mixed
+     */
     public function getInstitutionGradeList($year){
         return self::query()
             ->select('education_grades.name','institutions.code','institutions.name as institution_name','institution_grades.id','institution_grades.institution_id','institution_grades.education_grade_id')

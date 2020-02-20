@@ -21,6 +21,9 @@ class Institution_student extends Base_Model  {
     protected $table = 'institution_students';
 
 
+    /**
+     * @var bool
+     */
     public $timestamps = true;
 
     /**
@@ -44,10 +47,16 @@ class Institution_student extends Base_Model  {
      */
     protected $casts = [];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function institutionStudents(){
         return $this->belongsTo('App\Security_user','student_id');
     }
 
+    /**
+     *
+     */
     public static function boot()
     {
         parent::boot();
@@ -57,6 +66,9 @@ class Institution_student extends Base_Model  {
         });
     }
 
+    /**
+     * @var string
+     */
     protected $primaryKey = 'uuid';
 
     /**
@@ -80,5 +92,23 @@ class Institution_student extends Base_Model  {
      * @var array
      */
     protected $dates = ['date_of_birth', 'date_of_death', 'last_login', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created'];
+
+    /**
+     * get list of students which are going to be promoted
+     *
+     * @param $institutionGrade
+     * @param $academicPeriod
+     * @return array
+     */
+    public function getStudentListToPromote($institutionGrade, $academicPeriod){
+        return self::query()
+            ->select('institution_students.id','institution_students.student_id','institution_students.student_status_id',
+                'institution_students.education_grade_id','institution_students.education_grade_id',
+                'institution_students.academic_period_id','institution_students.institution_id',
+                'institution_students.created_user_id','institution_students.admission_id')
+            ->where('institution_students.institution_id', $institutionGrade->institution_id)
+            ->where('institution_students.education_grade_id', $institutionGrade->education_grade_id)
+            ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
+    }
 
 }
