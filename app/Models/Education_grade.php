@@ -47,24 +47,27 @@ class Education_grade extends Model  {
             $programmeId = $gradeObj->education_programme_id;
             $order = $gradeObj->order;
             $gradeOptions = self::where( 'education_programme_id',$programmeId
-            )->where('order',$order+1)->get()->toArray();
-            if(empty($gradeOptions)){
-                $getNextProgrammeGrades = true;
+            )->where('order',$order+1)->get()->first();
+            $nextProgramme = self::getNextProgrammeList($programmeId);
+            if(empty($gradeOptions) && !is_null($nextProgramme)){
+                $programmeId = $nextProgramme->next_programme_id;
+                $gradeOptions = self::where( 'education_programme_id',$programmeId
+                )->get()->first();
             }
             // Default is to get the list of grades with the next programme grades
-            if ($getNextProgrammeGrades) {
-                if ($firstGradeOnly) {
-                    $nextProgrammesGradesOptions = $this->getNextProgrammeFirstGradeList($programmeId);
-                } else {
-                    $nextProgrammesGradesOptions = $this->getNextGradeList($programmeId);
-                }
-                $results =  array_merge($gradeOptions,$nextProgrammesGradesOptions);
-            } else {
-                $results = $gradeOptions;
-            }
-            return $results;
+//            if ($getNextProgrammeGrades) {
+//                if ($firstGradeOnly) {
+//                    $nextProgrammesGradesOptions = $this->getNextProgrammeFirstGradeList($programmeId);
+//                } else {
+//                    $nextProgrammesGradesOptions = $this->getNextGradeList($programmeId);
+//                }
+//                $results =  array_merge($gradeOptions,$nextProgrammesGradesOptions);
+//            } else {
+//                $results = $gradeOptions;
+//            }
+            return $gradeOptions;
         } else {
-            return [];
+            return null;
         }
     }
 
@@ -114,7 +117,7 @@ class Education_grade extends Model  {
      */
     public function getNextProgrammeList($id) {
         return Education_programmes_next_programme::where('education_programme_id',$id)
-            ->get();
+            ->get()->first();
     }
 
 
