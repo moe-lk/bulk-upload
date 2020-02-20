@@ -136,6 +136,7 @@ class PromoteStudents extends Command
      * @param $institutionGrade
      * @param $nextGrade
      * @param $year
+     * @return int
      */
         public function process($institutionGrade,$nextGrade,$year){
             $academicPeriod = Academic_period::query()->where('code',$year -1)->get()->first();
@@ -153,20 +154,24 @@ class PromoteStudents extends Command
                             case $nextGradeObj->count() == 1:
                                 // promote parallel classes
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                                return 1;
                                 break;
-                            case $nextGradeObj->count() !==  $currentGradeObj->count();
+                            case(($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count()));
                                 // promote pool promotion
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
+                                return 2;
                                 break;
 
-                             case $currentGradeObj->count() == $nextGradeObj->count();
+                             case(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count());
                                 // Promote matching class name with previous class
                                  $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                                 return 1;
                                  break;
 
                             default:
                                 // default pool promotion
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                                return 3;
                                 break;
 
                         }
