@@ -112,7 +112,6 @@ class PromoteStudents extends Command
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('Promoting from '. $institutionGrade['name'] .' IN '.$institution->name.' No of Students: '. count($studentListToPromote));
 
-
                 if(!empty($parallelClasses)){
                     $params = [
                         $nextAcademicPeriod,
@@ -122,6 +121,7 @@ class PromoteStudents extends Command
                         $status
                     ];
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
+
                 }
                 DB::commit();
             }catch (\Exception $e){
@@ -148,9 +148,7 @@ class PromoteStudents extends Command
 
                     }
 
-                    if(!is_null($nextGradeObj)){
-
-                        switch ($nextGradeObj->count()){
+                        switch ($nextGradeObj){
                             case $nextGradeObj->count() == 1:
                                 // promote parallel classes
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
@@ -175,7 +173,6 @@ class PromoteStudents extends Command
                                 break;
 
                         }
-                    }
 
         }
 
@@ -265,6 +262,9 @@ class PromoteStudents extends Command
             ];
             if(!$this->institution_class_students->isDuplicated($studentObj)){
                 $this->institution_class_students->create($studentObj);
+//                $this->institution_classes->where('id',$class['id'])->update([
+//
+//                ]);
             }
         }
     }
