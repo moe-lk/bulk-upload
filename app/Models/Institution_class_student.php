@@ -93,5 +93,13 @@ class Institution_class_student extends Model  {
         return $exists;
     }
 
+    public function getStudentNewClass($student){
+        return self::query()
+            ->where('student_id',$student['student_id'])
+            ->join('institution_classes','institution_class_students.institution_class_id','=','institution_classes.id')
+            ->where('institution_class_students.student_id', $student['student_id'])
+            ->get()->last();
+    }
+
 
 }

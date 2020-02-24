@@ -11,7 +11,13 @@ use App\Models\Institution_class_student;
 use App\Models\Institution_student;
 use App\Models\Institution_student_admission;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Class PromoteStudents
+ * @package App\Console\Commands
+ */
 class PromoteStudents extends Command
 {
     /**
@@ -77,16 +83,19 @@ class PromoteStudents extends Command
         }
 
 
+    /**
+     * Promote students of grate to next grade
+     *
+     * @param $institutionGrade
+     * @param $nextGrade
+     * @param $academicPeriod
+     * @param $nextAcademicPeriod
+     * @param array $parallelClasses
+     * @param $status
+     */
         public function promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$parallelClasses = [],$status){
             $institution = Institution::where( 'id',$institutionGrade->institution_id)->get()->first();
-            $studentListToPromote = $this->institution_students->query()
-                ->select('institution_students.id','institution_students.student_id','institution_students.student_status_id',
-                    'institution_students.education_grade_id','institution_students.education_grade_id',
-                    'institution_students.academic_period_id','institution_students.institution_id',
-                    'institution_students.created_user_id','institution_students.admission_id')
-                ->where('institution_students.institution_id', $institutionGrade->institution_id)
-                ->where('institution_students.education_grade_id', $institutionGrade->education_grade_id)
-                ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
+            $studentListToPromote = $this->institution_students->getStudentListToPromote($institutionGrade,$academicPeriod);
 
             $params = [
                 $nextAcademicPeriod,
@@ -95,26 +104,40 @@ class PromoteStudents extends Command
                 $status
             ];
 
-            array_walk($studentListToPromote,array($this,'promote'),$params);
+            try{
+                DB::beginTransaction();
+                array_walk($studentListToPromote,array($this,'promote'),$params);
 
-            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $output->writeln('##########################################################################################################################');
-            $output->writeln('Promoting from '. $institutionGrade['name'] .' IN '.$institution->name.' No of Students: '. count($studentListToPromote));
+                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $output->writeln('##########################################################################################################################');
+                $output->writeln('Promoting from '. $institutionGrade['name'] .' IN '.$institution->name.' No of Students: '. count($studentListToPromote));
 
+                if(!empty($parallelClasses)){
+                    $params = [
+                        $nextAcademicPeriod,
+                        $institutionGrade,
+                        $nextGrade,
+                        $parallelClasses,
+                        $status
+                    ];
+                    array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
 
-            if(!empty($parallelClasses)){
-                $params = [
-                    $nextAcademicPeriod,
-                    $institutionGrade,
-                    $nextGrade,
-                    $parallelClasses,
-                    $status
-                ];
-                array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
+                }
+                DB::commit();
+            }catch (\Exception $e){
+                Log::error($e->getMessage());
+                DB::rollBack();
             }
-
         }
 
+    /**
+     * Process institution grade in to the define promotion senarios
+     *
+     * @param $institutionGrade
+     * @param $nextGrade
+     * @param $year
+     * @return int
+     */
         public function process($institutionGrade,$nextGrade,$year){
             $academicPeriod = Academic_period::query()->where('code',$year -1)->get()->first();
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
@@ -125,35 +148,42 @@ class PromoteStudents extends Command
 
                     }
 
-                    if(!is_null($nextGradeObj)){
-
-                        switch ($nextGradeObj->count()){
+                        switch ($nextGradeObj){
                             case $nextGradeObj->count() == 1:
                                 // promote parallel classes
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                                return 1;
                                 break;
-                            case $nextGradeObj->count() !==  $currentGradeObj->count();
+                            case(($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count()));
                                 // promote pool promotion
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
+                                return 2;
                                 break;
 
-                             case $currentGradeObj->count() == $nextGradeObj->count();
+                             case(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count());
                                 // Promote matching class name with previous class
                                  $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                                 return 1;
                                  break;
 
                             default:
                                 // default pool promotion
                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                                return 3;
                                 break;
 
                         }
-                    }
 
         }
 
 
-
+    /**
+     * update promoted student's data in to the DB
+     *
+     * @param $student
+     * @param $count
+     * @param $params
+     */
         public function promote($student,$count,$params){
 
             $academicPeriod = $params[0];
@@ -174,18 +204,22 @@ class PromoteStudents extends Command
             try{
                Institution_student::where('id',(string)$student['id'])->update($studentData);
             }catch (\Exception $e){
+                Log::error($e->getMessage());
             }
     }
 
 
+    /**
+     * get promoted new class of the students
+     *
+     * @param $student
+     * @param $educationGrade
+     * @param $nextGrade
+     * @param $classes
+     * @return false|int|string|null
+     */
     public function getStudentClass($student,$educationGrade,$nextGrade,$classes){
-        $studentClass = $this->institution_class_students->query()
-            ->where('student_id',$student['student_id'])
-            ->join('institution_classes','institution_class_students.institution_class_id','=','institution_classes.id')
-            ->where('institution_class_students.student_id', $student['student_id'])
-            ->get()->last();
-
-
+        $studentClass = $this->institution_class_students->getStudentNewClass($student);
         if(!is_null($studentClass)){
             return  array_search(str_replace($educationGrade->name,$nextGrade->name,$studentClass->name),array_column($classes,'name'));
         }else{
@@ -194,6 +228,13 @@ class PromoteStudents extends Command
 
     }
 
+    /**
+     * Create class entry for promoted students
+     *
+     * @param $student
+     * @param $count
+     * @param $params
+     */
     public function assingeToClasses($student,$count,$params){
         $academicPeriod = $params[0];
         $educationGrade = $params[1];
@@ -221,6 +262,9 @@ class PromoteStudents extends Command
             ];
             if(!$this->institution_class_students->isDuplicated($studentObj)){
                 $this->institution_class_students->create($studentObj);
+//                $this->institution_classes->where('id',$class['id'])->update([
+//
+//                ]);
             }
         }
     }
