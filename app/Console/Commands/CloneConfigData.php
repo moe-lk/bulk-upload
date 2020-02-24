@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Academic_period;
 use App\Models\Institution_class;
+use App\Models\Institution_class_subject;
 use App\Models\Institution_shift;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -26,17 +27,22 @@ class CloneConfigData extends Command
      */
     protected $description = 'Clone configuration data for new year';
 
+    protected $start_time;
+    protected  $end_time;
+
     /**
      * Create a new command instance.
      *
      * @return void
      */
     public function __construct()
+
     {
         parent::__construct();
         $this->shifts = new Institution_shift();
         $this->academic_period = new Academic_period();
         $this->institution_classes = new Institution_class();
+        $this->institution_class_subjects = new Institution_class_subject();
     }
 
     /**
@@ -46,6 +52,7 @@ class CloneConfigData extends Command
      */
     public function handle()
     {
+        $this->start_time = microtime(TRUE);
         $year = $this->argument('year');
         $shift = $this->shifts->getShiftsToClone($year - 1);
         $previousAcademicPeriod = $this->academic_period->getAcademicPeriod($year - 1);
@@ -58,6 +65,12 @@ class CloneConfigData extends Command
             'previous_academic_period' => $previousAcademicPeriod
         ];
         array_walk($shift,array($this,'array_walk'),$params);
+        $this->end_time = microtime(TRUE);
+
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
 
     }
 
@@ -73,11 +86,24 @@ class CloneConfigData extends Command
         try{
             $shiftId = $this->updateShifts($year, $shift);
             $institutionClasses = $this->institution_classes->getShiftClasses($previousAcademicPeriod->id, $shift['id']);
+            $classIds = array_value_recursive('id',$institutionClasses);
+            $institutionClassesSubjects = $this->institution_class_subjects->getInstitutionClassSubjects($previousAcademicPeriod->id,array($classIds));
+
+
+
             if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod) ) {
                 $params = ['institution_shift_id' => $shiftId,
                     'academic_period_id' => $academicPeriod->id];
-                $institutionClasses = $this->generateNewClass($institutionClasses,$shiftId,$academicPeriod->id);
-                $this->institution_classes->insert($institutionClasses);
+
+                $newInstitutionClasses = $this->generateNewClass($institutionClasses,$shiftId,$academicPeriod->id);
+                $this->institution_classes->insert($newInstitutionClasses);
+                $newInstitutionClasses = $this->institution_classes->getShiftClasses($academicPeriod->id,$shiftId);
+
+                $params = [
+                    'class_subject' => $institutionClassesSubjects,
+                    'institution_classes' => $institutionClasses
+                ];
+                array_walk($newInstitutionClasses,array($this,'setNextClass'),$params);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('updating from '. $shiftId);
@@ -89,6 +115,15 @@ class CloneConfigData extends Command
         }
     }
 
+
+    public function setNextClass($currentClass,$count,$params){
+        $classes = $params['institution_classes'];
+        $subjects = $params['class_subject'];
+ //        array_search($currentClass->name,array_column($classes[0],'name'));
+        $index =  array_search($currentClass['name'],array_column($classes,'name'));
+        $newSubjects =  array_search($classes[$index]['id'],array_column($classes,'institution_class_id'));
+        dd($newSubjects);
+    }
 
     /**
      * generate new class object for new academic year
