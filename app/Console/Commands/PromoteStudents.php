@@ -109,7 +109,6 @@ class PromoteStudents extends Command
             ];
 
             try{
-                DB::beginTransaction();
                 array_walk($studentListToPromote,array($this,'promote'),$params);
 
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
@@ -127,10 +126,8 @@ class PromoteStudents extends Command
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
 
                 }
-                DB::commit();
             }catch (\Exception $e){
                 Log::error($e->getMessage());
-                DB::rollBack();
             }
         }
 
@@ -146,7 +143,7 @@ class PromoteStudents extends Command
             $academicPeriod = Academic_period::query()->where('code',$year -1)->get()->first();
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
 
-                    if($nextGrade !== []  ){
+                    if($nextGrade !== []  && !is_null($nextGrade) ){
                         $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$academicPeriod->id);
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
@@ -173,7 +170,7 @@ class PromoteStudents extends Command
 
                     default:
                         // default pool promotion
-                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
                         return 3;
                         break;
 
