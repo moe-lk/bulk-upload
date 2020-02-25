@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Institution_grade;
+use App\Models\Institution;
 use Illuminate\Console\Command;
 
-class CallPromotionCommand extends Command
+class callAddApprovedStudents extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'promote:run {year}';
+    protected $signature = 'admission:run';
 
     /**
      * The console command description.
@@ -29,7 +29,7 @@ class CallPromotionCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->instituion_grade = new Institution_grade();
+        $this->instituions = new Institution();
     }
 
     /**
@@ -39,8 +39,16 @@ class CallPromotionCommand extends Command
      */
     public function handle()
     {
-        $year = $this->argument('year');
-        $institution = $this->instituion_grade->getInstitutionGradeList($year);
-        $this->call('promote:students',['year' => $year,'institution' => $institution->code]);
+        $institutions = $this->instituions->all()->chunk(50)->toArray();
+        array_walk($institutions,array($this,'addInstitutionStudents'));
+    }
+
+    protected function addInstitutionStudents($chunk){
+        array_walk($chunk,array($this,'callFunction'));
+
+    }
+
+    protected function callFunction($institution){
+        $this->call('admission:students',['institution' => $institution['code']]);
     }
 }

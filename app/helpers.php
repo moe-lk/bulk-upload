@@ -79,6 +79,14 @@ function merge_two_arrays($array1,$array2) {
     return $data;
 }
 
+function array_value_recursive($key, array $arr){
+    $val = array();
+    array_walk_recursive($arr, function($v, $k) use($key, &$val){
+        if($k == $key) array_push($val, $v);
+    });
+    return count($val) > 1 ? $val : array_pop($val);
+}
+
 
 function merge_error_by_row($errors,$key){
     $temp_array = array();

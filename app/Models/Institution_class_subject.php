@@ -105,4 +105,11 @@ class Institution_class_subject extends Model  {
         }
         return $data;
     }
+
+    public function getInstitutionClassSubjects($academicPeriodId,$classIds){
+        return self::query()
+            ->whereIn('institution_class_id',$classIds)
+            ->get()
+            ->toArray();
+    }
 }
