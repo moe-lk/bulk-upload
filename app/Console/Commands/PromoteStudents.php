@@ -79,7 +79,7 @@ class PromoteStudents extends Command
             }
 
             if (!empty($isAvailableforPromotion)) {
-                $this->process($institutionGrade,$nextGrade,$year,2);
+                $this->process($institutionGrade,$nextGrade,$year,1);
             }else{
                 $this->process($institutionGrade,$nextGrade,$year,3);
             }
@@ -147,7 +147,12 @@ class PromoteStudents extends Command
                         $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$academicPeriod->id);
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
+                    }elseif (is_null($nextGrade)){
+                        // default pool promotion
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                        return 3;
                     }
+
 
             if($nextGradeObj){
                 switch ($nextGradeObj){
@@ -196,7 +201,7 @@ class PromoteStudents extends Command
             $status = $params[3];
             $studentData = [
                 'student_status_id' => $status,
-                'education_grade_id' => $nextGrade->id,
+                'education_grade_id' => $nextGrade !== null ? $nextGrade->id : $student['education_grade_id'],
                 'academic_period_id' => $academicPeriod->id,
                 'start_date' => $academicPeriod->start_date,
                 'start_year' =>$academicPeriod->start_year ,
