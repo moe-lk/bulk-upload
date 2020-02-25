@@ -151,33 +151,23 @@ class PromoteStudents extends Command
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
                     }
-
-                        switch ($nextGradeObj){
-                            case $nextGradeObj->count() == 1:
-                                // promote parallel classes
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
-                                return 1;
-                                break;
-                            case(($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count()));
-                                // promote pool promotion
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
-                                return 2;
-                                break;
-
-                             case(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count());
-                                // Promote matching class name with previous class
-                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
-                                 return 1;
-                                 break;
-
-                            default:
-                                // default pool promotion
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
-                                return 3;
-                                break;
-
-                        }
-
+                    if($nextGradeObj->count() == 1){
+                        // promote parallel classes
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                        return 1;
+                    }elseif(($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count())){
+                        // promote pool promotion
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
+                        return 2;
+                    }elseif (($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count()){
+                        // Promote matching class name with previous class
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                        return 1;
+                    }else{
+                        // default pool promotion
+                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                        return 3;
+                    }
         }
 
 
