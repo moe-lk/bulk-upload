@@ -127,6 +127,7 @@ class PromoteStudents extends Command
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
                 }
             }catch (\Exception $e){
+                dd($e);
                 Log::error($e->getMessage());
             }
         }
@@ -206,9 +207,10 @@ class PromoteStudents extends Command
             try{
                Institution_student::where('id',(string)$student['id'])->update($studentData);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('----------------- '. $student['admission_id'] . 'to ' . $studentData['education_grade_id']);
+                $output->writeln('----------------- '. $student['admission_id'] . ' to ' . $studentData['education_grade_id']);
 
             }catch (\Exception $e){
+                dd($e);
                 Log::error($e->getMessage());
             }
     }
@@ -226,7 +228,7 @@ class PromoteStudents extends Command
     public function getStudentClass($student,$educationGrade,$nextGrade,$classes){
         $studentClass = $this->institution_class_students->getStudentNewClass($student);
         if(!is_null($studentClass)){
-            return  array_search(str_replace($educationGrade->name,$nextGrade->name,$studentClass->name),array_column($classes,'name'));
+            return  array_search(str_replace($educationGrade['name'],$nextGrade->name,$studentClass->name),array_column($classes,'name'));
         }else{
             return null;
         }
@@ -250,7 +252,7 @@ class PromoteStudents extends Command
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
         $class = $classes[$class];
 
-        if($count($classes) == 1){
+        if(count($classes) == 1){
             $class = $classes[0];
         }
 
@@ -269,9 +271,6 @@ class PromoteStudents extends Command
                 $this->institution_class_students->create($studentObj);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
-//                $this->institution_classes->where('id',$class['id'])->update([
-//
-//                ]);
             }
         }
     }
