@@ -64,23 +64,27 @@ class PromoteStudents extends Command
         $year = $this->argument('year');
         $institution = $this->argument('institution');
         $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($year,$institution);
+//        dd($institutionGrade);
+        array_walk($institutionGrade,array($this,'processGrades'),$year);
+    }
 
-        if(!empty($institutionGrade) && $this->institutions->isActive($institutionGrade->institution_id)) {
-            $this->instituion_grade->updatePromoted($year,$institutionGrade->id);
+    public function processGrades($institutionGrade,$count,$year){
+        if(!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
+            $this->instituion_grade->updatePromoted($year,$institutionGrade['id']);
             $isAvailableforPromotion = 0;
-            $nextGrade = $this->education_grades->getNextGrade($institutionGrade->education_grade_id);
+            $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
 
-                if (!empty($nextGrade)) {
-                    $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade->institution_id, $nextGrade->id);
-                }
+            if (!empty($nextGrade)) {
+                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+            }
 
-                if (!empty($isAvailableforPromotion)) {
-                    $this->process($institutionGrade,$nextGrade,$year,2);
-                }else{
-                    $this->process($institutionGrade,$nextGrade,$year,3);
-                }
+            if (!empty($isAvailableforPromotion)) {
+                $this->process($institutionGrade,$nextGrade,$year,2);
+            }else{
+                $this->process($institutionGrade,$nextGrade,$year,3);
             }
         }
+    }
 
 
     /**
@@ -94,7 +98,7 @@ class PromoteStudents extends Command
      * @param $status
      */
         public function promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$parallelClasses = [],$status){
-            $institution = Institution::where( 'id',$institutionGrade->institution_id)->get()->first();
+            $institution = Institution::where( 'id',$institutionGrade['institution_id'])->get()->first();
             $studentListToPromote = $this->institution_students->getStudentListToPromote($institutionGrade,$academicPeriod);
 
             $params = [
@@ -143,8 +147,8 @@ class PromoteStudents extends Command
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
 
                     if($nextGrade !== []  ){
-                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade->institution_id,$nextGrade->id,$academicPeriod->id);
-                        $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade->institution_id,$nextGrade->id,$nextAcademicPeriod->id);
+                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$academicPeriod->id);
+                        $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
                     }
 

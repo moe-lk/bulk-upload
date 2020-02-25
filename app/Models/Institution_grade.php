@@ -123,10 +123,10 @@ class Institution_grade extends Base_Model
             ->join('education_grades','institution_grades.education_grade_id','=','education_grades.id')
             ->join('institutions', function($join) use ($year,$institution){
                 $join->on('institutions.id','=','institution_grades.institution_id')
-                    ->where('institutions.id','=',$institution);
+                    ->where('institutions.code','=',$institution);
             })
                 ->orderBy('institution_id')
-            ->get()->first();
+            ->get()->toArray();
     }
 
     /**
