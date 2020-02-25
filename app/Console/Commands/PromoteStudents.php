@@ -115,6 +115,7 @@ class PromoteStudents extends Command
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('Promoting from '. $institutionGrade['name'] .' IN '.$institution->name.' No of Students: '. count($studentListToPromote));
 
+
                 if(!empty($parallelClasses)){
                     $params = [
                         $nextAcademicPeriod,
@@ -124,7 +125,6 @@ class PromoteStudents extends Command
                         $status
                     ];
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
-
                 }
             }catch (\Exception $e){
                 Log::error($e->getMessage());
@@ -144,7 +144,7 @@ class PromoteStudents extends Command
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
 
                     if($nextGrade !== []  && !is_null($nextGrade) ){
-                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$academicPeriod->id);
+                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$institutionGrade['education_grade_id'],$academicPeriod->id);
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
                     }elseif (is_null($nextGrade)){
@@ -153,25 +153,28 @@ class PromoteStudents extends Command
                         return 3;
                     }
 
-
-            if($nextGradeObj){
+            if($nextGradeObj->count() > 0){
                 if($nextGradeObj->count() == 1){
                     // promote parallel classes
                     $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
                     return 1;
                 }elseif (($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count())){
                     // promote pool promotion
-                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
-                    return 2;
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                    return 1;
                 }elseif(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count()){
                     // Promote matching class name with previous class
                     $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
                     return 1;
                 }else{
                     // default pool promotion
-                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
-                    return 3;
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                    return 1;
                 }
+            }else{
+                // default pool promotion
+                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                return 3;
             }
         }
 
