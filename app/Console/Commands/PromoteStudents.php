@@ -249,29 +249,34 @@ class PromoteStudents extends Command
         $classes = $params[3];
         $status = $params[4];
 
+
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
-        $class = $classes[$class];
+        if(is_numeric($class)){
 
-        if(count($classes) == 1){
-            $class = $classes[0];
-        }
+            $class = $classes[$class];
 
-        if(!is_null($class)){
+            if(count($classes) == 1){
+                $class = $classes[0];
+            }
 
-            $studentObj = [
-                'student_id' => $student['student_id'],
-                'institution_class_id' =>  $class['id'],
-                'education_grade_id' =>  $nextGrade->id,
-                'academic_period_id' => $academicPeriod->id,
-                'institution_id' =>$student['institution_id'],
-                'student_status_id' => $status,
-                'created_user_id' => $student['created_user_id']
-            ];
-            if(!$this->institution_class_students->isDuplicated($studentObj)){
-                $this->institution_class_students->create($studentObj);
-                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
+            if(!is_null($class)){
+
+                $studentObj = [
+                    'student_id' => $student['student_id'],
+                    'institution_class_id' =>  $class['id'],
+                    'education_grade_id' =>  $nextGrade->id,
+                    'academic_period_id' => $academicPeriod->id,
+                    'institution_id' =>$student['institution_id'],
+                    'student_status_id' => $status,
+                    'created_user_id' => $student['created_user_id']
+                ];
+                if(!$this->institution_class_students->isDuplicated($studentObj)){
+                    $this->institution_class_students->create($studentObj);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
+                }
             }
         }
+
     }
 }
