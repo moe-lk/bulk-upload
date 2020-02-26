@@ -144,13 +144,14 @@ class PromoteStudents extends Command
             $academicPeriod = Academic_period::query()->where('code',$year -1)->get()->first();
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
 
+            $nextGradeObj = null;
                     if($nextGrade !== []  && !is_null($nextGrade) ){
                         $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$institutionGrade['education_grade_id'],$academicPeriod->id);
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
                     }
 
-            if($nextGradeObj->count() > 0){
+            if(!is_null($nextGradeObj)){
                 if($nextGradeObj->count() == 1){
                     // promote parallel classes
                     $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
@@ -170,7 +171,7 @@ class PromoteStudents extends Command
                 }
             }else{
                 // default pool promotion
-                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
                 return 1;
             }
         }
