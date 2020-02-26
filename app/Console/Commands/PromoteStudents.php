@@ -148,10 +148,6 @@ class PromoteStudents extends Command
                         $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$institutionGrade['education_grade_id'],$academicPeriod->id);
                         $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
-                    }elseif (is_null($nextGrade)){
-                        // default pool promotion
-                        $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
-                        return 3;
                     }
 
             if($nextGradeObj->count() > 0){
@@ -251,8 +247,7 @@ class PromoteStudents extends Command
 
 
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
-        if(is_numeric($class)){
-
+        if(!empty($class)){
             $class = $classes[$class];
 
             if(count($classes) == 1){
