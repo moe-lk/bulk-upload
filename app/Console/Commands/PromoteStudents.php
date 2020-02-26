@@ -175,7 +175,7 @@ class PromoteStudents extends Command
             }else{
                 // default pool promotion
                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
-                return 3;
+                return 1;
             }
         }
 
@@ -272,6 +272,10 @@ class PromoteStudents extends Command
                 ];
                 if(!$this->institution_class_students->isDuplicated($studentObj)){
                     $this->institution_class_students->create($studentObj);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
+                }else{
+                    $this->institution_class_students->where('id',(string)$student['id'])->update($studentObj);
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
                 }
