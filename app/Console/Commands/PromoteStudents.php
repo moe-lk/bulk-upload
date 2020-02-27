@@ -125,12 +125,22 @@ class PromoteStudents extends Command
                         $status
                     ];
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
+                    array_walk($parallelClasses,array($this,'updateStudentCount'));
                 }
             }catch (\Exception $e){
                 dd($e);
                 Log::error($e->getMessage());
             }
         }
+
+
+
+        public function updateStudentCount($class){
+            $studentCounts = Institution_class_student::getStudentsCount($class['id']);
+            unset($studentCounts['total']);
+            Institution_class::query()->where('id',$class['id'])->update($studentCounts);
+        }
+
 
     /**
      * Process institution grade in to the define promotion senarios
