@@ -425,7 +425,6 @@ class ImportStudents extends Command
             gc_enable();
             gc_collect_cycles();
             $objPHPExcel = $this->setReader($file);
-
             return $objPHPExcel->getSheetByName($sheet)  !== null;
         }catch (Exception $e){
             $user = User::find($file['security_user_id']);
