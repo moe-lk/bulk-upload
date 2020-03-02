@@ -121,18 +121,24 @@ class ImportStudents extends Command
     }
 
     protected function getFiles(){
-         $files = Upload::where('is_processed', '=', 0)
-             ->limit(1)
+        $files = Upload::where('is_processed', '=', 0)
+            ->select('uploads.id', 'uploads.security_user_id', 'uploads.institution_class_id', 'uploads.model',
+                'uploads.filename', 'uploads.is_processed', 'uploads.deleted_at', 'uploads.created_at',
+                'uploads.updated_at', 'uploads.is_email_sent', 'uploads.update', 'uploads.insert', 'uploads.node')
+            ->join('user_contacts', 'uploads.security_user_id', '=', 'user_contacts.security_user_id')
+            ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
+            ->where('contact_types.contact_option_id', '!=', 5)
+            ->limit(1)
             ->get()->toArray();
         $node = $this->argument('node');
-         if(!empty($files)){
-             DB::beginTransaction();
-             DB::table('uploads')
-                 ->where('id', $files[0]['id'])
-                 ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
-             DB::commit();
-         }
-         return $files;
+        if(!empty($files)){
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $files[0]['id'])
+                ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
+            DB::commit();
+        }
+        return $files;
     }
 
     protected function checkTime(){
