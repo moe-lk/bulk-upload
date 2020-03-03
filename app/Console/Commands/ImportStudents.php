@@ -428,11 +428,7 @@ class ImportStudents extends Command
     }
 
     protected function  getSheetName($file,$sheet){
-        try{
-            ini_set('memory_limit', '128M');
-            $baseMemory = memory_get_usage();
-            gc_enable();
-            gc_collect_cycles();
+        try{;
             $objPHPExcel = $this->setReader($file);
             return $objPHPExcel->getSheetByName($sheet)  !== null;
         }catch (Exception $e){
