@@ -295,7 +295,6 @@ class ImportStudents extends Command
      * @param $column
      */
     protected function import($file, $sheet, $column){
-            set_time_limit(300);
              try {
                 $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
