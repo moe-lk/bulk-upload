@@ -64,23 +64,27 @@ class PromoteStudents extends Command
         $year = $this->argument('year');
         $institution = $this->argument('institution');
         $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($year,$institution);
+//        dd($institutionGrade);
+        array_walk($institutionGrade,array($this,'processGrades'),$year);
+    }
 
-        if(!empty($institutionGrade) && $this->institutions->isActive($institutionGrade->institution_id)) {
-            $this->instituion_grade->updatePromoted($year,$institutionGrade->id);
+    public function processGrades($institutionGrade,$count,$year){
+        if(!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
+            $this->instituion_grade->updatePromoted($year,$institutionGrade['id']);
             $isAvailableforPromotion = 0;
-            $nextGrade = $this->education_grades->getNextGrade($institutionGrade->education_grade_id);
+            $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
 
-                if (!empty($nextGrade)) {
-                    $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade->institution_id, $nextGrade->id);
-                }
+            if (!empty($nextGrade)) {
+                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+            }
 
-                if (!empty($isAvailableforPromotion)) {
-                    $this->process($institutionGrade,$nextGrade,$year,2);
-                }else{
-                    $this->process($institutionGrade,$nextGrade,$year,3);
-                }
+            if (!empty($isAvailableforPromotion)) {
+                $this->process($institutionGrade,$nextGrade,$year,1);
+            }else{
+                $this->process($institutionGrade,$nextGrade,$year,3);
             }
         }
+    }
 
 
     /**
@@ -94,7 +98,7 @@ class PromoteStudents extends Command
      * @param $status
      */
         public function promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$parallelClasses = [],$status){
-            $institution = Institution::where( 'id',$institutionGrade->institution_id)->get()->first();
+            $institution = Institution::where( 'id',$institutionGrade['institution_id'])->get()->first();
             $studentListToPromote = $this->institution_students->getStudentListToPromote($institutionGrade,$academicPeriod);
 
             $params = [
@@ -105,12 +109,12 @@ class PromoteStudents extends Command
             ];
 
             try{
-                DB::beginTransaction();
                 array_walk($studentListToPromote,array($this,'promote'),$params);
 
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('Promoting from '. $institutionGrade['name'] .' IN '.$institution->name.' No of Students: '. count($studentListToPromote));
+
 
                 if(!empty($parallelClasses)){
                     $params = [
@@ -121,14 +125,22 @@ class PromoteStudents extends Command
                         $status
                     ];
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
-
+                    array_walk($parallelClasses,array($this,'updateStudentCount'));
                 }
-                DB::commit();
             }catch (\Exception $e){
+                dd($e);
                 Log::error($e->getMessage());
-                DB::rollBack();
             }
         }
+
+
+
+        public function updateStudentCount($class){
+            $studentCounts = Institution_class_student::getStudentsCount($class['id']);
+            unset($studentCounts['total']);
+            Institution_class::query()->where('id',$class['id'])->update($studentCounts);
+        }
+
 
     /**
      * Process institution grade in to the define promotion senarios
@@ -142,38 +154,36 @@ class PromoteStudents extends Command
             $academicPeriod = Academic_period::query()->where('code',$year -1)->get()->first();
             $nextAcademicPeriod = Academic_period::query()->where('code',$year)->get()->first();
 
-                    if($nextGrade !== []  ){
-                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade->institution_id,$nextGrade->id,$academicPeriod->id);
-                        $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade->institution_id,$nextGrade->id,$nextAcademicPeriod->id);
+            $nextGradeObj = null;
+                    if($nextGrade !== []  && !is_null($nextGrade) ){
+                        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$institutionGrade['education_grade_id'],$academicPeriod->id);
+                        $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'],$institutionGrade['institution_id'],$nextGrade->id,$nextAcademicPeriod->id);
 
                     }
 
-                        switch ($nextGradeObj){
-                            case $nextGradeObj->count() == 1:
-                                // promote parallel classes
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
-                                return 1;
-                                break;
-                            case(($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count()));
-                                // promote pool promotion
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],2);
-                                return 2;
-                                break;
-
-                             case(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count());
-                                // Promote matching class name with previous class
-                                 $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
-                                 return 1;
-                                 break;
-
-                            default:
-                                // default pool promotion
-                                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
-                                return 3;
-                                break;
-
-                        }
-
+            if(!is_null($nextGradeObj)){
+                if($nextGradeObj->count() == 1){
+                    // promote parallel classes
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                    return 1;
+                }elseif (($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count())){
+                    // promote pool promotion
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                    return 2;
+                }elseif(($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count()){
+                    // Promote matching class name with previous class
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,$nextGradeObj->toArray(),1);
+                    return 1;
+                }else{
+                    // default pool promotion
+                    $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],1);
+                    return 2;
+                }
+            }else{
+                // default pool promotion
+                $this->promotion($institutionGrade,$nextGrade,$academicPeriod,$nextAcademicPeriod,[],3);
+                return 2;
+            }
         }
 
 
@@ -191,7 +201,7 @@ class PromoteStudents extends Command
             $status = $params[3];
             $studentData = [
                 'student_status_id' => $status,
-                'education_grade_id' => $nextGrade->id,
+                'education_grade_id' => $nextGrade !== null ? $nextGrade->id : $student['education_grade_id'],
                 'academic_period_id' => $academicPeriod->id,
                 'start_date' => $academicPeriod->start_date,
                 'start_year' =>$academicPeriod->start_year ,
@@ -203,7 +213,11 @@ class PromoteStudents extends Command
             ];
             try{
                Institution_student::where('id',(string)$student['id'])->update($studentData);
+                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $output->writeln('----------------- '. $student['admission_id'] . ' to ' . $studentData['education_grade_id']);
+
             }catch (\Exception $e){
+                dd($e);
                 Log::error($e->getMessage());
             }
     }
@@ -221,9 +235,9 @@ class PromoteStudents extends Command
     public function getStudentClass($student,$educationGrade,$nextGrade,$classes){
         $studentClass = $this->institution_class_students->getStudentNewClass($student);
         if(!is_null($studentClass)){
-            return  array_search(str_replace($educationGrade->name,$nextGrade->name,$studentClass->name),array_column($classes,'name'));
+            return  array_search(str_replace($educationGrade['name'],$nextGrade->name,$studentClass->name),array_column($classes,'name'));
         }else{
-            return null;
+            return false;
         }
 
     }
@@ -242,30 +256,37 @@ class PromoteStudents extends Command
         $classes = $params[3];
         $status = $params[4];
 
+
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
-        $class = $classes[$class];
+        if(is_numeric($class)){
+            $class = $classes[$class];
 
-        if($count($classes) == 1){
-            $class = $classes[0];
-        }
+            if(count($classes) == 1){
+                $class = $classes[0];
+            }
 
-        if(!is_null($class)){
+            if(!is_null($class)){
 
-            $studentObj = [
-                'student_id' => $student['student_id'],
-                'institution_class_id' =>  $class['id'],
-                'education_grade_id' =>  $nextGrade->id,
-                'academic_period_id' => $academicPeriod->id,
-                'institution_id' =>$student['institution_id'],
-                'student_status_id' => $status,
-                'created_user_id' => $student['created_user_id']
-            ];
-            if(!$this->institution_class_students->isDuplicated($studentObj)){
-                $this->institution_class_students->create($studentObj);
-//                $this->institution_classes->where('id',$class['id'])->update([
-//
-//                ]);
+                $studentObj = [
+                    'student_id' => $student['student_id'],
+                    'institution_class_id' =>  $class['id'],
+                    'education_grade_id' =>  $nextGrade->id,
+                    'academic_period_id' => $academicPeriod->id,
+                    'institution_id' =>$student['institution_id'],
+                    'student_status_id' => $status,
+                    'created_user_id' => $student['created_user_id']
+                ];
+                if(!$this->institution_class_students->isDuplicated($studentObj)){
+                    $this->institution_class_students->create($studentObj);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
+                }else{
+                    $this->institution_class_students->where('id',(string)$student['id'])->update($studentObj);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- '. $student['student_id']. 'to ' . $class['name']);
+                }
             }
         }
+
     }
 }

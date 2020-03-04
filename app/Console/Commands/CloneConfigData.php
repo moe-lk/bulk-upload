@@ -58,13 +58,12 @@ class CloneConfigData extends Command
         $previousAcademicPeriod = $this->academic_period->getAcademicPeriod($year - 1);
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
 
-        $shift = array_chunk($shift,1000);
         $params = [
             'year' => $year,
             'academic_period' => $academicPeriod,
             'previous_academic_period' => $previousAcademicPeriod
         ];
-        array_walk($shift,array($this,'array_walk'),$params);
+        array_walk($shift,array($this,'process'),$params);
         $this->end_time = microtime(TRUE);
 
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
@@ -82,14 +81,12 @@ class CloneConfigData extends Command
         $year = $params['year'];
         $academicPeriod = $params['academic_period'];
         $previousAcademicPeriod = $params['previous_academic_period'];
-        DB::beginTransaction();
+//        DB::beginTransaction();
         try{
             $shiftId = $this->updateShifts($year, $shift);
             $institutionClasses = $this->institution_classes->getShiftClasses($previousAcademicPeriod->id, $shift['id']);
             $classIds = array_value_recursive('id',$institutionClasses);
             $institutionClassesSubjects = $this->institution_class_subjects->getInstitutionClassSubjects($previousAcademicPeriod->id,array($classIds));
-
-
 
             if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod) ) {
                 $params = ['institution_shift_id' => $shiftId,
@@ -103,15 +100,15 @@ class CloneConfigData extends Command
                     'class_subject' => $institutionClassesSubjects,
                     'institution_classes' => $institutionClasses
                 ];
+
                 array_walk($newInstitutionClasses,array($this,'setNextClass'),$params);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('##########################################################################################################################');
                 $output->writeln('updating from '. $shiftId);
             }
-
-            DB::commit();
+//            DB::commit();
         }catch (\Exception $e){
-            DB::rollBack();
+//            DB::rollBack();
         }
     }
 
@@ -119,10 +116,17 @@ class CloneConfigData extends Command
     public function setNextClass($currentClass,$count,$params){
         $classes = $params['institution_classes'];
         $subjects = $params['class_subject'];
+
  //        array_search($currentClass->name,array_column($classes[0],'name'));
-        $index =  array_search($currentClass['name'],array_column($classes,'name'));
-        $newSubjects =  array_search($classes[$index]['id'],array_column($classes,'institution_class_id'));
-        dd($newSubjects);
+        $classId =  array_search($currentClass['name'],array_column($classes,'name'));
+//        $newClassId =  array_search($classes[$classId]['id'],array_column($subjects,'institution_class_id'));
+//        dd($subjects);
+        array_walk($subjects,array($this,'createSubjects'),$classes[$classId]);
+    }
+
+    public function createSubjects($subject,$count,$newClassId){
+        $subject['institution_class_id'] = $newClassId['id'];
+        $this->institution_class_subjects->create($subject);
     }
 
     /**
@@ -162,9 +166,10 @@ class CloneConfigData extends Command
         $this->shifts->where('id',$shift['id'])->update(['cloned' => '2020']);
         $shift['academic_period_id'] = $academicPeriod->id;
         $exist = $this->shifts->shiftExists($shift);
-        if(!$exist){
-            $shift['cloned'] = '2020';
-            return $this->shifts->create((array)$shift)->id;
-        }
+        return $this->shifts->create((array)$shift)->id;
+//        if(!$exist){
+//            $shift['cloned'] = '2020';
+//            return ;
+//        }
     }
 }
