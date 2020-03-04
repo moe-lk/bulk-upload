@@ -47,6 +47,7 @@ class ImportStudents extends Command
      */
     public function __construct()
     {
+        $this->output =  new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
     }
 
@@ -71,14 +72,14 @@ class ImportStudents extends Command
 
                     }else{
                         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                        $output->writeln('No files found,Waiting for files');
+                        $this->output->writeln('No files found,Waiting for files');
                         exit();
 
                     }
 
                 }catch (Exception $e){
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                    $output->writeln($e);
+                    $this->output->writeln($e);
                     sleep(300);
                     $this->handle();
 
@@ -96,9 +97,8 @@ class ImportStudents extends Command
         $node = $this->argument('node');
         $files[0]['node'] = $node;
         $this->processSheet($files[0]);
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
-        $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
+        $this->output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
 
     }
 
@@ -109,8 +109,7 @@ class ImportStudents extends Command
             ->orderBy('updated_at','desc')
             ->get()->toArray();
         if(!empty($files)){
-            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $output->writeln('******************* Processing a terminated file **********************');
+            $this->output->writeln('******************* Processing a terminated file **********************');
             DB::beginTransaction();
             DB::table('uploads')
                 ->where('id', $files[0]['id'])
@@ -121,18 +120,24 @@ class ImportStudents extends Command
     }
 
     protected function getFiles(){
-         $files = Upload::where('is_processed', '=', 0)
-             ->limit(1)
+        $files = Upload::where('is_processed', '=', 0)
+            ->select('uploads.id', 'uploads.security_user_id', 'uploads.institution_class_id', 'uploads.model',
+                'uploads.filename', 'uploads.is_processed', 'uploads.deleted_at', 'uploads.created_at',
+                'uploads.updated_at', 'uploads.is_email_sent', 'uploads.update', 'uploads.insert', 'uploads.node')
+            ->join('user_contacts', 'uploads.security_user_id', '=', 'user_contacts.security_user_id')
+            ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
+            ->where('contact_types.contact_option_id', '!=', 5)
+            ->limit(1)
             ->get()->toArray();
         $node = $this->argument('node');
-         if(!empty($files)){
-             DB::beginTransaction();
-             DB::table('uploads')
-                 ->where('id', $files[0]['id'])
-                 ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
-             DB::commit();
-         }
-         return $files;
+        if(!empty($files)){
+            DB::beginTransaction();
+            DB::table('uploads')
+                ->where('id', $files[0]['id'])
+                ->update(['is_processed' => 3,'updated_at' => now(),'node' => $node]);
+            DB::commit();
+        }
+        return $files;
     }
 
     protected function checkTime(){
@@ -147,14 +152,14 @@ class ImportStudents extends Command
 
     public function processSuccessEmail($file,$user,$subject) {
         $file['subject'] = $subject;
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('Processing the file: '.$file['filename']);
+        $this->output->writeln('Processing the file: '.$file['filename']);
         try {
             Mail::to($user->email)->send(new StudentImportSuccess($file));
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
+            $this->output->writeln( $ex->getMessage());
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 1, 'is_email_sent' => 2,'updated_at' => now()]);
@@ -169,6 +174,7 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
+            $this->output->writeln( $ex->getMessage());
             DB::table('uploads')
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
@@ -183,6 +189,7 @@ class ImportStudents extends Command
                 ->where('id', $file['id'])
                 ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
+            $this->output->writeln( $ex->getMessage());
             DB::table('uploads')
                 ->where('id', $file['id'])
                 ->update(['is_processed' => 2, 'is_email_sent' => 2,'updated_at' => now()]);
@@ -193,7 +200,7 @@ class ImportStudents extends Command
         $node = $this->argument('node');
         if($node == $file['node']){
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $output->writeln('Processing from:' . $node);
+            $this->output->writeln('Processing from:' . $node);
             return true;
         }else{
             exit;
@@ -205,21 +212,23 @@ class ImportStudents extends Command
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
         $this->checkNode($file);
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('##########################################################################################################################');
-        $output->writeln('Processing the file: '.$file['filename']);
+        $this->output->writeln('##########################################################################################################################');
+        $this->output->writeln('Processing the file: '.$file['filename']);
         if ($this->checkTime()) {
             try {
                 $this->import($file,1,'C');
+                sleep(10);
                 $this->import($file,2,'B');
 
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                $this->output->writeln( $e->getMessage());
                 try {
                     Mail::to($user->email)->send(new IncorrectTemplate($file));
                     DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
                 } catch (\Exception $ex) {
+                    $this->output->writeln( $e->getMessage());
                     $this->handle();
                     DB::table('uploads')
                             ->where('id', $file['id'])
@@ -286,7 +295,6 @@ class ImportStudents extends Command
      * @param $column
      */
     protected function import($file, $sheet, $column){
-            set_time_limit(300);
              try {
                 $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
@@ -294,6 +302,7 @@ class ImportStudents extends Command
                 $this->higestRow = $this->getHigestRow($file, $sheet,$column);
                 switch ($sheet){
                     case 1;
+                        $this->output->writeln( 'Trying to insert Students');
                         if (($this->getSheetName($file,'Insert Students')) && $this->higestRow > 0)  { //
                             $import = new UsersImport($file);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
@@ -320,6 +329,7 @@ class ImportStudents extends Command
                         }
                         break;
                     case 2;
+                        $this->output->writeln( 'Trying to update Students');
                         if (($this->getSheetName($file,'Update Students')) && $this->higestRow > 0) {
                             $import = new StudentUpdate($file);
                             $import->import($excelFile,'local',$this->getSheetType($file['filename']));
@@ -346,6 +356,7 @@ class ImportStudents extends Command
                         break;
                 }
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                 $this->output->writeln( $e->getMessage());
                  if($sheet == 1){
                      self::writeErrors($e,$file,'Insert Students');
                      DB::table('uploads')
@@ -406,6 +417,7 @@ class ImportStudents extends Command
             $objPHPExcel =  $reader->load($excelFile);
             return $objPHPExcel;
         }catch (Exception $e){
+            $this->output->writeln( $e->getMessage());
             $user = User::find($file['security_user_id']);
             DB::table('uploads')
                 ->where('id',  $file['id'])
@@ -416,10 +428,11 @@ class ImportStudents extends Command
     }
 
     protected function  getSheetName($file,$sheet){
-        try{
+        try{;
             $objPHPExcel = $this->setReader($file);
             return $objPHPExcel->getSheetByName($sheet)  !== null;
         }catch (Exception $e){
+            $this->output->writeln( $e->getMessage());
             $user = User::find($file['security_user_id']);
             DB::table('uploads')
                 ->where('id',  $file['id'])
@@ -445,6 +458,7 @@ class ImportStudents extends Command
             }
             return $higestRow;
         }catch(\Exception $e){
+            $this->output->writeln( $e->getMessage());
             $user = User::find($file['security_user_id']);
             DB::beginTransaction();
             DB::table('uploads')
@@ -457,12 +471,11 @@ class ImportStudents extends Command
     }
 
     protected function stdOut($title,$rows){
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln(   $title. ' Process completed at . '.' '. now());
+        $this->output->writeln(   $title. ' Process completed at . '.' '. now());
         $now = Carbon::now()->tz('Asia/Colombo');
-        $output->writeln('Total Processed lines: ' . $rows);
-        $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
-        $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
+        $this->output->writeln('Total Processed lines: ' . $rows);
+        $this->output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+        $this->output->writeln('--------------------------------------------------------------------------------------------------------------------------');
     }
 
 
@@ -472,7 +485,7 @@ class ImportStudents extends Command
         $sheet = $reader->getActiveSheet();
         if(!in_array($row,$params['rows'])){
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $output->writeln(    ' removing row . '.' '. $row);
+            $this->output->writeln(    ' removing row . '.' '. $row);
             $reader->getActiveSheet()->getCellCollection()->removeRow($row);
         }
     }
@@ -486,7 +499,7 @@ class ImportStudents extends Command
             gc_collect_cycles();
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-            $cacheSettings = array( ' memoryCacheSize ' => '256MB');
+            $cacheSettings = array( ' memoryCacheSize ' => '512MB');
             \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
@@ -508,16 +521,17 @@ class ImportStudents extends Command
                 Storage::disk('local')->makeDirectory('sis-bulk-data-files/processed');
                 $objWriter->save(storage_path() . '/app/sis-bulk-data-files/processed/' . $file['filename']);
                 $now = Carbon::now()->tz('Asia/Colombo');
-                $output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
-                $output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
-                $output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
-                $output->writeln(' errors reported               : '.count($failures));
-                $output->writeln('--------------------------------------------------------------------------------------------------------------------------');
+                $this->output->writeln(  $reader->getActiveSheet()->getTitle() . ' Process completed at . '.' '. now());
+                $this->output->writeln('memory usage for the processes : '.(memory_get_usage() - $baseMemory));
+                $this->output->writeln( 'Time taken to process           : '.   $now->diffInSeconds($this->startTime) .' Seconds');
+                $this->output->writeln(' errors reported               : '.count($failures));
+                $this->output->writeln('--------------------------------------------------------------------------------------------------------------------------');
                 unset($objWriter);
                 unset($failures);
             }
 
         }catch (Eception $e){
+            $this->output->writeln( $e->getMessage());
             $user = User::find($file['security_user_id']);
             DB::beginTransaction();
             DB::table('uploads')

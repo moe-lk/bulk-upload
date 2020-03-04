@@ -10,6 +10,7 @@ use App\Models\Security_user;
 use App\Models\Identity_type;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as IlluminateValidator;
 use Illuminate\Support\Facades\Log;
 use App\Models\Education_grade;
@@ -25,7 +26,8 @@ class ValidatorExtended extends IlluminateValidator {
         'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         "is_bc" => "The Birth Certificate number is not valid",
         "nic" => "NIC number is Not valid",
-        "is_student_in_class" => "The Student ID is not belong to this class"
+        "is_student_in_class" => "The Student ID is not belong to this class",
+        "bmi" => "The record must have BMI information"
     );
 
     public function __construct($translator, $data, $rules, $messages = array(),
@@ -63,6 +65,34 @@ class ValidatorExtended extends IlluminateValidator {
         } else {
             return false;
         }
+    }
+
+    protected function validateBmi($attribute, $value, $parameters)
+    {
+        $bmiGrades =  [1,4,7,10];
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])->first();
+        $educationGrade =  Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+            if(in_array($institutionGrade->education_grade_id,$bmiGrades)){
+                if(!empty($value)){
+                    if(($attribute == 'bmi_height') || ('bmi_weight')){
+                        $v = Validator::make([$attribute => $value], [
+                            $attribute => 'number|min:50|max:200'
+                            ]);
+                        if($v->fails()) {
+                            $this->_custom_messages['bmi'] =  $attribute.' is not a valid input';
+                            $this->_set_custom_stuff();
+                            return false;
+                        }
+                        return true;
+                    }
+                }else{
+                    $this->_custom_messages['bmi'] =  $attribute.' is required for '. $educationGrade->name;
+                    $this->_set_custom_stuff();
+                    return false;
+                }
+            }else{
+                return true;
+            }
     }
 
     protected function validateBirthPlace($attribute, $value, $perameters, $validator) {

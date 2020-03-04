@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddNodeToUploads extends Migration
+class AddPromotedToInstitutionGrades extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class AddNodeToUploads extends Migration
      */
     public function up()
     {
-        Schema::table('uploads', function (Blueprint $table) {
-            //
-//             $table->string('node')->default('None');
+        Schema::table('institution_grades', function (Blueprint $table) {
+            $table->string('promoted')->default('2019');//
         });
     }
 
@@ -26,9 +25,9 @@ class AddNodeToUploads extends Migration
      */
     public function down()
     {
-        Schema::table('uploads', function (Blueprint $table) {
+        Schema::table('institution_grades', function (Blueprint $table) {
             //
-            $table->removeColumn('node');
+            $table->removeColumn('promoted');
         });
     }
 }

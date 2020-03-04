@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Upload;
+use Aws\Ses\SesClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -19,6 +21,13 @@ class FileController extends Controller
 
     public function __construct()
     {
+        $this->ses = new SesClient(
+            [
+                'version' => '2010-12-01',
+                'region' => 'us-east-2',
+
+            ]
+        );
     }
 
     /**
@@ -26,6 +35,8 @@ class FileController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function upload(Request $request){
+
+
 
         $validator = Validator::make(
             [
@@ -43,10 +54,21 @@ class FileController extends Controller
             ],
             ['email.required' => 'You dont have email  in your account, pleas contact your Zonal/Provincial Coordinator and update the email to get notification']
         );
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator);
-        }
+//        try {
+//            $result = $this->ses->verifyEmailIdentity([
+//                'EmailAddress' => auth()->user()->email,
+//            ]);
+//            var_dump($result);
+//        } catch (AwsException $e) {
+//            // output error message if fails
+//            echo $e->getMessage();
+//            echo "\n";
+//        }
+//        if ($validator->fails()) {
+//            return back()
+//                ->withErrors($validator);
+//        }
+
 
         $uploadFile = $validator->validated()['import_file'];
         $class = Institution_class::find($validator->validated()['class']);
@@ -71,6 +93,18 @@ class FileController extends Controller
 
 
         return redirect('/')->withSuccess('The file is uploaded, we will process and let you know by your email');
+    }
+
+    public function updateQueueWithUnprocessedFiles($id, $action){
+        if($action == 100){
+            DB::table('uploads')
+                ->where('id', $id)
+                ->update(['is_processed' => 0]);
+        }elseif ($action == 200) {
+            DB::table('uploads')
+                ->where('id', $id)
+                ->update(['is_processed' => 4]);
+        }
     }
 
 

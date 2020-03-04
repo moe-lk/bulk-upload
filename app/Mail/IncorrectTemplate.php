@@ -31,7 +31,7 @@ class IncorrectTemplate extends Mailable
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "The Template you used for upload having some issues, please reconfirme and reupload with correct template",
+            'name'=>$this->user->first_name, "body" => "The Template you used for upload having some issues, please reconfirm and re-upload with correct template",
             'link' =>  env('APP_URL').'/download/' .$file['filename']
         ];
     }

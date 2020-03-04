@@ -1,24 +1,27 @@
 <?php
 
+namespace App;
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Academic_period extends Base_Model  {
+
+class Education_programmes_next_programme extends Model  {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'academic_periods';
+    protected $table = 'education_programmes_next_programmes';
 
     /**
      * Attributes that should be mass-assignable.
      *
      * @var array
      */
-    protected $fillable = ['code', 'name', 'start_date', 'start_year', 'end_date', 'end_year', 'school_days', 'current', 'editable', 'parent_id', 'lft', 'rght', 'academic_period_level_id', 'order', 'visible', 'modified_user_id', 'modified', 'created_user_id', 'created'];
+    protected $fillable = ['education_programme_id', 'next_programme_id'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -39,10 +42,6 @@ class Academic_period extends Base_Model  {
      *
      * @var array
      */
-    protected $dates = ['start_date', 'end_date', 'modified', 'created'];
-
-    public function getAcademicPeriod($year){
-        return self::query()->where('code',$year)->first();
-    }
+    protected $dates = [];
 
 }

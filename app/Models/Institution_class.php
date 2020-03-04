@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_class extends Model  {
+class Institution_class extends Base_Model  {
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
+
 
 
     /**
@@ -53,5 +54,16 @@ class Institution_class extends Model  {
         return $this->belongsTo('App\Models\Institution','institution_id');
     }
 
+
+    public function getShiftClasses($shift){
+        return self::query()
+            ->select('institution_classes.id','institution_classes.institution_id','institution_classes.institution_shift_id',
+                'institution_classes.name','institution_classes.no_of_students','institution_classes.class_number','institution_class_grades.education_grade_id')
+            ->where('institution_shift_id',$shift)
+//            ->where('academic_period_id',$academicPeriod)
+            ->join('institution_class_grades','institution_classes.id','institution_class_grades.institution_class_id')
+            ->groupBy('institution_classes.id')
+            ->get()->toArray();
+    }
 
 }

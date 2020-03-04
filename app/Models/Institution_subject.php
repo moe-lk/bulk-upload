@@ -61,6 +61,12 @@ class Institution_subject extends Model  {
 
 
 
+    public function getInstitutionSubjects($institution_id,$academic_period_id){
+        return self::query()->where('institution_id',$institution_id)
+            ->where('academic_period_id',$academic_period_id)
+            ->get()->toArray();
+    }
+
 
 
 }
