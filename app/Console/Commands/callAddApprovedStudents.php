@@ -39,6 +39,7 @@ class callAddApprovedStudents extends Command
      */
     public function handle()
     {
+        ini_set('memory_limit','2048');
         $institutions = $this->instituions->all()->chunk(50)->toArray();
         array_walk($institutions,array($this,'addInstitutionStudents'));
     }

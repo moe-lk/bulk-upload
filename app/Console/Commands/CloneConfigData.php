@@ -3,9 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Models\Academic_period;
+use App\Models\Institution;
 use App\Models\Institution_class;
+use App\Models\Institution_class_grade;
 use App\Models\Institution_class_subject;
 use App\Models\Institution_shift;
+use App\Models\Institution_subject;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Console\Input\InputInterface;
@@ -43,6 +46,8 @@ class CloneConfigData extends Command
         $this->academic_period = new Academic_period();
         $this->institution_classes = new Institution_class();
         $this->institution_class_subjects = new Institution_class_subject();
+        $this->institution_subjects =  new Institution_subject();
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
     /**
@@ -66,10 +71,10 @@ class CloneConfigData extends Command
         array_walk($shift,array($this,'process'),$params);
         $this->end_time = microtime(TRUE);
 
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-        $output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
-        $output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+
+       $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+       $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+       $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
 
     }
 
@@ -84,44 +89,125 @@ class CloneConfigData extends Command
 //        DB::beginTransaction();
         try{
             $shiftId = $this->updateShifts($year, $shift);
-            $institutionClasses = $this->institution_classes->getShiftClasses($previousAcademicPeriod->id, $shift['id']);
+            $institutionClasses = $this->institution_classes->getShiftClasses($shift['id']);
+            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'],$previousAcademicPeriod);
             $classIds = array_value_recursive('id',$institutionClasses);
-            $institutionClassesSubjects = $this->institution_class_subjects->getInstitutionClassSubjects($previousAcademicPeriod->id,array($classIds));
+
 
             if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod) ) {
-                $params = ['institution_shift_id' => $shiftId,
-                    'academic_period_id' => $academicPeriod->id];
+
 
                 $newInstitutionClasses = $this->generateNewClass($institutionClasses,$shiftId,$academicPeriod->id);
-                $this->institution_classes->insert($newInstitutionClasses);
-                $newInstitutionClasses = $this->institution_classes->getShiftClasses($academicPeriod->id,$shiftId);
+
+
 
                 $params = [
-                    'class_subject' => $institutionClassesSubjects,
-                    'institution_classes' => $institutionClasses
+                    'previous_academic_period_id' => $previousAcademicPeriod->id,
+                    'academic_period_id' => $academicPeriod->id,
+                    'shift_id' =>$shiftId
                 ];
 
-                array_walk($newInstitutionClasses,array($this,'setNextClass'),$params);
-                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('##########################################################################################################################');
-                $output->writeln('updating from '. $shiftId);
+
+                try{
+                    //TODO rewrite to a funciton insert institution class
+                    array_walk($newInstitutionClasses,array($this,'insertInstitutionClasses'),$params);
+                }catch (\Exception $e){
+                    dd($e);
+                }
+
+                $newInstitutionClasses = $this->institution_classes->getShiftClasses($shiftId);
+                $params['institution_classes'] = $newInstitutionClasses;
+
+                array_walk($institutionClasses,array($this,'setNextClass'),$params);
+                array_walk($institutionSubjects , array($this,'insertInstitutionSubjects'),$academicPeriod);
+
+
+               $this->output->writeln('##########################################################################################################################');
+               $this->output->writeln('updating from '. $shiftId);
             }
 //            DB::commit();
         }catch (\Exception $e){
 //            DB::rollBack();
+            dd($e);
         }
     }
 
 
-    public function setNextClass($currentClass,$count,$params){
-        $classes = $params['institution_classes'];
-        $subjects = $params['class_subject'];
+    /**
+     * @param $subjects
+     * @param $count
+     * @param $academicPeriod
+     */
+    public function insertInstitutionSubjects($subjects, $count,$academicPeriod){
+        $subjects['academic_period_id'] = $academicPeriod;
+        $subjects['created'] = now();
+        unset($subjects['total_male_students']);
+        unset($subjects['total_female_students']);
+        unset($subjects['id']);
+        Institution_subject::create($subjects);
+    }
 
- //        array_search($currentClass->name,array_column($classes[0],'name'));
-        $classId =  array_search($currentClass['name'],array_column($classes,'name'));
-//        $newClassId =  array_search($classes[$classId]['id'],array_column($subjects,'institution_class_id'));
-//        dd($subjects);
-        array_walk($subjects,array($this,'createSubjects'),$classes[$classId]);
+
+    public function  insertInstitutionClasses($class,$count,$param){
+
+        $academicPeriod = $param['academic_period_id'];
+        $classSubjects = Institution_class_subject::query()->where('institution_class_id',$class['id'])->get()->toArray();
+
+        //TODO implement insert class subjects function
+        $classId = $class['id'];
+        unset($class['id']);
+        $institutionSubjects = Institution_subject::query()->where('education_grade_id',$class['education_grade_id'])
+            ->where('academic_period_id',$academicPeriod)->get()->toArray();
+        $params = [
+            'class'=>$class,
+            'subjects'=>$institutionSubjects,
+            'academic_period_id'=> $academicPeriod,
+            'classId' => $classId
+        ];
+        unset($class['education_grade_id']);
+        $noOfStudents = $class['no_of_students'] == 0 ? 40 : $class['no_of_students'];
+        $class['academic_period_id'] = $academicPeriod;
+        $class['no_of_students'] = $noOfStudents;
+        $class['created'] = now();
+        $class['institution_shift_id'] = $param['shift_id'];
+        $this->output->writeln('Create class:'. $class['name']);
+        $class = Institution_class::create($class);
+        $params['class'] = $class;
+        array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
+    }
+
+    public function insertInstitutionClassSubjects($classSubject,$count,$params){
+
+        $subject = array_search($params['classId'] ,array_column($params['subjects'],'institution_class_id'));
+        if($subject){
+            unset($classSubject['id']);
+
+            $class = $params['class'];
+            $subjects = Institution_subject::query()->where('institution_id',$class['institution_id'])
+                ->where('education_grade_id',$class['education_grade_id'])
+                ->where('academic_period_id',$params['academic_period_id'])->get()->toArray();
+            if($subjects !=[]){
+                dd($subjects);
+            };
+            $classSubject['institution_class_id'] = $params['class'];
+        }
+
+    }
+
+    public function setNextClass($currentClass,$count,$params){
+        $institutionClasses = $params['institution_classes'];
+//        dd($currentClass);
+        $classGrade = Institution_class_grade::query()->where('institution_class_id',$currentClass['id'])->get()->toArray();
+        $class = Institution_class::find($currentClass['id']);
+        $class = array_search($currentClass['name'],array_column($institutionClasses,'name'));
+        if(is_numeric($class)){
+            $institutionClass = $institutionClasses[$class];
+            $classes = $params['institution_classes'];
+            $subjects = $params['class_subject'];
+            $classId =  array_search($currentClass['name'],array_column($classes,'name'));
+            array_walk($subjects,array($this,'createSubjects'),$classes[$classId]);
+        }
+
     }
 
     public function createSubjects($subject,$count,$newClassId){
@@ -140,11 +226,6 @@ class CloneConfigData extends Command
     public function generateNewClass($classes,$shiftId,$academicPeriod){
         $newClasses = [];
         foreach ( $classes as $class) {
-            unset($class['id']);
-            unset($class['staff_id']);
-            unset($class['total_male_students']);
-            unset($class['total_female_students']);
-            unset($class['total_students']);
             $noOfStudents = $class['no_of_students'] == 0 ? 40 : $class['no_of_students'];
             $class['academic_period_id'] = $academicPeriod;
             $class['no_of_students'] = $noOfStudents;
@@ -167,9 +248,5 @@ class CloneConfigData extends Command
         $shift['academic_period_id'] = $academicPeriod->id;
         $exist = $this->shifts->shiftExists($shift);
         return $this->shifts->create((array)$shift)->id;
-//        if(!$exist){
-//            $shift['cloned'] = '2020';
-//            return ;
-//        }
     }
 }
