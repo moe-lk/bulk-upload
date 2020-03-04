@@ -103,6 +103,7 @@ class Security_user extends Base_Model  {
     protected $dates = ['date_of_birth', 'date_of_death', 'last_login', 'modified', 'created'];
 
 
+
    public function rules()
     {
         return [
@@ -134,5 +135,20 @@ class Security_user extends Base_Model  {
 
     public function special_needs(){
         return $this->hasMany('App\Models\User_special_need','id','security_user_id');
+    }
+
+    public function genUUID(){
+        $uuid = Uuid::generate(4);
+        return str_split($uuid,'8')[0];
+    }
+
+    public static function getUniqAlphanumeric(){
+       $uuid  = self::genUUID();
+       $count = Security_user::query()->where('openemis_no',$uuid)->count();
+       if($count > 0){
+           self::getUniqeAlphanumeric();
+       }else{
+           return $uuid;
+       }
     }
 }
