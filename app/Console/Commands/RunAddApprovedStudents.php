@@ -105,18 +105,17 @@ class RunAddApprovedStudents extends Command
                    'student_status_id' => 1,
                    'created_user_id' => $student['created_user_id'],
                ]);
+                $output->writeln('
+        ####################################################
+           Total number of students updated : '.$this->count.'
+        #                                                  #
+        ####################################################' );
+//        $output->writeln();
            }catch (\Exception $e){
 //               echo $e->getMessage();
                $output->writeln( $e->getMessage());
            }
         }
-        $output->writeln('
-        ####################################################
-           Total number of students updated : '.$this->count.'
-        #                                                  #
-        #                                                  #
-        ####################################################' );
-//        $output->writeln();
     }
 
 
@@ -157,8 +156,5 @@ class RunAddApprovedStudents extends Command
             Institution_subject_student::updateOrInsert($subject);
         }
     }
-
-
-
 
 }

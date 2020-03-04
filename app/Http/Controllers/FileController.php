@@ -54,20 +54,20 @@ class FileController extends Controller
             ],
             ['email.required' => 'You dont have email  in your account, pleas contact your Zonal/Provincial Coordinator and update the email to get notification']
         );
-        try {
-            $result = $this->ses->verifyEmailIdentity([
-                'EmailAddress' => auth()->user()->email,
-            ]);
-            var_dump($result);
-        } catch (AwsException $e) {
-            // output error message if fails
-            echo $e->getMessage();
-            echo "\n";
-        }
-        if ($validator->fails()) {
-            return back()
-                ->withErrors($validator);
-        }
+//        try {
+//            $result = $this->ses->verifyEmailIdentity([
+//                'EmailAddress' => auth()->user()->email,
+//            ]);
+//            var_dump($result);
+//        } catch (AwsException $e) {
+//            // output error message if fails
+//            echo $e->getMessage();
+//            echo "\n";
+//        }
+//        if ($validator->fails()) {
+//            return back()
+//                ->withErrors($validator);
+//        }
 
 
         $uploadFile = $validator->validated()['import_file'];
