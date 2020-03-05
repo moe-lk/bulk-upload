@@ -39,6 +39,8 @@ class Institution_class extends Base_Model  {
      */
     protected $casts = [];
 
+//    protected
+
     /**
      * The attributes that should be mutated to dates.
      *

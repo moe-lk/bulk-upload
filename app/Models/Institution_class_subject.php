@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webpatser\Uuid\Uuid;
 
-class Institution_class_subject extends Model  {
+class Institution_class_subject extends Base_Model  {
 
     /**
      * The database table used by the model.
@@ -67,6 +68,14 @@ class Institution_class_subject extends Model  {
 
     }
 
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->id = (string) Uuid::generate(4);
+        });
+    }
+
     public function institutionSubject(){
         return $this->belongsTo('App\Models\Institution_subject','institution_subject_id','id')
         ->with('institutionGradeSubject');
@@ -111,5 +120,10 @@ class Institution_class_subject extends Model  {
             ->whereIn('institution_class_id',$classIds)
             ->get()
             ->toArray();
+    }
+
+    public function isDuplicated($subject){
+        return self::query()->where('institution_subject_id',$subject['institution_subject_id'])
+            ->where('institution_class_id',$subject['institution_class_id'])->exists();
     }
 }

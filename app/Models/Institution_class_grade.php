@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webpatser\Uuid\Uuid;
 
 class Institution_class_grade extends Base_Model  {
 
@@ -56,14 +57,24 @@ class Institution_class_grade extends Base_Model  {
      * @param $institutionId
      * @return mixed
      */
-    public function getParallelClasses($id, $educationGradeId, $institutionId){
-       return self::find($id)
-            ->where('institution_grades.id',$id)
-            ->where('institution_grades.education_grade_id',$educationGradeId)
-            ->where('institution_grades.institution_id',$institutionId)
-          ->join('institution_grades','institution_classes.id','=','institution_grades.institution_class_id')
+    public function getParallelClasses($id, $educationGradeId, $institutionId)
+    {
+        return self::find($id)
+            ->where('institution_grades.id', $id)
+            ->where('institution_grades.education_grade_id', $educationGradeId)
+            ->where('institution_grades.institution_id', $institutionId)
+            ->join('institution_grades', 'institution_classes.id', '=', 'institution_grades.institution_class_id')
             ->get()->toArray();
     }
+
+    public static function boot()
+    {
+        parent::boot();
+        self::creating(function ($model) {
+            $model->id = (string) Uuid::generate(4);
+        });
+    }
+
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
