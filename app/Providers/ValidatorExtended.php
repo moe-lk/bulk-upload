@@ -56,7 +56,7 @@ class ValidatorExtended extends IlluminateValidator {
         if (empty($value)) {
             return false;
         } elseif ($gradeEntity !== null) {
-            $admissionAge = (($gradeEntity->admission_age)*12)-1;
+            $admissionAge = (($gradeEntity->admission_age)*12);
             $to = $academicPeriod->start_date;
             $diff_in_months = $to->diffInMonths($value);
             $ageOfStudent = $diff_in_months;
