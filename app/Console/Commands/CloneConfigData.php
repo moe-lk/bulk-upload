@@ -198,6 +198,7 @@ class CloneConfigData extends Command
             $subjectobj['status'] = 1;
             $subjectobj['created_user_id'] = 1;
             $subjectobj['created'] = now();
+
             $subjectobj['institution_class_id'] = $newClassId->id;
             $subjectobj['institution_subject_id'] = $subject['id'];
 
