@@ -171,14 +171,14 @@ class CloneConfigData extends Command
                 $institutionSubjects = Institution_subject::query()->where('education_grade_id',$educationGrdae)
                     ->where('institution_id',$class->institution_id)
                     ->where('academic_period_id',$academicPeriod)
-                    ->get()
                     ->groupBy('education_subject_id')
+                    ->get()
                     ->toArray();
                 $params['class'] = $class;
                 $this->insertInstitutionClassSubjects($institutionSubjects,$class);
 //                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),$e);
+                 Log::error($e->getMessage(),[$e]);
             }
     }
 
@@ -188,14 +188,13 @@ class CloneConfigData extends Command
                 array_walk($subjects,array($this,'insertClassSubjects'),$class);
                 $this->output->writeln('updating subjects '. $class->name);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),$e);
+                 Log::error($e->getMessage(),[$e]);
             }
         };
     }
 
     public function insertClassSubjects($subject,$count,$newClassId){
         try{
-            $subject = $subject[0];
             $subjectobj['status'] = 1;
             $subjectobj['created_user_id'] = 1;
             $subjectobj['created'] = now();
@@ -206,7 +205,6 @@ class CloneConfigData extends Command
                 $this->institution_class_subjects->create($subjectobj);
             }
         }catch (\Exception $e){
-            dd($e);
              Log::error($e->getMessage(),[$e]);
         }
     }
