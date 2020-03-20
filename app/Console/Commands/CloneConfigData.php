@@ -110,13 +110,13 @@ class CloneConfigData extends Command
                     $this->output->writeln('updating from '. $shiftId);
 
                 }catch (\Exception $e){
-                     Log::error($e->getMessage(),$e);
+                     Log::error($e->getMessage(),[$e]);
                 }
             }
 //            DB::commit();
         }catch (\Exception $e){
 //            DB::rollBack();
-             Log::error($e->getMessage(),$e);
+             Log::error($e->getMessage(),[$e]);
         }
     }
 
@@ -135,7 +135,7 @@ class CloneConfigData extends Command
            unset($subjects['id']);
            $classSubject = Institution_subject::create($subjects);
        }catch (\Exception $e){
-            Log::error($e->getMessage(),$e);
+            Log::error($e->getMessage(),[$e]);
        }
     }
 
