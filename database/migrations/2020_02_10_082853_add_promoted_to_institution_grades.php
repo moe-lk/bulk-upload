@@ -14,7 +14,11 @@ class AddPromotedToInstitutionGrades extends Migration
     public function up()
     {
         Schema::table('institution_grades', function (Blueprint $table) {
-            $table->string('promoted')->default('2019');//
+            $column = $table->hasColumn('promoted');
+            if(!$column){
+                $table->string('promoted')->default('2019');//
+
+            }
         });
     }
 
@@ -27,7 +31,10 @@ class AddPromotedToInstitutionGrades extends Migration
     {
         Schema::table('institution_grades', function (Blueprint $table) {
             //
-            $table->removeColumn('promoted');
+            $column = $table->hasColumn('promoted');
+            if($column){
+                $table->removeColumn('promoted');
+            }
         });
     }
 }
