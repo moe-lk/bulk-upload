@@ -35,7 +35,7 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "github-oauth": {
-            "github.com": "44337c491ae564588eff5741226eb0b76d4d5b7c"
+            "github.com": "a8e4075d34fa76e27b9b65042b6c68eaf548037b"
         }
 
     },
