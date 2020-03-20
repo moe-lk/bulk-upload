@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddPromotedToInstitutionGrades extends Migration
+class AddSecurityTimeoutToSecurityUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,10 @@ class AddPromotedToInstitutionGrades extends Migration
      */
     public function up()
     {
-        Schema::table('institution_grades', function (Blueprint $table) {
-            $column = $table->hasColumn('promoted');
+        Schema::table('security_users', function (Blueprint $table) {
+            $column = $table->hasColumn('security_timeout');
             if(!$column){
-                $table->string('promoted')->default('2019');//
-
+                $table->dateTime('security_timeout')->nullable(true);
             }
         });
     }
@@ -29,11 +28,11 @@ class AddPromotedToInstitutionGrades extends Migration
      */
     public function down()
     {
-        Schema::table('institution_grades', function (Blueprint $table) {
+        Schema::table('security_users', function (Blueprint $table) {
             //
-            $column = $table->hasColumn('promoted');
+            $column = $table->hasColumn('security_timeout');
             if($column){
-                $table->removeColumn('promoted');
+                $table->dropColumn('security_timeout');
             }
         });
     }

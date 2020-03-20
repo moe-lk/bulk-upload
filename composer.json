@@ -37,6 +37,7 @@
         "github-oauth": {
             "github.com": "94378d9bdfd13499c764b4c3a999937e2fb3625d"
         }
+
     },
     "extra": {
         "laravel": {
