@@ -35,8 +35,9 @@
         "preferred-install": "dist",
         "sort-packages": true,
         "github-oauth": {
-            "github.com": "c03ba3acc815672e726548adef54ce7112edf5d0"
+            "github.com": "41148d29c6dfc68853dd304015a3b8371bb09dda"
         }
+
     },
     "extra": {
         "laravel": {

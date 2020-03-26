@@ -13,14 +13,17 @@ class CreateUnprocessedStudentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('unprocessed_students', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->integer('current_unprocessed_students_count');
-            $table->tinyInteger('is_processed');
-            $table->tinyInteger('notification');
-            $table->integer('institution_id');
-            $table->timestamps();
-        });
+        $hasTable = Schema::hasTable('unprocessed_students');
+        if(!$hasTable){
+            Schema::create('unprocessed_students', function (Blueprint $table) {
+                $table->bigIncrements('id');
+                $table->integer('current_unprocessed_students_count');
+                $table->tinyInteger('is_processed');
+                $table->tinyInteger('notification');
+                $table->integer('institution_id');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
