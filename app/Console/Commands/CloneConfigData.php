@@ -11,6 +11,7 @@ use App\Models\Institution_shift;
 use App\Models\Institution_subject;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -90,16 +91,11 @@ class CloneConfigData extends Command
         try{
             $shiftId = $this->updateShifts($year, $shift);
             $institutionClasses = $this->institution_classes->getShiftClasses($shift['id']);
-            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'],$previousAcademicPeriod);
-            $classIds = array_value_recursive('id',$institutionClasses);
-
-
+            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'],$previousAcademicPeriod->id);
+            array_walk($institutionSubjects , array($this,'insertInstitutionSubjects'),$academicPeriod);
             if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod) ) {
 
-
                 $newInstitutionClasses = $this->generateNewClass($institutionClasses,$shiftId,$academicPeriod->id);
-
-
 
                 $params = [
                     'previous_academic_period_id' => $previousAcademicPeriod->id,
@@ -107,28 +103,20 @@ class CloneConfigData extends Command
                     'shift_id' =>$shiftId
                 ];
 
-
                 try{
-                    //TODO rewrite to a funciton insert institution class
                     array_walk($newInstitutionClasses,array($this,'insertInstitutionClasses'),$params);
+                    $newInstitutionClasses = $this->institution_classes->getShiftClasses($shiftId);
+                    $this->output->writeln('##########################################################################################################################');
+                    $this->output->writeln('updating from '. $shiftId);
+
                 }catch (\Exception $e){
-                    dd($e);
+                     Log::error($e->getMessage(),$e);
                 }
-
-                $newInstitutionClasses = $this->institution_classes->getShiftClasses($shiftId);
-                $params['institution_classes'] = $newInstitutionClasses;
-
-                array_walk($institutionClasses,array($this,'setNextClass'),$params);
-                array_walk($institutionSubjects , array($this,'insertInstitutionSubjects'),$academicPeriod);
-
-
-               $this->output->writeln('##########################################################################################################################');
-               $this->output->writeln('updating from '. $shiftId);
             }
 //            DB::commit();
         }catch (\Exception $e){
 //            DB::rollBack();
-            dd($e);
+             Log::error($e->getMessage(),$e);
         }
     }
 
@@ -139,80 +127,83 @@ class CloneConfigData extends Command
      * @param $academicPeriod
      */
     public function insertInstitutionSubjects($subjects, $count,$academicPeriod){
-        $subjects['academic_period_id'] = $academicPeriod;
-        $subjects['created'] = now();
-        unset($subjects['total_male_students']);
-        unset($subjects['total_female_students']);
-        unset($subjects['id']);
-        Institution_subject::create($subjects);
+       try{
+           $subjects['academic_period_id'] = $academicPeriod->id;
+           $subjects['created'] = now();
+           unset($subjects['total_male_students']);
+           unset($subjects['total_female_students']);
+           unset($subjects['id']);
+           $classSubject = Institution_subject::create($subjects);
+       }catch (\Exception $e){
+            Log::error($e->getMessage(),$e);
+       }
     }
 
 
     public function  insertInstitutionClasses($class,$count,$param){
+            try{
 
-        $academicPeriod = $param['academic_period_id'];
-        $classSubjects = Institution_class_subject::query()->where('institution_class_id',$class['id'])->get()->toArray();
+                $academicPeriod = $param['academic_period_id'];
+                $educationGrdae = $class['education_grade_id'];
 
-        //TODO implement insert class subjects function
-        $classId = $class['id'];
-        unset($class['id']);
-        $institutionSubjects = Institution_subject::query()->where('education_grade_id',$class['education_grade_id'])
-            ->where('academic_period_id',$academicPeriod)->get()->toArray();
-        $params = [
-            'class'=>$class,
-            'subjects'=>$institutionSubjects,
-            'academic_period_id'=> $academicPeriod,
-            'classId' => $classId
-        ];
-        unset($class['education_grade_id']);
-        $noOfStudents = $class['no_of_students'] == 0 ? 40 : $class['no_of_students'];
-        $class['academic_period_id'] = $academicPeriod;
-        $class['no_of_students'] = $noOfStudents;
-        $class['created'] = now();
-        $class['institution_shift_id'] = $param['shift_id'];
-        $this->output->writeln('Create class:'. $class['name']);
-        $class = Institution_class::create($class);
-        $params['class'] = $class;
-        array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
+                $classId = $class['id'];
+                unset($class['id']);
+                $institutionSubjects = Institution_subject::query()->where('education_grade_id',$class['education_grade_id'])
+                    ->where('institution_id',$class['institution_id'])
+                    ->where('academic_period_id',$academicPeriod)->get()->toArray();
+                $params = [
+                    'class'=>$class,
+                    'subjects'=>$institutionSubjects,
+                    'academic_period_id'=> $academicPeriod,
+                    'classId' => $classId
+                ];
+                unset($class['education_grade_id']);
+                $noOfStudents = $class['no_of_students'] == 0 ? 40 : $class['no_of_students'];
+                $class['academic_period_id'] = $academicPeriod;
+                $class['no_of_students'] = $noOfStudents;
+                $class['created'] = now();
+                $class['institution_shift_id'] = $param['shift_id'];
+                $this->output->writeln('Create class:'. $class['name']);
+                $class = Institution_class::create($class);
+                $institutionClassGrdaeObj['institution_class_id'] = $class->id;
+                $institutionClassGrdaeObj['education_grade_id'] = $educationGrdae;
+                Institution_class_grade::create($institutionClassGrdaeObj);
+                $institutionSubjects = Institution_subject::query()->where('education_grade_id',$educationGrdae)
+                    ->where('institution_id',$class->institution_id)
+                    ->where('academic_period_id',$academicPeriod)->get()->toArray();
+                $params['class'] = $class;
+                $this->insertInstitutionClassSubjects($institutionSubjects,$class);
+//                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
+            }catch (\Exception $e){
+                 Log::error($e->getMessage(),$e);
+            }
     }
 
-    public function insertInstitutionClassSubjects($classSubject,$count,$params){
+    public function insertInstitutionClassSubjects($subjects,$class){
+        if(!empty($subjects)){
+            try{
+                array_walk($subjects,array($this,'insertClassSubjects'),$class);
+                $this->output->writeln('updating subjects '. $class->name);
+            }catch (\Exception $e){
+                 Log::error($e->getMessage(),$e);
+            }
+        };
+    }
 
-        $subject = array_search($params['classId'] ,array_column($params['subjects'],'institution_class_id'));
-        if($subject){
-            unset($classSubject['id']);
+    public function insertClassSubjects($subject,$count,$newClassId){
+        try{
+            $subjectobj['status'] = 1;
+            $subjectobj['created_user_id'] = 1;
+            $subjectobj['created'] = now();
+            $subjectobj['institution_class_id'] = $newClassId->id;
+            $subjectobj['institution_subject_id'] = $subject['id'];
 
-            $class = $params['class'];
-            $subjects = Institution_subject::query()->where('institution_id',$class['institution_id'])
-                ->where('education_grade_id',$class['education_grade_id'])
-                ->where('academic_period_id',$params['academic_period_id'])->get()->toArray();
-            if($subjects !=[]){
-                dd($subjects);
-            };
-            $classSubject['institution_class_id'] = $params['class'];
+            if(!$this->institution_class_subjects->isDuplicated($subjectobj)){
+                $this->institution_class_subjects->create($subjectobj);
+            }
+        }catch (\Exception $e){
+             Log::error($e->getMessage(),$e);
         }
-
-    }
-
-    public function setNextClass($currentClass,$count,$params){
-        $institutionClasses = $params['institution_classes'];
-//        dd($currentClass);
-        $classGrade = Institution_class_grade::query()->where('institution_class_id',$currentClass['id'])->get()->toArray();
-        $class = Institution_class::find($currentClass['id']);
-        $class = array_search($currentClass['name'],array_column($institutionClasses,'name'));
-        if(is_numeric($class)){
-            $institutionClass = $institutionClasses[$class];
-            $classes = $params['institution_classes'];
-            $subjects = $params['class_subject'];
-            $classId =  array_search($currentClass['name'],array_column($classes,'name'));
-            array_walk($subjects,array($this,'createSubjects'),$classes[$classId]);
-        }
-
-    }
-
-    public function createSubjects($subject,$count,$newClassId){
-        $subject['institution_class_id'] = $newClassId['id'];
-        $this->institution_class_subjects->create($subject);
     }
 
     /**
