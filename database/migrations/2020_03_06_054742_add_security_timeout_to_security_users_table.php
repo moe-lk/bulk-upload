@@ -33,6 +33,7 @@ class AddSecurityTimeoutToSecurityUsersTable extends Migration
             if($column){
                 $table->dropColumn('security_timeout');
             }
+
         });
     }
 }
