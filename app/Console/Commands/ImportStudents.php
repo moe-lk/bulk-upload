@@ -126,6 +126,7 @@ class ImportStudents extends Command
                 'uploads.updated_at', 'uploads.is_email_sent', 'uploads.update', 'uploads.insert', 'uploads.node')
             ->join('user_contacts', 'uploads.security_user_id', '=', 'user_contacts.security_user_id')
             ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
+            //only for UAT
             ->where('contact_types.contact_option_id', '=', 6)
             ->limit(1)
             ->get()->toArray();
