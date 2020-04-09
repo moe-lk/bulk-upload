@@ -96,15 +96,17 @@ class RunAddApprovedStudents extends Command
                    'created_user_id' => $student['created_user_id'],
                ]);
 
-               Institution_class_student::create([
-                   'student_id' => $student['student_id'],
-                   'institution_class_id' => $student['institution_class_id'],
-                   'education_grade_id' =>  $student['education_grade_id'],
-                   'academic_period_id' => $student['academic_period_id'],
-                   'institution_id' =>$student['institution_id'],
-                   'student_status_id' => 1,
-                   'created_user_id' => $student['created_user_id'],
-               ]);
+               if(!is_null($student['institution_class_id'])){
+                   Institution_class_student::create([
+                       'student_id' => $student['student_id'],
+                       'institution_class_id' => $student['institution_class_id'],
+                       'education_grade_id' =>  $student['education_grade_id'],
+                       'academic_period_id' => $student['academic_period_id'],
+                       'institution_id' =>$student['institution_id'],
+                       'student_status_id' => 1,
+                       'created_user_id' => $student['created_user_id'],
+                   ]);
+               }
                 $output->writeln('
         ####################################################
            Total number of students updated : '.$this->count.'

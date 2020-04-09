@@ -76,7 +76,7 @@ class ValidatorExtended extends IlluminateValidator {
                 if(!empty($value)){
                     if(($attribute == 'bmi_height') || ('bmi_weight')){
                         $v = Validator::make([$attribute => $value], [
-                            $attribute => 'number|min:50|max:200'
+                            $attribute => 'number|min:10|max:200'
                             ]);
                         if($v->fails()) {
                             $this->_custom_messages['bmi'] =  $attribute.' is not a valid input';
