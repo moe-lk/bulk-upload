@@ -51,22 +51,24 @@ class RunAddApprovedStudents extends Command
             'is_processed' => 0
         ])->get()->first();
 
-        Unprocessed_students::where([
-            'id' => $institution->id
-        ])->update([
-            'is_processed' => 1
-        ]);
+        if(!is_null($institution)){
+            Unprocessed_students::where([
+                'id' => $institution->id
+            ])->update([
+                'is_processed' => 1
+            ]);
 
-        try {
-            $this->info('adding missing students to the admission ' . $institution->name);
-            $allApprovedStudents = Institution_student_admission::where([
-                'status_id' => 124,
-                'institution_id' => $institution->institution_id
-            ])->get()->toArray();
-            $allApprovedStudents = array_chunk($allApprovedStudents, 50);
-            array_walk($allApprovedStudents, array($this, 'addStudents'));
-        } catch (\Exception $e) {
-            Log::error($e);
+            try {
+                $this->info('adding missing students to the admission ' . $institution->name);
+                $allApprovedStudents = Institution_student_admission::where([
+                    'status_id' => 124,
+                    'institution_id' => $institution->institution_id
+                ])->get()->toArray();
+                $allApprovedStudents = array_chunk($allApprovedStudents, 50);
+                array_walk($allApprovedStudents, array($this, 'addStudents'));
+            } catch (\Exception $e) {
+                Log::error($e);
+            }
         }
     }
 
