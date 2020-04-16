@@ -31,6 +31,7 @@ class StudentsIdGen extends Command
     {
         $this->count = 0;
         $this->students = new Security_user();
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
 
     }
@@ -46,6 +47,7 @@ class StudentsIdGen extends Command
             ->where('is_student',1)
             ->limit(100000)
             ->get()->toArray();
+        $this->output->writeln('Update started');
         array_walk($students,array($this,'updateNewUUID'));
     }
 
@@ -56,6 +58,7 @@ class StudentsIdGen extends Command
      */
     public function updateNewUUID($student){
         if(!Uuid::validate($student['openemis_no'])){
+            $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
                 ->update(['openemis_no' => Uuid::generate(4)]);
         }
