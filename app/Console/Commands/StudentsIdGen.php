@@ -43,6 +43,7 @@ class StudentsIdGen extends Command
      */
     public function handle()
     {
+        ini_set('memory_limit', '2048M');
         $students = $this->students->query()
             ->where('is_student',1)
             ->limit(100000)
