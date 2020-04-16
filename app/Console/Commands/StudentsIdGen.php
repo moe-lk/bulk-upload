@@ -42,7 +42,10 @@ class StudentsIdGen extends Command
      */
     public function handle()
     {
-        $students = $this->students->query()->where('is_student',1)->get()->toArray();
+        $students = $this->students->query()
+            ->where('is_student',1)
+            ->limit(100000)
+            ->get()->toArray();
         array_walk($students,array($this,'updateNewUUID'));
     }
 
