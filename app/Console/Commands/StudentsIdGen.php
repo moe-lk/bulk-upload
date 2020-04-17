@@ -13,7 +13,7 @@ class StudentsIdGen extends Command
      *
      * @var string
      */
-    protected $signature = 'students:idgen';
+    protected $signature = 'students:idgen {offset}';
 
     /**
      * The console command description.
@@ -47,6 +47,8 @@ class StudentsIdGen extends Command
         ini_set('memory_limit', '2048M');
         $students = $this->students->query()
             ->where('is_student',1)
+            ->limit(100000)
+            ->offset($this->argument('offset'))
             ->get()->toArray();
         $this->output->writeln(count('no of students'.$students));
         $this->output->writeln('Update started');
