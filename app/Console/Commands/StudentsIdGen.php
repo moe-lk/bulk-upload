@@ -50,7 +50,7 @@ class StudentsIdGen extends Command
             ->limit(100000)
             ->offset($this->argument('offset'))
             ->get()->toArray();
-        $this->output->writeln(count('no of students'.$students));
+        $this->output->writeln('no of students'.count($students));
         $this->output->writeln('Update started');
         array_walk($students,array($this,'updateNewUUID'));
         $this->end_time = microtime(TRUE);
