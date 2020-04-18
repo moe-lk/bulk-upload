@@ -298,6 +298,7 @@ class ImportStudents extends Command
      */
     protected function import($file, $sheet, $column){
              try {
+                 ini_set('memory_limit', '2048M');
                 $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
