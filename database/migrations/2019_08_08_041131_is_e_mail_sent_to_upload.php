@@ -15,7 +15,7 @@ class IsEMailSentToUpload extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $column = $table->hasColumn('is_email_sent');
+            $column = Schema::hasColumn('uploads','is_email_sent');
             if(!$column){
                 $table->boolean('is_email_sent')->default(false);
             }
@@ -31,7 +31,7 @@ class IsEMailSentToUpload extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $column = $table->hasColumn('is_email_sent');
+            $column = Schema::hasColumn('uploads','is_email_sent');
             if($column){
                 $table->removeColumn('is_email_sent');
             }
