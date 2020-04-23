@@ -14,6 +14,6 @@ RUN crontab /etc/cron.d/cool-task
 RUN touch /var/log/cron.log
 
 # RUN sudo cron -f
-CMD ["sudo","cron","-f"]
+# CMD ["sudo","cron","-f"]
 
-EXPOSE 80
+# EXPOSE 80
