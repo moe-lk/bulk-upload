@@ -13,7 +13,6 @@
                   <hr>
                   <strong>දැන්වීමයි!</strong> පද්ධති උත්ශ්‍රේණි කිරීම සම්පූර්ණයි. ඔබට දැන් ඊමේල් ලැබීමට හැකි විය යුතුය. කිසියම් ගැටළුවක් ඇත්නම් අප අමතන්න
               </div>
-
             <a href="https://onedrive.live.com/download?resid=367F7CD71188D7DA%211012&authkey=%21AL4A-jLv8V-fhEI&em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True" target="_blank"><button class="btn btn-success"> Download Template</button></a>
               <a href="{{ url('downloadExcel') }}"><button class="btn btn-success">Download Template for  Excel2007</button></a>
             <form style="border: 4px solid #a1a1a1;margin-top: 15px;padding: 10px;" action="{{ url('upload') }}" class="form-horizontal" method="post" enctype="multipart/form-data">

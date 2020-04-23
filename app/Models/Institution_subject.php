@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_subject extends Model  {
+class Institution_subject extends Base_Model  {
 
     /**
      * The database table used by the model.
@@ -61,6 +61,10 @@ class Institution_subject extends Model  {
 
 
 
-
+    public function getInstitutionSubjects($institution_id,$academic_period_id){
+        return self::query()->where('institution_id',$institution_id)
+            ->where('academic_period_id',$academic_period_id)
+            ->get()->toArray();
+    }
 
 }

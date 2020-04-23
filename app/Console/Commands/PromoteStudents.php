@@ -125,12 +125,22 @@ class PromoteStudents extends Command
                         $status
                     ];
                     array_walk($studentListToPromote,array($this,'assingeToClasses'),$params);
+                    array_walk($parallelClasses,array($this,'updateStudentCount'));
                 }
             }catch (\Exception $e){
                 dd($e);
                 Log::error($e->getMessage());
             }
         }
+
+
+
+        public function updateStudentCount($class){
+            $studentCounts = Institution_class_student::getStudentsCount($class['id']);
+            unset($studentCounts['total']);
+            Institution_class::query()->where('id',$class['id'])->update($studentCounts);
+        }
+
 
     /**
      * Process institution grade in to the define promotion senarios
@@ -227,7 +237,7 @@ class PromoteStudents extends Command
         if(!is_null($studentClass)){
             return  array_search(str_replace($educationGrade['name'],$nextGrade->name,$studentClass->name),array_column($classes,'name'));
         }else{
-            return null;
+            return false;
         }
 
     }
@@ -248,7 +258,7 @@ class PromoteStudents extends Command
 
 
         $class = $this->getStudentClass($student,$educationGrade,$nextGrade,$classes);
-        if(!empty($class)){
+        if(is_numeric($class)){
             $class = $classes[$class];
 
             if(count($classes) == 1){
