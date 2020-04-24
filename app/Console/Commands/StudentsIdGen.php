@@ -13,7 +13,7 @@ class StudentsIdGen extends Command
      *
      * @var string
      */
-    protected $signature = 'students:idgen';
+    protected $signature = 'students:idgen {offset}';
 
     /**
      * The console command description.
@@ -43,12 +43,20 @@ class StudentsIdGen extends Command
      */
     public function handle()
     {
+        $this->start_time = microtime(TRUE);
+        ini_set('memory_limit', '2048M');
         $students = $this->students->query()
             ->where('is_student',1)
             ->limit(100000)
+            ->offset($this->argument('offset'))
             ->get()->toArray();
+        $this->output->writeln('no of students'.count($students));
         $this->output->writeln('Update started');
         array_walk($students,array($this,'updateNewUUID'));
+        $this->end_time = microtime(TRUE);
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
     }
 
     /**
