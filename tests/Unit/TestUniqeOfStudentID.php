@@ -13,7 +13,6 @@ class TestUniqeOfStudentID extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = new MoeUuid();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $this->faker = new \Faker\Factory();
     }
@@ -28,7 +27,7 @@ class TestUniqeOfStudentID extends TestCase
 
     public function createUser(){
          $faker = \Faker\Factory::create();
-         $openemis_no = $this->user->getUniqAlphanumeric();
+         $openemis_no = MoeUuid::getUniqAlphanumeric();
          $exists = Security_user::query()->where('openemis_no',$openemis_no)->exists();
          $this->assertEquals(false,$exists);
          $full_name = $faker->name;
