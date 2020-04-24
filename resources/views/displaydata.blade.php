@@ -27,6 +27,7 @@
     </div>
     <script>
         $(function () {
+            $.fn.dataTable.ext.errMode = 'throw';
             $('#table').DataTable({
                 processing: false,
                 serverSide: true,
@@ -45,6 +46,7 @@
                 ]
             });
         });
+
 
         function updateProcess($id, $action) {
             var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
