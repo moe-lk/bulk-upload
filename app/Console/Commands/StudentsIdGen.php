@@ -66,9 +66,19 @@ class StudentsIdGen extends Command
      */
     public function updateNewUUID($student){
         if(!Uuid::validate($student['openemis_no'])){
+            $newId = Security_user::getUniqAlphanumeric();
             $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
-                ->update(['openemis_no' => Uuid::generate(4)]);
+                ->update(['openemis_no' => $newId]);
+        }else{
+            $newId = $this->getUUid($student['openemis_no']);
+            $this->output->writeln('Updating student:'.$student['id']);
+            Security_user::query()->where('id',$student['id'])
+            ->update(['openemis_no' => $newId]);
         }
+    }
+
+    protected function getUUid($uuid){
+        return str_split($uuid,'8')[0];
     }
 }
