@@ -13,8 +13,11 @@ class AddSecurityTimeoutToSecurityUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('security_users', function (Blueprint $table) {
-            $table->dateTime('security_timeout')-> nullable(false);
+        Schema::table('security_users', function (Blueprint $table)  {
+            $column = Schema::hasColumn('security_users','security_timeout');
+            if(!$column){
+                $table->dateTime('security_timeout')->nullable(true);
+            }
         });
     }
 
@@ -26,7 +29,11 @@ class AddSecurityTimeoutToSecurityUsersTable extends Migration
     public function down()
     {
         Schema::table('security_users', function (Blueprint $table) {
-            //
+            $column = Schema::hasColumn('security_users','security_timeout');
+            if($column){
+                $table->dropColumn('security_timeout');
+            }
+
         });
     }
 }

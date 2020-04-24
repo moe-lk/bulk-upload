@@ -51,22 +51,24 @@ class RunAddApprovedStudents extends Command
             'is_processed' => 0
         ])->get()->first();
 
-        Unprocessed_students::where([
-            'id' => $institution->id
-        ])->update([
-            'is_processed' => 1
-        ]);
+        if(!is_null($institution)){
+            Unprocessed_students::where([
+                'id' => $institution->id
+            ])->update([
+                'is_processed' => 1
+            ]);
 
-        try {
-            $this->info('adding missing students to the admission ' . $institution->name);
-            $allApprovedStudents = Institution_student_admission::where([
-                'status_id' => 124,
-                'institution_id' => $institution->institution_id
-            ])->get()->toArray();
-            $allApprovedStudents = array_chunk($allApprovedStudents, 50);
-            array_walk($allApprovedStudents, array($this, 'addStudents'));
-        } catch (\Exception $e) {
-            Log::error($e);
+            try {
+                $this->info('adding missing students to the admission ' . $institution->name);
+                $allApprovedStudents = Institution_student_admission::where([
+                    'status_id' => 124,
+                    'institution_id' => $institution->institution_id
+                ])->get()->toArray();
+                $allApprovedStudents = array_chunk($allApprovedStudents, 50);
+                array_walk($allApprovedStudents, array($this, 'addStudents'));
+            } catch (\Exception $e) {
+                Log::error($e);
+            }
         }
     }
 
@@ -96,15 +98,17 @@ class RunAddApprovedStudents extends Command
                    'created_user_id' => $student['created_user_id'],
                ]);
 
-               Institution_class_student::create([
-                   'student_id' => $student['student_id'],
-                   'institution_class_id' => $student['institution_class_id'],
-                   'education_grade_id' =>  $student['education_grade_id'],
-                   'academic_period_id' => $student['academic_period_id'],
-                   'institution_id' =>$student['institution_id'],
-                   'student_status_id' => 1,
-                   'created_user_id' => $student['created_user_id'],
-               ]);
+               if(!is_null($student['institution_class_id'])){
+                   Institution_class_student::create([
+                       'student_id' => $student['student_id'],
+                       'institution_class_id' => $student['institution_class_id'],
+                       'education_grade_id' =>  $student['education_grade_id'],
+                       'academic_period_id' => $student['academic_period_id'],
+                       'institution_id' =>$student['institution_id'],
+                       'student_status_id' => 1,
+                       'created_user_id' => $student['created_user_id'],
+                   ]);
+               }
                 $output->writeln('
         ####################################################
            Total number of students updated : '.$this->count.'
