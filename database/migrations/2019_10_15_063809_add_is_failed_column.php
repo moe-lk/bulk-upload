@@ -15,8 +15,14 @@ class AddIsFailedColumn extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->boolean('update')->default(false);
-            $table->boolean('insert')->default(false);
+             $column1 = Schema::hasColumn('uploads','update');
+             $column2 = Schema::hasColumn('uploads','insert');
+             if(!$column1){
+                $table->boolean('update')->default(false);
+             }
+            if(!$column2){
+                $table->boolean('insert')->default(false);
+            }
         });
     }
 
