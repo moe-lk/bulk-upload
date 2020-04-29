@@ -137,7 +137,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                $openemisStudent = $this->getUniqueAlphanumeric();
+                $openemisStudent = MoeUuid::getUniqueAlphanumeric(4);
                 \Log::debug('Security_user');
                 $student =  Security_user::create([
                             'username' => $openemisStudent,
@@ -260,7 +260,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = MoeUuid::getUniqueAlphanumeric();;
+                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);;;
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -305,7 +305,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = MoeUuid::getUniqueAlphanumeric();;
+                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);;;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -360,7 +360,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric();;
+                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);;;
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
