@@ -71,6 +71,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/mohamednizar/PhpSpreadsheet.git"
+        },
+        {
+            "type": "git",
+            "url": "https://github.com/mohamednizar/Laravel-Excel.git"
         }
     ],
     "minimum-stability": "dev",
