@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Security_user;
 use Illuminate\Console\Command;
-use Webpatser\Uuid\Uuid;
+use Mohamednizar\MoeUuid\MoeUuid;
 
 class StudentsIdGen extends Command
 {
@@ -30,7 +30,6 @@ class StudentsIdGen extends Command
     public function __construct()
     {
         $this->count = 0;
-        $this->students = new Security_user();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
 
@@ -65,10 +64,11 @@ class StudentsIdGen extends Command
      * @throws \Exception
      */
     public function updateNewUUID($student){
-        if(!Uuid::validate($student['openemis_no'])){
+        if(!MoeUuid::isValidMoeUuid(){
+            $newId = MoeUuid::getUniqueAlphanumeric();
             $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
-                ->update(['openemis_no' => Uuid::generate(4)]);
+                ->update(['openemis_no' => $newId]);
         }
     }
 }

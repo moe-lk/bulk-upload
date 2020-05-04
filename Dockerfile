@@ -1,10 +1,19 @@
 FROM moelk/laravel
 
+# Install cron
+USER bitnami
+RUN sudo apt-get update && sudo apt-get install -y cron
+
 COPY --chown=bitnami:bitnami . /app
+COPY --chown=bitnami:bitnami  run.sh /app/run.sh
+COPY --chown=bitnami:bitnami  crontab /etc/cron.d/cool-task
+RUN chmod 0644 /etc/cron.d/cool-task
+RUN sudo chown bitnami:bitnami /var/log /etc/environment /var/run
 
-WORKDIR /app
+RUN crontab /etc/cron.d/cool-task
+RUN touch /var/log/cron.log
 
-RUN mkdir logs tmp
+# RUN sudo cron -f
+# CMD ["sudo","cron","-f"]
 
-EXPOSE 80
-# CMD ["/usr/sbin/apache2ctl", "-DFOREGROUND"]
+# EXPOSE 80

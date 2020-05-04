@@ -128,6 +128,7 @@ class ImportStudents extends Command
             ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
             //only for UAT
             ->where('contact_types.contact_option_id', '=', 5)
+//             ->where('contact_types.contact_option_id', '!=', 5)
             ->where('contact_types.name', '=', 'TestEmail')
             ->limit(1)
             ->get()->toArray();

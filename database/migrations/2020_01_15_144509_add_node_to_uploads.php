@@ -16,7 +16,7 @@ class AddNodeToUploads extends Migration
         Schema::table('uploads', function (Blueprint $table) {
             //
             $column = Schema::hasColumn('uploads','node');
-            if($column){
+            if(!$column){
                 $table->string('node')->default('None');
             }
 
