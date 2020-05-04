@@ -20,7 +20,7 @@
         "laravel/passport": "^7.5",
         "laravel/tinker": "^1.0",
         "mohamednizar/excel": "^3.1",
-        "mohamednizar/moe-uuid": "1.1@beta",
+        "mohamednizar/moe-uuid": "^1.2@beta",
         "webpatser/laravel-uuid": "^3.0",
         "yajra/laravel-datatables-oracle": "^9.4"
     },
