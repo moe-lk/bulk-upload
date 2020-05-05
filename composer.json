@@ -13,7 +13,6 @@
         "doctrine/dbal": "^2.9",
         "fideloper/proxy": "^4.0",
         "fzaninotto/faker": "^1.9",
-        "gossi/php-code-formatter": "dev-master",
         "guzzlehttp/guzzle": "^6.4",
         "laracademy/model-generator": "^1.2",
         "laravel/framework": "5.8.*",
