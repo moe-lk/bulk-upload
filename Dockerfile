@@ -2,6 +2,7 @@ FROM moelk/laravel
 
 # Install cron
 USER bitnami
+RUN rm  composer.lock
 RUN sudo apt-get update && sudo apt-get install -y cron
 
 COPY --chown=bitnami:bitnami . /app
@@ -16,4 +17,4 @@ RUN touch /var/log/cron.log
 # RUN sudo cron -f
 # CMD ["sudo","cron","-f"]
 
-# EXPOSE 80
+EXPOSE 80

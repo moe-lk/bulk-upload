@@ -51,7 +51,8 @@
         ],
         "psr-4": {
             "App\\": "app/",
-            "App/Models\\": "app/Models"
+            "App/Models\\": "app/Models",
+            "Maatwebsite/Excel\\": "vendor/mohamednizar/excel"
         },
         "classmap": [
             "database/seeds",
@@ -71,6 +72,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/mohamednizar/PhpSpreadsheet.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/mohamednizar/Laravel-Excel.git"
         }
     ],
     "minimum-stability": "dev",
