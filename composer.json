@@ -52,7 +52,7 @@
         "psr-4": {
             "App\\": "app/",
             "App/Models\\": "app/Models",
-            "Maatwebsite\\Excel": "vendor/mohamednizar/excel"
+            "Maatwebsite/Excel\\": "vendor/mohamednizar/excel"
         },
         "classmap": [
             "database/seeds",
