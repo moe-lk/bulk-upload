@@ -13,6 +13,9 @@ RUN sudo chown bitnami:bitnami /var/log /etc/environment /var/run
 
 RUN crontab /etc/cron.d/cool-task
 RUN touch /var/log/cron.log
+RUN echo 'test' > /var/log/cron.log
+
+RUN sudo service cron restart
 
 # RUN sudo cron -f
 # CMD ["sudo","cron","-f"]
