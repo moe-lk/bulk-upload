@@ -28,6 +28,7 @@ use App\Models\Workflow_transition;
 use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
+use App\Models\User_contact;
 use App\Rules\admissionAge;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -292,11 +293,15 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
 
                         $father['guardian_relation_id'] = 1;
+                        $father['contact'] = $row['fathers_phone'];
+                        User_contact::createOrUpdate($father,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
+                        $father['contact'] = $row['fathers_phone'];
+                        User_contact::createOrUpdate($father,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
@@ -344,12 +349,15 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                        }
 
                         $mother['guardian_relation_id'] = 2;
-
+                        $mother['contact'] = $row['mothers_phone'];
+                        User_contact::createOrUpdate($mother,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
+                        $mother['contact'] = $row['mothers_phone'];
+                        User_contact::createOrUpdate($mother,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
                 }
@@ -399,11 +407,15 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                        }
 
                         $guardian['guardian_relation_id'] = 3;
+                        $guardian['contact'] = $row['guardians_phone'];
+                        User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
+                        $guardian['contact'] = $row['guardians_phone'];
+                        User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
@@ -477,6 +489,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
             '*.fathers_address' => 'required_with:fathers_full_name',
             '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
+            '*.fathers_phone' => 'nullable|required_with:fathers_full_name|regex:/[0-9]{9}/',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable|required_with:fathers_identity_type|nic:fathers_identity_number',
@@ -484,6 +497,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:mothers_full_name',
             '*.mothers_address' => 'required_with:mothers_full_name',
             '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
+            '*.mothers_phone' => 'nullable|required_with:mothers_full_name|regex:/[0-9]{9}/',
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable|required_with:mothers_identity_type|nic:mothers_identity_number',
@@ -492,6 +506,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:guardians_full_name',
             '*.guardians_address' => 'required_with:guardians_full_name',
             '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
+            '*.guardians_phone' => 'nullable|required_with:guardians_full_name|regex:/[0-9]{10}/',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable|required_with:guardians_identity_type|nic:guardians_identity_number',

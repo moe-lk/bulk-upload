@@ -250,11 +250,15 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $father['guardian_relation_id'] = 1;
+                        $father['contact'] = $row['fathers_phone'];
+                        User_contact::createOrUpdate($father,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
+                        $father['contact'] = $row['fathers_phone'];
+                        User_contact::createOrUpdate($father,$this->file['security_user_id']);
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
@@ -293,12 +297,15 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $mother['guardian_relation_id'] = 2;
-
+                        $mother['contact'] = $row['mothers_phone'];
+                        User_contact::createOrUpdate($mother,$this->file['security_user_id']);    
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
+                        $mother['contact'] = $row['mothers_phone'];
+                        User_contact::createOrUpdate($mother,$this->file['security_user_id']); 
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
                 }
@@ -340,11 +347,15 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $guardian['guardian_relation_id'] = 3;
+                        $guardian['contact'] = $row['guardians_phone'];
+                        User_contact::createOrUpdate($guardian,$this->file['security_user_id']); 
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
+                        $guardian['contact'] = $row['guardians_phone'];
+                        User_contact::createOrUpdate($guardian,$this->file['security_user_id']); 
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
