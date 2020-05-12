@@ -18,7 +18,7 @@ class Examination_student extends Model  {
      *
      * @var array
      */
-    protected $fillable = ['nsid', 'school_id', 'full_name', 'dob', 'gender', 'address', 'annual_income', 'has_special_need', 'disable_type', 'disbale_details', 'special_education_cenetr'];
+    protected $fillable = ['nsid', 'school_id', 'full_name', 'dob', 'gender', 'address', 'annual_income', 'has_special_need', 'disable_type', 'disable_details', 'special_education_centre'];
 
     /**
      * The attributes excluded from the model's JSON form.
