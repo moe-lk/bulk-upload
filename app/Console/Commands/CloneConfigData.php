@@ -71,6 +71,7 @@ class CloneConfigData extends Command
             'academic_period' => $academicPeriod,
             'previous_academic_period' => $previousAcademicPeriod
         ];
+        // dd($shift);
         array_walk($shift,array($this,'process'),$params);
         $this->end_time = microtime(TRUE);
 
