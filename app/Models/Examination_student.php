@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Examination_student extends Model  {
 
@@ -40,5 +41,16 @@ class Examination_student extends Model  {
      * @var array
      */
     protected $dates = ['dob'];
+
+    public static function insertData($data){
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $value=\DB::table('examination_students')->where('nsid', $data['nsid'])->get();
+
+        if($value->count() == 0){
+            DB::table('examination_students')->insert($data);
+            $output->writeln('Student name: '.($data['full_name']).' has been inserted to the database');
+
+        }
+    }
 
 }
