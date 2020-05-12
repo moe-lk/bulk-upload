@@ -15,7 +15,7 @@ class ExaminationStudents extends Migration
     {
         //
 
-        Schema::create('ExaminationStudents',function(Blueprint $table){
+        Schema::create('examination_students',function(Blueprint $table){
             $table->string('nsid',12);
             $table->integer('school_id');
             $table->string('full_name');
@@ -39,6 +39,6 @@ class ExaminationStudents extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists('ExaminationStudents');
+        Schema::dropIfExists('examination_students');
     }
 }
