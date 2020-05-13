@@ -46,8 +46,9 @@ class User_contact extends Base_Model  {
         if(!is_null($data['contact'])){
             $exists = self::where('security_user_id', $data->id)
                 ->where('value',$data['contact']) 
-                ->first()->toArray(); 
-            if(!$exists){
+                ->first(); 
+
+            if(!is_null($exists)){
                 $data = [
                     'security_user_id' => $data->id,
                     'value' => $data['contact'],
@@ -58,6 +59,7 @@ class User_contact extends Base_Model  {
                 ];
                 self::updateOrCreate($data);
             }else{
+                $exists = $exists->toArray();
                 $exists['preferred'] = 1;   
                 $exists['value'] = $data['contact'];
                 $exists['modified_user_id'] = $user;
