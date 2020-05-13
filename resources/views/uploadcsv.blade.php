@@ -10,7 +10,7 @@
         <!-- Upload Form -->
         @if((Auth::user()->username)=='admin')
             <h3>Please rename the file as <span class="badge badge-danger"> exams_students.csv</span>  before uploading</h3>
-            <form class="form" method='post' action='/uploadFile' enctype='multipart/form-data'>
+            <form class="form" method='post' action='{{ url('uploadFile') }}' enctype='multipart/form-data'>
                 {{ csrf_field() }}
                 <hr>
                 <input type='file' name='file'>
