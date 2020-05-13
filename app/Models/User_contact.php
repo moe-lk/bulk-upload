@@ -48,7 +48,7 @@ class User_contact extends Base_Model  {
                 ->where('value',$data['contact']) 
                 ->first(); 
 
-            if(!is_null($exists)){
+            if(is_null($exists)){
                 $data = [
                     'security_user_id' => $data->id,
                     'value' => $data['contact'],
