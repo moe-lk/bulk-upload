@@ -64,8 +64,8 @@ class StudentsIdGen extends Command
      * @throws \Exception
      */
     public function updateNewUUID($student){
-        if(!MoeUuid::isValidMoeUuid()){
-            $newId = MoeUuid::getUniqueAlphanumeric(4);
+        if(!MoeUuid::isValidMoeUuid(3)){
+            $newId = MoeUuid::getUniqueAlphanumeric(3);
             $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
                 ->update(['openemis_no' => $newId]);
