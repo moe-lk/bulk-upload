@@ -14,7 +14,10 @@ class AddClonedToInstitutionShiftsTable extends Migration
     public function up()
     {
         Schema::table('institution_shifts', function (Blueprint $table) {
-            $table->string('cloned',4)->default('2019');
+            $column = Schema::hasColumn('institution_shifts','cloned');
+            if(!$column){
+                $table->string('cloned',4)->default('2019');
+            }
         });
     }
 
@@ -26,7 +29,10 @@ class AddClonedToInstitutionShiftsTable extends Migration
     public function down()
     {
         Schema::table('institution_shifts', function (Blueprint $table) {
-           $table->removeColumn('cloned');
+            $column = Schema::hasColumn('institution_shifts','cloned');
+            if($column){
+                $table->removeColumn('cloned');
+            }
         });
     }
 }

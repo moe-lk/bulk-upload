@@ -110,13 +110,13 @@ class CloneConfigData extends Command
                     $this->output->writeln('updating from '. $shiftId);
 
                 }catch (\Exception $e){
-                     Log::error($e->getMessage(),$e);
+                     Log::error($e->getMessage(),[$e]);
                 }
             }
 //            DB::commit();
         }catch (\Exception $e){
 //            DB::rollBack();
-             Log::error($e->getMessage(),$e);
+             Log::error($e->getMessage(),[$e]);
         }
     }
 
@@ -135,7 +135,7 @@ class CloneConfigData extends Command
            unset($subjects['id']);
            $classSubject = Institution_subject::create($subjects);
        }catch (\Exception $e){
-            Log::error($e->getMessage(),$e);
+            Log::error($e->getMessage(),[$e]);
        }
     }
 
@@ -170,12 +170,15 @@ class CloneConfigData extends Command
                 Institution_class_grade::create($institutionClassGrdaeObj);
                 $institutionSubjects = Institution_subject::query()->where('education_grade_id',$educationGrdae)
                     ->where('institution_id',$class->institution_id)
-                    ->where('academic_period_id',$academicPeriod)->get()->toArray();
+                    ->where('academic_period_id',$academicPeriod)
+                    ->groupBy('education_subject_id')
+                    ->get()
+                    ->toArray();
                 $params['class'] = $class;
                 $this->insertInstitutionClassSubjects($institutionSubjects,$class);
 //                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),$e);
+                 Log::error($e->getMessage(),[$e]);
             }
     }
 
@@ -185,7 +188,7 @@ class CloneConfigData extends Command
                 array_walk($subjects,array($this,'insertClassSubjects'),$class);
                 $this->output->writeln('updating subjects '. $class->name);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),$e);
+                 Log::error($e->getMessage(),[$e]);
             }
         };
     }
@@ -195,6 +198,7 @@ class CloneConfigData extends Command
             $subjectobj['status'] = 1;
             $subjectobj['created_user_id'] = 1;
             $subjectobj['created'] = now();
+
             $subjectobj['institution_class_id'] = $newClassId->id;
             $subjectobj['institution_subject_id'] = $subject['id'];
 
@@ -202,7 +206,7 @@ class CloneConfigData extends Command
                 $this->institution_class_subjects->create($subjectobj);
             }
         }catch (\Exception $e){
-             Log::error($e->getMessage(),$e);
+             Log::error($e->getMessage(),[$e]);
         }
     }
 

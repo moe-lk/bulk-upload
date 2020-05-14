@@ -123,7 +123,7 @@ function append_errors_to_excel($error, $count, $reader){
 
         $active_sheet->getStyle($active_cell)
             ->getFill()
-            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()
             ->setARGB('FF0000');
 
@@ -151,7 +151,7 @@ function colorizeCell($column,$error,$active_sheet){
 
     $active_sheet->getStyle($active_cell)
         ->getFill()
-        ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
         ->getStartColor()
         ->setARGB('FF0000');
 

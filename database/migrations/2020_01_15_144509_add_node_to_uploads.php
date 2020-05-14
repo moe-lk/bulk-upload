@@ -15,7 +15,11 @@ class AddNodeToUploads extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-//             $table->string('node')->default('None');
+            $column = Schema::hasColumn('uploads','node');
+            if(!$column){
+                $table->string('node')->default('None');
+            }
+
         });
     }
 
@@ -28,7 +32,10 @@ class AddNodeToUploads extends Migration
     {
         Schema::table('uploads', function (Blueprint $table) {
             //
-            $table->removeColumn('node');
+            $column = Schema::hasColumn('uploads','node');
+            if($column){
+                $table->removeColumn('node');
+            }
         });
     }
 }

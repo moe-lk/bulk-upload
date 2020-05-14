@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Security_user;
 use Illuminate\Console\Command;
-use Webpatser\Uuid\Uuid;
+use Mohamednizar\MoeUuid\MoeUuid;
 
 class StudentsIdGen extends Command
 {
@@ -13,7 +13,7 @@ class StudentsIdGen extends Command
      *
      * @var string
      */
-    protected $signature = 'students:idgen';
+    protected $signature = 'students:idgen {offset}';
 
     /**
      * The console command description.
@@ -30,7 +30,7 @@ class StudentsIdGen extends Command
     public function __construct()
     {
         $this->count = 0;
-        $this->students = new Security_user();
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
 
     }
@@ -42,8 +42,20 @@ class StudentsIdGen extends Command
      */
     public function handle()
     {
-        $students = $this->students->query()->where('is_student',1)->get()->toArray();
+        $this->start_time = microtime(TRUE);
+        ini_set('memory_limit', '2048M');
+        $students = $this->students->query()
+            ->where('is_student',1)
+            ->limit(100000)
+            ->offset($this->argument('offset'))
+            ->get()->toArray();
+        $this->output->writeln('no of students'.count($students));
+        $this->output->writeln('Update started');
         array_walk($students,array($this,'updateNewUUID'));
+        $this->end_time = microtime(TRUE);
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
     }
 
     /**
@@ -52,9 +64,11 @@ class StudentsIdGen extends Command
      * @throws \Exception
      */
     public function updateNewUUID($student){
-        if(!Uuid::validate($student['openemis_no'])){
+        if(!MoeUuid::isValidMoeUuid()){
+            $newId = MoeUuid::getUniqueAlphanumeric(4);
+            $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
-                ->update(['openemis_no' => Uuid::generate(4)]);
+                ->update(['openemis_no' => $newId]);
         }
     }
 }

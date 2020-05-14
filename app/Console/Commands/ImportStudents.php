@@ -126,7 +126,10 @@ class ImportStudents extends Command
                 'uploads.updated_at', 'uploads.is_email_sent', 'uploads.update', 'uploads.insert', 'uploads.node')
             ->join('user_contacts', 'uploads.security_user_id', '=', 'user_contacts.security_user_id')
             ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
-            ->where('contact_types.contact_option_id', '!=', 5)
+            //only for UAT
+            ->where('contact_types.contact_option_id', '=', 5)
+//             ->where('contact_types.contact_option_id', '!=', 5)
+            ->where('contact_types.name', '=', 'TestEmail')
             ->limit(1)
             ->get()->toArray();
         $node = $this->argument('node');
@@ -296,6 +299,7 @@ class ImportStudents extends Command
      */
     protected function import($file, $sheet, $column){
              try {
+                 ini_set('memory_limit', '2048M');
                 $this->getFileSize($file);
                 $user = User::find($file['security_user_id']);
                 $excelFile = '/sis-bulk-data-files/' . $file['filename'];
@@ -498,9 +502,9 @@ class ImportStudents extends Command
             gc_enable();
             gc_collect_cycles();
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-            $cacheSettings = array( ' memoryCacheSize ' => '512MB');
-            \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+            //$cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
+            //$cacheSettings = array( ' memoryCacheSize ' => '512MB');
+            //\PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
             $reader = $this->setReader($file);
