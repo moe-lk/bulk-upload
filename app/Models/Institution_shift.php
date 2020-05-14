@@ -53,7 +53,7 @@ class Institution_shift extends Base_Model  {
         return self::query()
             ->select('institution_shifts.*')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
-            ->where('academic_periods.code',$year)
+            // ->where('academic_periods.code',$year)
             ->where('institution_shifts.cloned',$year)
             ->get()->toArray();
     }
