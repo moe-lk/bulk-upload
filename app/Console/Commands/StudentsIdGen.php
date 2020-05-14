@@ -69,7 +69,7 @@ class StudentsIdGen extends Command
             $newId = MoeUuid::getUniqueAlphanumeric(3);
             $this->output->writeln('Updating student:'.$student['id']);
             Security_user::query()->where('id',$student['id'])
-                ->update(['openemis_no' => $newId]);
+                ->update(['openemis_no' => $newId , 'username' => str_replace('-','',$newId)]);
         }
     }
 }

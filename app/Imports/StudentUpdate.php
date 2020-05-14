@@ -235,7 +235,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisFather),
+                                    'username' => str_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -286,7 +286,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisMother),
+                                    'username' => str_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -339,7 +339,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisGuardian),
+                                    'username' => str_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),

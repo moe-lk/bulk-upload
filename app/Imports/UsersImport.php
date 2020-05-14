@@ -141,7 +141,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 $openemisStudent = MoeUuid::getUniqueAlphanumeric(3);
                 \Log::debug('Security_user');
                 $student =  Security_user::create([
-                            'username' => srt_replace('-','',$openemisStudent),
+                            'username' => str_replace('-','',$openemisStudent),
                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => genNameWithInitials($row['full_name']),
@@ -276,7 +276,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisFather),
+                                    'username' => str_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -328,7 +328,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisMother),
+                                    'username' => str_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -390,7 +390,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => srt_replace('-','',$openemisGuardian),
+                                    'username' => str_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
