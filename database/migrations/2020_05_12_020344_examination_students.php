@@ -25,8 +25,8 @@ class ExaminationStudents extends Migration
             $table->string('annual_income');
             $table->boolean('has_special_need')->defualt(false);
             $table->string('disable_type');
-            $table->string('disbale_details');
-            $table->string('special_education_cenetr');
+            $table->string('disable_details');
+            $table->string('special_education_centre');
             $table->timestamps();
         });
     }

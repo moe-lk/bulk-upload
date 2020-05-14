@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\ExaminationStudentsController;
 use Illuminate\Console\Command;
 
 class ExaminationStudentSeed extends Command
@@ -11,7 +12,7 @@ class ExaminationStudentSeed extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:migrate';
+    protected $signature = 'examination:migration';
 
     /**
      * The console command description.
@@ -37,6 +38,9 @@ class ExaminationStudentSeed extends Command
      */
     public function handle()
     {
-        //TODO implement the seed command
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('###########################################------Inserting file records------###########################################');
+        ExaminationStudentsController::callOnClick();
+        $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
 }

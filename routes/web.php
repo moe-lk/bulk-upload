@@ -31,6 +31,8 @@ Route::post('upload', 'FileController@upload')->name('upload');
 Route::get('create', 'FilesController@create');
 Route::get('index', 'FilesController@index');
 
+Route::get('uploadcsv', 'ExaminationStudentsController@index');
+Route::post('uploadFile', 'ExaminationStudentsController@uploadFile');
 
 Route::get('download/{filename}', 'FileController@downloadErrorFile')->where('filename', '[A-Za-z0-9\-\_\.]+');
 Route::get('download_file/{filename}', 'FileController@downloadFile')->where('filename', '[A-Za-z0-9\-\_\.]+');
