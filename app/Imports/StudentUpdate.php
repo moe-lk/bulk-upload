@@ -55,6 +55,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
+use Mohamednizar\MoeUuid\MoeUuid;
 
 class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
 
@@ -219,7 +220,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this->getUniqueOpenemisId();;
+                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -234,7 +235,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => $openemisFather,
+                                    'username' => srt_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -271,7 +272,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this->getUniqueOpenemisId();;
+                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -285,7 +286,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => $openemisMother,
+                                    'username' => srt_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -324,7 +325,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this->getUniqueOpenemisId();;
+                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -338,7 +339,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => $openemisGuardian,
+                                    'username' => srt_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),

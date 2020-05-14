@@ -138,10 +138,10 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                $openemisStudent = MoeUuid::getUniqueAlphanumeric(4);
+                $openemisStudent = MoeUuid::getUniqueAlphanumeric(3);
                 \Log::debug('Security_user');
                 $student =  Security_user::create([
-                            'username' => $openemisStudent,
+                            'username' => srt_replace('-','',$openemisStudent),
                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => genNameWithInitials($row['full_name']),
@@ -261,7 +261,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -276,7 +276,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => $openemisFather,
+                                    'username' => srt_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -314,7 +314,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -328,7 +328,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => $openemisMother,
+                                    'username' => srt_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -376,7 +376,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -390,7 +390,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => $openemisGuardian,
+                                    'username' => srt_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),

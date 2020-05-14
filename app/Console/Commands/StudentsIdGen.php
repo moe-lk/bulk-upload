@@ -31,6 +31,7 @@ class StudentsIdGen extends Command
     {
         $this->count = 0;
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $this->students = new Security_user();
         parent::__construct();
 
     }
