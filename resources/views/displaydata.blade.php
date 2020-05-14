@@ -27,6 +27,7 @@
     </div>
     <script>
         $(function () {
+            $.fn.dataTable.ext.errMode = 'throw';
             $('#table').DataTable({
                 processing: false,
                 serverSide: true,
@@ -35,16 +36,17 @@
                     {data: 'id', name: 'id'},
                     {data: 'filename', name: 'filename'},
                     {data: 'error', name: 'error'},
-                    {data: 'insert', name: 'Insert Status'},
-                    {data: 'update', name: 'Update Status'},
-                    {data: 'is_processed', name: 'Overall'},
-                    {data: 'created_at', name: 'Uploaded at'},
-                    {data: 'updated_at', name: 'Last update'},
-                    {data: 'is_email_sent', name: 'Email Status'},
+                    {data: 'insert', name: 'insert'},
+                    {data: 'update', name: 'update'},
+                    {data: 'is_processed', name: 'is_processed'},
+                    {data: 'created_at', name: 'created_at'},
+                    {data: 'updated_at', name: 'updated_at'},
+                    {data: 'is_email_sent', name: 'is_email_sent'},
                     {data: 'actions', name: 'actions'}
                 ]
             });
         });
+
 
         function updateProcess($id, $action) {
             var CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
