@@ -56,7 +56,7 @@ class RunAddApprovedStudents extends Command
                 $this->info('adding missing students to the admission ' . $institution->name);
                 $allApprovedStudents = Institution_student_admission::where([
                     'status_id' => 124,
-                    'institution_id' => $institution->institution_id
+                    'institution_id' => $institution->id
                 ])->get()->toArray();
                 $allApprovedStudents = array_chunk($allApprovedStudents, 50);
                 array_walk($allApprovedStudents, array($this, 'addStudents'));
