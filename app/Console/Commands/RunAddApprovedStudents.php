@@ -74,7 +74,7 @@ class RunAddApprovedStudents extends Command
 //        dd(Institution_class_student::isDuplicated($student));
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         sleep(1);
-        if(!(Institution_class_student::isDuplicated($student) > 0)){
+        if(!(Institution_student::isDuplicated($student))){
             $this->count += 1;
             $this->student = $student ;
             try{
@@ -92,17 +92,20 @@ class RunAddApprovedStudents extends Command
                    'created_user_id' => $student['created_user_id'],
                ]);
 
-               if(!is_null($student['institution_class_id'])){
-                   Institution_class_student::create([
-                       'student_id' => $student['student_id'],
-                       'institution_class_id' => $student['institution_class_id'],
-                       'education_grade_id' =>  $student['education_grade_id'],
-                       'academic_period_id' => $student['academic_period_id'],
-                       'institution_id' =>$student['institution_id'],
-                       'student_status_id' => 1,
-                       'created_user_id' => $student['created_user_id'],
-                   ]);
-               }
+               if(!(Institution_class_student::isDuplicated($student))){
+                    if(!is_null($student['institution_class_id'])){
+                        Institution_class_student::create([
+                            'student_id' => $student['student_id'],
+                            'institution_class_id' => $student['institution_class_id'],
+                            'education_grade_id' =>  $student['education_grade_id'],
+                            'academic_period_id' => $student['academic_period_id'],
+                            'institution_id' =>$student['institution_id'],
+                            'student_status_id' => 1,
+                            'created_user_id' => $student['created_user_id'],
+                        ]);
+                    }
+                }
+               
                 $output->writeln('
         ####################################################
            Total number of students updated : '.$this->count.'

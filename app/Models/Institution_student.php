@@ -79,8 +79,10 @@ class Institution_student extends Base_Model  {
      */
     public static function  isDuplicated($inputs){
 
-        $exists = self::where('student_id','=',$inputs['student_id'])->count();
-
+        $exists = self::where('student_id','=',$inputs['student_id'])
+            ->where('institution_id',$inputs['institution_id'])
+            ->where('academic_period_id',$inputs['academic_period_id'])
+            ->exist();
 
         return $exists;
     }
@@ -110,5 +112,7 @@ class Institution_student extends Base_Model  {
             ->where('institution_students.education_grade_id', $institutionGrade['education_grade_id'])
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
     }
+
+  
 
 }

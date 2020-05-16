@@ -88,7 +88,7 @@ class Institution_class_student extends Model  {
 
         $exists = self::where('student_id','=',$inputs['student_id'])
             ->where('institution_class_id',$inputs['institution_class_id'])
-            ->count();
+            ->exist();
 
         return $exists;
     }
