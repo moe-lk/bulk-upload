@@ -12,7 +12,6 @@
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/google_analytics.js') }}" defer></script>
-    <script src="{{ asset('js/matomo.js') }}" defer></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -27,6 +26,7 @@
 {{--    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>--}}
     <script src = "https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js" defer ></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-167196928-2"></script>
+    <script src="{{ asset('js/matomo.js') }}" defer></script>
 </head>
 <body>
     <div id="app">
