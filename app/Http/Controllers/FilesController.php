@@ -75,7 +75,7 @@ class FilesController extends Controller
                 return '<a href='.env('APP_URL').'/download_file/'.$data->filename.'>'.substr($data->classRoom->name, 0, 10).'</a>';
             })
              ->editColumn('error', function ($data) {
-                return '<a href='.env('APP_URL').'/download_file/'.$data->filename.'>'.substr($data->classRoom->name, 0, 10).'</a>';
+                return '<a href='.env('APP_URL').'/download/'.$data->filename.'>'.substr($data->classRoom->name, 0, 10).'</a>';
             })->editColumn('actions', function ($data) {
 
                 $nowTime = \Carbon\Carbon::now();
