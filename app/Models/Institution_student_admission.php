@@ -45,4 +45,25 @@ class Institution_student_admission extends Base_Model  {
      */
     protected $dates = ['modified', 'created', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created'];
 
+    /**
+     * 
+     */
+    public static function createExaminationData($student,$admissionInfo){
+        $data = [
+            'start_date' => $admissionInfo['academic_period']->start_date,
+            'start_year' => $admissionInfo['academic_period']->start_year,
+            'end_date' => $admissionInfo['academic_period']->end_date,
+            'end_year' => $admissionInfo['academic_period']->end_year,
+            'student_id' => $student['id'],
+            'status_id' => 124,
+            'institution_id' => $admissionInfo['instituion']->id,
+            'academic_period_id' => $admissionInfo['academic_period']->id,
+            'education_grade_id' => $admissionInfo['education_grade']->id,
+            'institution_class_id' => $admissionInfo['instituion_class']  != null ? $admissionInfo['instituion_class']['id'] : null,
+            'comment' => 'Imported From Examination Data',
+            'created_user_id' => 1
+        ];
+        self::create($data);
+    }
+
 }

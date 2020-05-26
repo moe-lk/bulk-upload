@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class Examination_student extends Model  {
 
+    
     /**
      * The database table used by the model.
      *
@@ -19,7 +20,7 @@ class Examination_student extends Model  {
      *
      * @var array
      */
-    protected $fillable = ['nsid', 'school_id', 'full_name', 'dob', 'gender', 'address', 'annual_income', 'has_special_need', 'disable_type', 'disable_details', 'special_education_centre'];
+    protected $fillable = ['st_no','stu_no','nsid', 'school_id', 'full_name', 'dob', 'gender', 'address', 'annual_income', 'has_special_need', 'disable_type', 'disable_details', 'special_education_centre'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -42,15 +43,17 @@ class Examination_student extends Model  {
      */
     protected $dates = ['dob'];
 
+    public $timestamps = true;
+
     public static function insertData($data){
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $value=\DB::table('examination_students')->where('nsid', $data['nsid'])->get();
-
-        if($value->count() == 0){
-            DB::table('examination_students')->insert($data);
-            $output->writeln('Student name: '.($data['full_name']).' has been inserted to the database');
-
+        $value = self::where('st_no', $data['st_no'])->get();
+        if(count($value) > 0){
+            self::where('st_no',$data['st_no'])->update($data);
+        }else{
+            self::insert($data);
         }
+        $output->writeln('Student name: '.($data['f_name']).' has been inserted to the database');
     }
 
 }

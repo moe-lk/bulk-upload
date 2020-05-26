@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Http\Controllers\ExaminationStudentsController;
 
 class ExaminationStudentMigrate extends Command
 {
@@ -11,7 +12,7 @@ class ExaminationStudentMigrate extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:migrate';
+    protected $signature = 'examination:migrate {year} {grade}';
 
     /**
      * The console command description.
@@ -37,7 +38,11 @@ class ExaminationStudentMigrate extends Command
      */
     public function handle()
     {
-        //TODO implement the main command job
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('###########################################------Inserting file records------###########################################');
+        $this->examinationController = new ExaminationStudentsController($this->argument('year'),$this->argument('grade'));
+        $this->examinationController->doMatch();
+        $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
 
     //TODO implement the main algorythem

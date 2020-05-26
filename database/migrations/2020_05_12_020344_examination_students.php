@@ -16,17 +16,20 @@ class ExaminationStudents extends Migration
         //
 
         Schema::create('examination_students',function(Blueprint $table){
+            $table->integer('st_no',9);
+            $table->string('stu_no',9);
             $table->string('nsid',12);
-            $table->integer('school_id');
-            $table->string('full_name');
-            $table->date('dob');
+            $table->integer('schoolid');
+            $table->string('f_name');
+            $table->integer('medium');
+            $table->date('b_date');
             $table->char('gender',1);
-            $table->string('address');
-            $table->string('annual_income');
-            $table->boolean('has_special_need')->defualt(false);
-            $table->string('disable_type');
-            $table->string('disable_details');
-            $table->string('special_education_centre');
+            $table->string('pvt_address');
+            $table->string('a_income');
+            $table->boolean('spl_need')->defualt(false);
+            $table->string('disability_type');
+            $table->string('disability');
+            $table->string('sp_centre');
             $table->timestamps();
         });
     }
@@ -39,6 +42,6 @@ class ExaminationStudents extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists('examination_students');
+        Schema::drop('examination_students');
     }
 }

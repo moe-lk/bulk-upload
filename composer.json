@@ -21,6 +21,7 @@
         "mohamednizar/excel": "^3.1",
         "mohamednizar/moe-uuid": "^1.2@beta",
         "webpatser/laravel-uuid": "^3.0",
+        "wyndow/fuzzywuzzy": "^0.6.0",
         "yajra/laravel-datatables-oracle": "^9.4"
     },
     "require-dev": {

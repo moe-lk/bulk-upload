@@ -1,14 +1,43 @@
 <?php
 
 namespace App\Http\Controllers;
+
 \Session::get('panier');
 
-use App\Models\Examination_student;
-use Illuminate\Http\Request;
 use Session;
+use App\Models\Institution;
+use Illuminate\Http\Request;
+use App\Models\Security_user;
+use App\Models\Academic_period;
+use App\Models\Education_grade;
+use App\Models\Institution_class;
+use App\Models\Examination_student;
+use App\Models\Institution_student;
+use App\Imports\ExaminationStudents;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Institution_class_student;
+use App\Exports\ExmainationStudentsExport;
+use App\Imports\ExaminationStudentsImport;
+use App\Models\Institution_student_admission;
+use FuzzyWuzzy\Fuzz;
+use FuzzyWuzzy\Process;
 
 class ExaminationStudentsController extends Controller
 {
+    public function __construct($year = 2019, $grade = 'G5')
+    {
+        $this->year = $year;
+        $this->grade = $grade;
+        $this->student = new Security_user();
+        $this->examination_student = new Examination_student();
+        $this->fuzzy = new Fuzz();
+        $this->process = new Process($this->fuzzy);
+        $this->academic_period =  Academic_period::where('code', '=', $this->year)->first();
+        $this->education_grade = Education_grade::where('code', '=', $this->grade)->first();
+    }
+
     public function index()
     {
         return view('uploadcsv');
@@ -22,7 +51,7 @@ class ExaminationStudentsController extends Controller
             $file = $request->file('file');
 
             // File Details
-            $filename = $file->getClientOriginalName();
+            $filename = 'exams_students.csv';
             $extension = $file->getClientOriginalExtension();
             $tempPath = $file->getRealPath();
             $fileSize = $file->getSize();
@@ -41,65 +70,130 @@ class ExaminationStudentsController extends Controller
                 if ($fileSize <= $maxFileSize) {
 
                     // File upload location
-                    $location = 'uploads';
-
-                    // Upload file
-                    $file->move($location, $filename);
-
+                    Storage::disk('local')->putFileAs(
+                        'examination/',
+                        $file,
+                        $filename
+                    );
                     Session::flash('message', 'File upload successfully!');
+                    // Redirect to index
+                    // Artisan::call('examination:migration');
+                    // Artisan::call('examination:migrate');
                 } else {
                     Session::flash('message', 'File too large. File must be less than 20MB.');
                 }
             } else {
                 Session::flash('message', 'Invalid File Extension.');
             }
-
         }
-
-        // Redirect to index
         return redirect()->action('ExaminationStudentsController@index');
     }
 
     public static function callOnClick()
     {
         // Import CSV to Database
-        $filepath = public_path("uploads/exams_students.csv");
+        $excelFile = "/examination/exams_students.csv"; // public_path("examination/exams_students.csv");
 
-        // Reading file
-        $file = fopen($filepath, "r");
-        $importData_arr = array();
-        $i = 0;
+        $import = new ExaminationStudentsImport();
+        $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+    }
 
-        while (($filedata = fgetcsv($file, 1000, ",")) !== FALSE) {
-            $num = count($filedata);
+    public  function doMatch()
+    {
+        $students = Examination_student::get()->toArray();
+        //    array_walk($students,array($this,'clone'));
+        array_walk($students, array($this, 'clone'));
+    }
 
-            // Skip first row (The csv file must have a title)
-            if ($i == 0) {
-                $i++;
-                continue;
+    public function clone($student)
+    {
+        //get student matching with same dob and gender
+        $isMatching = $this->isMatching($student);
+
+        // if the first match missing do complete insertion
+        $institution = Institution::where('code', '=', $student['schoolid'])->first();
+        $institutionClass = Institution_class::where(
+            [
+                'institution_id' => $institution->id,
+                'academic_period_id' => $this->academic_period->id
+            ]
+        )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
+
+        $admissionInfo = [
+            'instituion_class' => $institutionClass,
+            'instituion' => $institution,
+            'education_grade' =>  $this->education_grade,
+            'academic_period' => $this->academic_period
+        ];
+        if (empty($isMatching)) {
+            $sis_student = $this->student->insertExaminationStudent($student);
+            $this->updateNSID($student, $sis_student);
+
+            //TODO imlement insert student to admission table
+            $student['id'] = $sis_student['id'];
+            if (count($institutionClass) == 1) {
+                $admissionInfo['instituion_class'] = $institutionClass[0];
+                Institution_student::createExaminationData($student, $admissionInfo);
+                Institution_student_admission::createExaminationData($student, $admissionInfo);
+                Institution_class_student::createExaminationData($student, $admissionInfo);
+            }else{
+                Institution_student_admission::createExaminationData($student, $admissionInfo);
+                Institution_student::createExaminationData($student, $admissionInfo);
             }
-            for ($c = 0; $c < $num; $c++) {
-                $importData_arr[$i][] = $filedata [$c];
-            }
-            $i++;
+        } else{
+            $this->student->updateExaminationStudent($student, $isMatching);
+            $isMatching = array_merge($student,$isMatching);
+            Institution_student::updateExaminationData($isMatching,$admissionInfo);
+            $this->updateNSID($student, $isMatching);
         }
-        fclose($file);
-        // Insert to MySQL database
-        foreach ($importData_arr as $importData) {
+    }
 
-            $insertData = array(
-                "nsid" => $importData[0],
-                "school_id" => $importData[1],
-                "full_name" => $importData[2],
-                "dob" => $importData[3],
-                "gender" => $importData[4],
-                "address" => $importData[5],
-                "annual_income" => $importData[6],
-                "has_special_need" => $importData[7],
-                "disable_type" => $importData[8],
-                "disable_details" => $importData[9],
-                "special_education_centre" => $importData[10]);
-            Examination_student::insertData($insertData);
+    /**
+     * This funciton is implemented fuzzy search algorythem 
+     * to get the most matching name with the exisitng students
+     * data set
+     *
+     * @param [type] $student
+     * @return array
+     */
+    public function isMatching($student)
+    {
+        $sis_users = $this->student->getMatches($student);
+        $studentData = [];
+        if (is_null($sis_users)) {
+            $studentData = [];
+        } elseif (count($sis_users) > 0) {
+            //Extract highest one   
+            $matchingStudentName =  $this->process->extractOne($student['f_name'], array_column($sis_users, 'first_name'), null, [$this->fuzzy, 'ratio']);
+            $matchingStudentId = (array_search($matchingStudentName[0], array_column($sis_users, 'first_name')));
+            $matchingStudent = $sis_users[$matchingStudentId];
+            $studentData = $matchingStudent;
         }
+        return $studentData;
+    }
+
+
+
+    /**
+     * Generate new NSID for studets
+     *
+     * @param [type] $student
+     * @param [type] $sis_student
+     * @return void
+     */
+    public function updateNSID($student, $sis_student)
+    {
+        $student['nsid'] = $sis_student['openemis_no'];
+        $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
+    }
+
+    /**
+     * export the all data with NSID
+     *
+     * @return void
+     */
+    public function export()
+    {
+        return Excel::download(new ExmainationStudentsExport, 'Students_data_with_nsid.csv');
     }
 }
