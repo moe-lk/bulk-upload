@@ -115,7 +115,8 @@ class ExaminationStudentsController extends Controller
         $institutionClass = Institution_class::where(
             [
                 'institution_id' => $institution->id,
-                'academic_period_id' => $this->academic_period->id
+                'academic_period_id' => $this->academic_period->id,
+                'education_grade_id' => $this->education_grade->id
             ]
         )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
