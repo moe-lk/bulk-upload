@@ -51,7 +51,7 @@ class Examination_student extends Model  {
         if(count($value) > 0){
             self::where('st_no',$data['st_no'])->update($data);
         }else{
-            self::insert($data);
+            self::create($data);
         }
         $output->writeln('Student name: '.($data['f_name']).' has been inserted to the database');
     }
