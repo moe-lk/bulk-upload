@@ -27,9 +27,9 @@ class ExaminationStudents extends Migration
             $table->string('pvt_address');
             $table->string('a_income');
             $table->boolean('spl_need')->defualt(false);
-            $table->string('disability_type');
-            $table->string('disability');
-            $table->string('sp_centre');
+            $table->string('disability_type')->default(null);
+            $table->string('disability')->default(null);
+            $table->string('sp_centre')->default(null);
             $table->timestamps();
         });
     }
