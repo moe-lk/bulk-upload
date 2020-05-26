@@ -147,7 +147,7 @@ class Security_user extends Base_Model  {
 
     public function getMatches($student){
        return $this->where([
-            'gender_id' => $student['gender'], 
+            'gender_id' => $student['gender']+1, 
             'date_of_birth' => $student['b_date'],
             'institutions.code' => $student['schoolid']
             ])
@@ -168,7 +168,7 @@ class Security_user extends Base_Model  {
             'openemis_no' => $studentNSID,
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
             'last_name' => genNameWithInitials($student['f_name']),
-            'gender_id' => $student['gender'],
+            'gender_id' => $student['gender']+1,
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'is_student' => 1,
@@ -186,7 +186,6 @@ class Security_user extends Base_Model  {
             'openemis_no' => $studentNSID,
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
             'last_name' => genNameWithInitials($student['f_name']),
-            'gender_id' => $student['gender'],
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'modified' => now()
