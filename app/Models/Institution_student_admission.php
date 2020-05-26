@@ -59,7 +59,7 @@ class Institution_student_admission extends Base_Model  {
             'institution_id' => $admissionInfo['instituion']->id,
             'academic_period_id' => $admissionInfo['academic_period']->id,
             'education_grade_id' => $admissionInfo['education_grade']->id,
-            'institution_class_id' => $admissionInfo['instituion_class']  != null ? $admissionInfo['instituion_class']['id'] : null,
+            'institution_class_id' => $admissionInfo['instituion_class']  != [] ? $admissionInfo['instituion_class']['id'] : null,
             'comment' => 'Imported From Examination Data',
             'created_user_id' => 1
         ];
