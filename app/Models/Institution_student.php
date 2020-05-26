@@ -111,4 +111,37 @@ class Institution_student extends Base_Model  {
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
     }
 
+    public static function createExaminationData($student,$admissionInfo){
+        self::create([
+            'student_status_id' => 1,
+            'student_id' => $student['id'],
+            'taking_g5_exam' => 1,
+            'income_at_g5' => $student['a_income'],
+            'education_grade_id' => $admissionInfo['education_grade']->id,
+            'academic_period_id' => $admissionInfo['academic_period']->id,
+            'start_date' => $admissionInfo['academic_period']->start_date,
+            'start_year' => $admissionInfo['academic_period']->start_year,
+            'end_date' => $admissionInfo['academic_period']->end_date,
+            'end_year' => $admissionInfo['academic_period']->end_year,
+            'institution_id' => $admissionInfo['instituion']->id,
+            'created' => now(),
+            'created_user_id' => 1
+        ]);
+    }
+
+    public static function updateExaminationData($student,$admissionInfo){
+        self::where([
+            'student_id' => $student['student_id'],
+            'education_grade_id' => $admissionInfo['education_grade']->id,
+            'academic_period_id' => $admissionInfo['academic_period']->id,
+        ])->update(
+            [
+                'taking_g5_exam' => 1,
+                'income_at_g5' => $student['a_income'],
+                'modified' => now(),
+                'modified_user_id' => 1
+            ]
+        );
+    }
+
 }

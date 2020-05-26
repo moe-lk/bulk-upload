@@ -212,14 +212,14 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                }
 
 
-                if (!empty($row['identity_number'])) {
-                    User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $identityNUmber,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
-                }
+                // if (!empty($row['identity_number'])) {
+                //     User_identity::create([
+                //         'identity_type_id' => $identityType,
+                //         'number' => $identityNUmber,
+                //         'security_user_id' => $student->student_id,
+                //         'created_user_id' => $this->file['security_user_id']
+                //     ]);
+                // }
 
                 if (!empty($row['special_need'])) {
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();

@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
 use App\Models\Base_Model;
-use Webpatser\Uuid\Uuid;
-
+use Mohamednizar\MoeUuid\MoeUuid;
 
 class Security_user extends Base_Model  {
 
@@ -140,5 +139,57 @@ class Security_user extends Base_Model  {
     public function genUUID(){
         $uuid = Uuid::generate(4);
         return str_split($uuid,'8')[0];
+    }
+
+    /**
+     * First level search for students
+     */
+
+    public function getMatches($student){
+       return $this->where([
+            'gender_id' => $student['gender'], 
+            'date_of_birth' => $student['b_date'],
+            'institutions.code' => $student['schoolid']
+            ])
+            ->join('institution_students','security_users.id','institution_students.student_id')
+            ->join('institutions','institution_students.institution_id','institutions.id')
+            ->get()->toArray();
+    }
+
+    /**
+     * insert student data from examination
+     * @input array
+     * @return array
+     */
+    public function insertExaminationStudent ($student){
+        $studentNSID = MoeUuid::getUniqueAlphanumeric(3);
+        $student = $this->create([
+            'username' => str_replace('-','',$studentNSID),
+            'openemis_no' => $studentNSID,
+            'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+            'last_name' => genNameWithInitials($student['f_name']),
+            'gender_id' => $student['gender'],
+            'date_of_birth' => $student['b_date'],
+            'address' => $student['pvt_address'],
+            'is_student' => 1,
+            'created_user_id' => 1
+        ]);
+
+        return $student;
+    }
+
+    public function updateExaminationStudent($student,$sis_student){
+        $studentNSID = !MoeUuid::isValidMoeUuid($sis_student['openemis_no']) ? MoeUuid::getUniqueAlphanumeric(3) : $sis_student['openemis_no'];
+        $student = $this->update([
+            'id' => $sis_student['id'],
+            'username' => str_replace('-','',$studentNSID),
+            'openemis_no' => $studentNSID,
+            'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+            'last_name' => genNameWithInitials($student['f_name']),
+            'gender_id' => $student['gender'],
+            'date_of_birth' => $student['b_date'],
+            'address' => $student['pvt_address'],
+            'modified' => now()
+        ]);
     }
 }

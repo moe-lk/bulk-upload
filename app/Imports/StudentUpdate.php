@@ -161,14 +161,14 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
 
-                if (!empty($row['identity_number']) && $identityType !== null) {
-                    User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $identityNUmber,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
-                }
+                // if (!empty($row['identity_number']) && $identityType !== null) {
+                //     User_identity::create([
+                //         'identity_type_id' => $identityType,
+                //         'number' => $identityNUmber,
+                //         'security_user_id' => $student->student_id,
+                //         'created_user_id' => $this->file['security_user_id']
+                //     ]);
+                // }
 
                 if (!empty($row['special_need'])) {
 

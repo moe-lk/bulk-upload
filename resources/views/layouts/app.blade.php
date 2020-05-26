@@ -36,7 +36,15 @@
                     <a class="navbar-brand" href="{{ url('/create') }}">
                         History
                     </a>
+                    @if(Auth::user()->super_admin)
+                    <a class="navbar-brand" href="{{ url('/uploadcsv') }}">
+                        CSV Upload
+                    </a>
+                    exportexamination
+                    @endif
+                    
                 @endif
+               
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>

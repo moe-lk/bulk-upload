@@ -14,7 +14,7 @@ class FileUpload extends Migration
     public function up()
     {
         $hasTable = Schema::hasTable('uploads');
-        if($hasTable)
+        if(!$hasTable)
         {
             Schema::create('uploads', function (Blueprint $table) {
                 $table->increments('id');

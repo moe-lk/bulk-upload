@@ -102,4 +102,15 @@ class Institution_class_student extends Model  {
     }
 
 
+    public static function createExaminationData($student,$admissionInfo){
+        self::updateOrcreate([
+            'student_id' => $student['id'],
+            'institution_class_id' => $admissionInfo['instituion_class']['id'],
+            'education_grade_id' => $admissionInfo['education_grade']->id,
+            'academic_period_id' => $admissionInfo['academic_period']->id,
+            'institution_id' => $admissionInfo['instituion']->id,
+            'student_status_id' => 1
+        ]);
+    }
+
 }

@@ -502,9 +502,9 @@ class ImportStudents extends Command
             gc_enable();
             gc_collect_cycles();
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            $cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-            $cacheSettings = array( ' memoryCacheSize ' => '512MB');
-            \PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+            //$cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
+            //$cacheSettings = array( ' memoryCacheSize ' => '512MB');
+            //\PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
             $reader = $this->setReader($file);

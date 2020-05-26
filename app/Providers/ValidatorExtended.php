@@ -69,10 +69,12 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function validateBmi($attribute, $value, $parameters)
     {
-        $bmiGrades =  [1,4,7,10];
-        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])->first();
+        $bmiGrades =  ['G1','G4','G7','G10'];
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])
+        ->join('education_grades','institution_class_grades.education_grade_id','education_grades.id')
+        ->first();
         $educationGrade =  Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-            if(in_array($institutionGrade->education_grade_id,$bmiGrades)){
+            if(in_array($institutionGrade->code,$bmiGrades)){
                 if(!empty($value)){
                     if(($attribute == 'bmi_height') || ('bmi_weight')){
                         $v = Validator::make([$attribute => $value], [
