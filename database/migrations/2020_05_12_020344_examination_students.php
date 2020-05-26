@@ -24,7 +24,7 @@ class ExaminationStudents extends Migration
             $table->integer('medium');
             $table->date('b_date');
             $table->char('gender',1);
-            $table->string('pvt_address');
+            $table->string('pvt_address')->nullable();
             $table->string('a_income');
             $table->boolean('spl_need')->nullable();
             $table->string('disability_type')->nullable();
