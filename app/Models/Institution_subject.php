@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_subject extends Base_Model  {
+class Institution_subject extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -42,28 +42,28 @@ class Institution_subject extends Base_Model  {
     protected $dates = ['modified', 'created', 'modified', 'created'];
 
 
-    public  function institutionGradeSubject(){
-        return $this->belongsTo('App\Models\Education_grades_subject','education_subject_id','education_subject_id');
+    public  function institutionGradeSubject() {
+        return $this->belongsTo('App\Models\Education_grades_subject', 'education_subject_id', 'education_subject_id');
     }
 
-    public  function institutionOptionalGradeSubject(){
-        return $this->belongsTo('App\Models\Education_grades_subject','education_grade_id','education_grade_id');
+    public  function institutionOptionalGradeSubject() {
+        return $this->belongsTo('App\Models\Education_grades_subject', 'education_grade_id', 'education_grade_id');
     }
 
-    public  function institutionMandatoryGradeSubject(){
-        return $this->belongsTo('App\Models\Education_grades_subject','education_grade_id','education_grade_id');
-    }
-
-
-    public  function institutionClassSubject(){
-        return $this->hasMany('App\Models\Institution_class_subject','institution_class_id','id');
+    public  function institutionMandatoryGradeSubject() {
+        return $this->belongsTo('App\Models\Education_grades_subject', 'education_grade_id', 'education_grade_id');
     }
 
 
+    public  function institutionClassSubject() {
+        return $this->hasMany('App\Models\Institution_class_subject', 'institution_class_id', 'id');
+    }
 
-    public function getInstitutionSubjects($institution_id,$academic_period_id){
-        return self::query()->where('institution_id',$institution_id)
-            ->where('academic_period_id',$academic_period_id)
+
+
+    public function getInstitutionSubjects($institution_id, $academic_period_id) {
+        return self::query()->where('institution_id', $institution_id)
+            ->where('academic_period_id', $academic_period_id)
             ->get()->toArray();
     }
 

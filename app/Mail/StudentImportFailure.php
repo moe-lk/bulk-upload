@@ -24,17 +24,17 @@ class StudentImportFailure extends Mailable
 
 
         $this->user = User::find($file['security_user_id']);
-        $this->subject = 'SIS Bulk Upload: ' .$file['subject']. $institution->institution->code.': '. $institution->name.' '. date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk Upload: '.$file['subject'].$institution->institution->code.': '.$institution->name.' '.date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' =>  env('APP_URL').'/download/'.$file['filename']
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "We found some errors on your data file ". $file['filename']. ' Pleas fix the errors and re-upload  only with incorrect data,
+            'name'=>$this->user->first_name, "body" => "We found some errors on your data file ".$file['filename'].' Pleas fix the errors and re-upload  only with incorrect data,
             We uploaded the correct data to the system',
-            'link' =>  env('APP_URL').'/download/' .$file['filename'] 
+            'link' =>  env('APP_URL').'/download/'.$file['filename'] 
         ];
     }
 
@@ -46,7 +46,7 @@ class StudentImportFailure extends Mailable
     public function build()
     {
         return $this->view('emails.mail')
-            ->from($this->from_address,$this->from_name)
+            ->from($this->from_address, $this->from_name)
             ->to($this->user->email)
             ->subject($this->subject)
             ->with($this->with);

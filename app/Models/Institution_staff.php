@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_staff extends Model  {
+class Institution_staff extends Model {
 
     /**
      * The database table used by the model.
@@ -42,12 +42,12 @@ class Institution_staff extends Model  {
     protected $dates = ['start_date', 'end_date', 'modified', 'created'];
 
 
-    public function staff_class(){
-        return $this->hasMany('App\Models\Institution_class','staff_id','staff_id');
+    public function staff_class() {
+        return $this->hasMany('App\Models\Institution_class', 'staff_id', 'staff_id');
     }
 
-    public function institution(){
-        return $this->belongsTo('App\Models\Institution','institution_id');
+    public function institution() {
+        return $this->belongsTo('App\Models\Institution', 'institution_id');
     }
 
 

@@ -39,17 +39,17 @@ class callAddApprovedStudents extends Command
      */
     public function handle()
     {
-        ini_set('memory_limit','2048');
+        ini_set('memory_limit', '2048');
         $institutions = $this->instituions->all()->chunk(50)->toArray();
-        array_walk($institutions,array($this,'addInstitutionStudents'));
+        array_walk($institutions, array($this, 'addInstitutionStudents'));
     }
 
-    protected function addInstitutionStudents($chunk){
-        array_walk($chunk,array($this,'callFunction'));
+    protected function addInstitutionStudents($chunk) {
+        array_walk($chunk, array($this, 'callFunction'));
 
     }
 
-    protected function callFunction($institution){
-        $this->call('admission:students',['institution' => $institution['code']]);
+    protected function callFunction($institution) {
+        $this->call('admission:students', ['institution' => $institution['code']]);
     }
 }

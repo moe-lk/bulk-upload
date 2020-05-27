@@ -78,41 +78,41 @@ class RunAddApprovedStudents extends Command
             $this->count += 1;
             $this->student = $student ;
             try{
-               Institution_student::create([
-                   'student_status_id' => 1,
-                   'student_id' => $student['student_id'],
-                   'education_grade_id' => $student['education_grade_id'],
-                   'academic_period_id' => $student['academic_period_id'],
-                   'start_date' => $student['start_date'],
-                   'start_year' => \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $student['start_date'])->year , // $student['start_date']->format('Y'),
-                   'end_date' => $student['end_date'],
-                   'end_year' =>  \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $student['end_date'])->year , //$student['end_date']->format('Y'),
-                   'institution_id' => $student['institution_id'],
-                   'admission_id' => $student['admission_id'],
-                   'created_user_id' => $student['created_user_id'],
-               ]);
+                Institution_student::create([
+                    'student_status_id' => 1,
+                    'student_id' => $student['student_id'],
+                    'education_grade_id' => $student['education_grade_id'],
+                    'academic_period_id' => $student['academic_period_id'],
+                    'start_date' => $student['start_date'],
+                    'start_year' => \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $student['start_date'])->year , // $student['start_date']->format('Y'),
+                    'end_date' => $student['end_date'],
+                    'end_year' =>  \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $student['end_date'])->year , //$student['end_date']->format('Y'),
+                    'institution_id' => $student['institution_id'],
+                    'admission_id' => $student['admission_id'],
+                    'created_user_id' => $student['created_user_id'],
+                ]);
 
-               if(!is_null($student['institution_class_id'])){
-                   Institution_class_student::create([
-                       'student_id' => $student['student_id'],
-                       'institution_class_id' => $student['institution_class_id'],
-                       'education_grade_id' =>  $student['education_grade_id'],
-                       'academic_period_id' => $student['academic_period_id'],
-                       'institution_id' =>$student['institution_id'],
-                       'student_status_id' => 1,
-                       'created_user_id' => $student['created_user_id'],
-                   ]);
-               }
+                if(!is_null($student['institution_class_id'])){
+                    Institution_class_student::create([
+                        'student_id' => $student['student_id'],
+                        'institution_class_id' => $student['institution_class_id'],
+                        'education_grade_id' =>  $student['education_grade_id'],
+                        'academic_period_id' => $student['academic_period_id'],
+                        'institution_id' =>$student['institution_id'],
+                        'student_status_id' => 1,
+                        'created_user_id' => $student['created_user_id'],
+                    ]);
+                }
                 $output->writeln('
         ####################################################
            Total number of students updated : '.$this->count.'
         #                                                  #
         ####################################################' );
 //        $output->writeln();
-           }catch (\Exception $e){
+            }catch (\Exception $e){
 //               echo $e->getMessage();
-               $output->writeln( $e->getMessage());
-           }
+                $output->writeln( $e->getMessage());
+            }
         }
     }
 
@@ -133,7 +133,7 @@ class RunAddApprovedStudents extends Command
     }
 
 
-    protected function setStudentSubjects($subject){
+    protected function setStudentSubjects($subject) {
         return [
             'id' => (string) Uuid::generate(4),
             'student_id' => $this->student->student_id,
@@ -149,8 +149,8 @@ class RunAddApprovedStudents extends Command
         ];
     }
 
-    protected function insertSubject($subject){
-        if(!Institution_subject_student::isDuplicated($subject)){
+    protected function insertSubject($subject) {
+        if (!Institution_subject_student::isDuplicated($subject)) {
             Institution_subject_student::updateOrInsert($subject);
         }
     }

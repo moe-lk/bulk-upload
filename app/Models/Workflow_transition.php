@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Workflow_transition extends Model  {
+class Workflow_transition extends Model {
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';

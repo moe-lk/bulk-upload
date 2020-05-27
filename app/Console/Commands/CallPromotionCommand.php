@@ -41,6 +41,6 @@ class CallPromotionCommand extends Command
     {
         $year = $this->argument('year');
         $institution = $this->instituion_grade->getInstitutionGradeList($year);
-        $this->call('promote:students',['year' => $year,'institution' => $institution->code]);
+        $this->call('promote:students', ['year' => $year, 'institution' => $institution->code]);
     }
 }

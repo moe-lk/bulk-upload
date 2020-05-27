@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User_contact extends Base_Model  {
+class User_contact extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -41,14 +41,14 @@ class User_contact extends Base_Model  {
      */
     protected $dates = ['modified', 'created'];
 
-    public static function createOrUpdate($data,$user){
+    public static function createOrUpdate($data, $user) {
 
-        if(!is_null($data['contact'])){
+        if (!is_null($data['contact'])) {
             $exists = self::where('security_user_id', $data->id)
-                ->where('value',$data['contact']) 
+                ->where('value', $data['contact']) 
                 ->first(); 
 
-            if(is_null($exists)){
+            if (is_null($exists)) {
                 $data = [
                     'security_user_id' => $data->id,
                     'value' => $data['contact'],
@@ -58,7 +58,7 @@ class User_contact extends Base_Model  {
                     'preferred' => 1
                 ];
                 self::updateOrCreate($data);
-            }else{
+            }else {
                 $exists = $exists->toArray();
                 $exists['preferred'] = 1;   
                 $exists['value'] = $data['contact'];

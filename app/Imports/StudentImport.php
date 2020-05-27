@@ -18,10 +18,10 @@ class StudentImport implements WithMultipleSheets, WithEvents
     }
 
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
 
     public function sheets(): array
     {
@@ -40,7 +40,7 @@ class StudentImport implements WithMultipleSheets, WithEvents
         // TODO: Implement registerEvents() method.
 
         return [
-            BeforeSheet::class => function(BeforeSheet $event){
+            BeforeSheet::class => function(BeforeSheet $event) {
                 $this->sheetNames[] = $event->getSheet()->getTitle();
 
             }

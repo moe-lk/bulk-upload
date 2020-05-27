@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Webpatser\Uuid\Uuid;
 
 
-class Institution_student extends Base_Model  {
+class Institution_student extends Base_Model {
 
 
     public const CREATED_AT = 'created';
@@ -31,7 +31,7 @@ class Institution_student extends Base_Model  {
      *
      * @var array
      */
-    protected $fillable = ['student_status_id', 'student_id', 'education_grade_id', 'academic_period_id', 'start_date', 'start_year', 'end_date', 'end_year', 'institution_id', 'previous_institution_student_id', 'modified_user_id', 'modified', 'created_user_id', 'created', 'area_administrative_id','admission_id'];
+    protected $fillable = ['student_status_id', 'student_id', 'education_grade_id', 'academic_period_id', 'start_date', 'start_year', 'end_date', 'end_year', 'institution_id', 'previous_institution_student_id', 'modified_user_id', 'modified', 'created_user_id', 'created', 'area_administrative_id', 'admission_id'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -50,8 +50,8 @@ class Institution_student extends Base_Model  {
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function institutionStudents(){
-        return $this->belongsTo('App\Security_user','student_id');
+    public function institutionStudents() {
+        return $this->belongsTo('App\Security_user', 'student_id');
     }
 
     /**
@@ -60,7 +60,7 @@ class Institution_student extends Base_Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
             $model->created = now();
         });
@@ -77,9 +77,9 @@ class Institution_student extends Base_Model  {
      *
      *
      */
-    public static function  isDuplicated($inputs){
+    public static function  isDuplicated($inputs) {
 
-        $exists = self::where('student_id','=',$inputs['student_id'])->count();
+        $exists = self::where('student_id', '=', $inputs['student_id'])->count();
 
 
         return $exists;
@@ -100,12 +100,12 @@ class Institution_student extends Base_Model  {
      * @param $academicPeriod
      * @return array
      */
-    public function getStudentListToPromote($institutionGrade, $academicPeriod){
+    public function getStudentListToPromote($institutionGrade, $academicPeriod) {
         return self::query()
-            ->select('institution_students.id','institution_students.student_id','institution_students.student_status_id',
-                'institution_students.education_grade_id','institution_students.education_grade_id',
-                'institution_students.academic_period_id','institution_students.institution_id',
-                'institution_students.created_user_id','institution_students.admission_id')
+            ->select('institution_students.id', 'institution_students.student_id', 'institution_students.student_status_id',
+                'institution_students.education_grade_id', 'institution_students.education_grade_id',
+                'institution_students.academic_period_id', 'institution_students.institution_id',
+                'institution_students.created_user_id', 'institution_students.admission_id')
             ->where('institution_students.institution_id', $institutionGrade['institution_id'])
             ->where('institution_students.education_grade_id', $institutionGrade['education_grade_id'])
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();

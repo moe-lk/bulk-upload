@@ -31,12 +31,12 @@ class UsersExport implements FromCollection, WithEvents, WithStartRow, WithMulti
     public function __construct($class) {
 
         $this->class = $class;
-        $this->_file_name = time() . '_' . Auth::user()->id . '_' . 'student_upload.xls';
+        $this->_file_name = time().'_'.Auth::user()->id.'_'.'student_upload.xls';
     }
 
     public function registerEvents(): array {
         return [
-        BeforeSheet::class => function(BeforeSheet $event){
+        BeforeSheet::class => function(BeforeSheet $event) {
 //          dd($event->crea)  
         },
             BeforeWriting::class => function(BeforeWriting $event) {
@@ -63,7 +63,7 @@ class UsersExport implements FromCollection, WithEvents, WithStartRow, WithMulti
         $class = $this->class;
         return Security_user::select('openemis_no', 'first_name', 'gender_id', 'date_of_birth', 'address', 'birthplace_area_id')
                         ->with(['class', 'special_needs'])
-                        ->whereHas('class', function ($query) use ($class) {
+                        ->whereHas('class', function($query) use ($class) {
                             $query->where('institution_class_id', '=', $class);
                         })
                         ->get();

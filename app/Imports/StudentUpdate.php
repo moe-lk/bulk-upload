@@ -57,7 +57,7 @@ use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
 use Mohamednizar\MoeUuid\MoeUuid;
 
-class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
+class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation, SkipsOnFailure, SkipsOnError{
 
     use Importable,
         RegistersEventListeners,
@@ -81,7 +81,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
             },
-            BeforeImport::class => function (BeforeImport $event) {
+            BeforeImport::class => function(BeforeImport $event) {
                 $event->getReader()->getDelegate()->setActiveSheetIndex(2);
                 $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('B'));
                 if ($this->highestRow < 3) {
@@ -110,7 +110,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
                 $genderId = null;
-                if($row['gender_mf'] !== null){
+                if ($row['gender_mf'] !== null) {
                     $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
                 }
                 switch ($row['gender_mf']) {
@@ -122,9 +122,9 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         break;
                 }
 
-                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
-                $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
-                $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
+                $BirthArea = Area_administrative::where('name', 'like', '%'.$row['birth_registrar_office_as_in_birth_certificate'].'%')->first();
+                $nationalityId = Nationality::where('name', 'like', '%'.$row['nationality'].'%')->first();
+                $identityType = Identity_type::where('national_code', 'like', '%'.$row['identity_type'].'%')->first();
                 $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
 
 
@@ -193,17 +193,17 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 if (!empty($row['bmi_height']) && (!empty($row['bmi_weight']))) {
 
                     // convert Meeter to CM
-                    $hight = $row['bmi_height'] / 100;
+                    $hight = $row['bmi_height']/100;
 
                     //calculate BMI
-                    $bodyMass = ($row['bmi_weight']) / pow($hight, 2);
+                    $bodyMass = ($row['bmi_weight'])/pow($hight, 2);
 
                     $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
-                    $count = User_body_mass::where('academic_period_id' ,'=',$bmiAcademic->id )
-                            ->where('security_user_id','=',$student->student_id)->count();
+                    $count = User_body_mass::where('academic_period_id', '=', $bmiAcademic->id)
+                            ->where('security_user_id', '=', $student->student_id)->count();
 
                     \Log::debug('User_body_mass');
-                    if(!($count > 0)){
+                    if (!($count > 0)) {
                         User_body_mass::create([
                             'height' => $row['bmi_height'],
                             'weight' => $row['bmi_weight'],
@@ -217,9 +217,9 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 }
 
                 if (!empty($row['fathers_full_name']) && ($row['fathers_date_of_birth_yyyy_mm_dd'] !== null)) {
-                    $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
-                    $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
-                    $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
+                    $AddressArea = Area_administrative::where('name', 'like', '%'.$row['fathers_address_area'].'%')->first();
+                    $nationalityId = Nationality::where('name', 'like', '%'.$row['fathers_nationality'].'%')->first();
+                    $identityType = Identity_type::where('national_code', 'like', '%'.$row['fathers_identity_type'].'%')->first();
                     $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
@@ -235,7 +235,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => str_replace('-','',$openemisFather),
+                                    'username' => str_replace('-', '', $openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -253,25 +253,25 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         $father['guardian_relation_id'] = 1;
                         if (array_key_exists('fathers_phone', $row)) {
                             $father['contact'] = $row['fathers_phone'];
-                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($father, $this->file['security_user_id']);
                         }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
-                    } else {
+                    }else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
                         if (array_key_exists('fathers_phone', $row)) {
                             $father['contact'] = $row['fathers_phone'];
-                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($father, $this->file['security_user_id']);
                         }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
 
                 if (!empty($row['mothers_full_name']) && ($row['mothers_date_of_birth_yyyy_mm_dd'] !== null)) {
-                    $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
-                    $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
-                    $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
+                    $AddressArea = Area_administrative::where('name', 'like', '%'.$row['mothers_address_area'].'%')->first();
+                    $nationalityId = Nationality::where('name', 'like', '%'.$row['mothers_nationality'].'%')->first();
+                    $identityType = Identity_type::where('national_code', 'like', '%'.$row['mothers_identity_type'].'%')->first();
                     $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
@@ -286,7 +286,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => str_replace('-','',$openemisMother),
+                                    'username' => str_replace('-', '', $openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -304,16 +304,16 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         $mother['guardian_relation_id'] = 2;
                         if (array_key_exists('mothers_phone', $row)) {
                             $mother['contact'] = $row['mothers_phone'];
-                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($mother, $this->file['security_user_id']);
                         }   
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
-                    } else {
+                    }else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
                         if (array_key_exists('mothers_phone', $row)) {
                             $mother['contact'] = $row['mothers_phone'];
-                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($mother, $this->file['security_user_id']);
                         }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
@@ -322,9 +322,9 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 if (!empty($row['guardians_full_name']) && ($row['guardians_date_of_birth_yyyy_mm_dd'] !== null)) {
                     $genderId = $row['guardians_gender_mf'] == 'M' ? 1 : 2;
-                    $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
-                    $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
-                    $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
+                    $AddressArea = Area_administrative::where('name', 'like', '%'.$row['guardians_address_area'].'%')->first();
+                    $nationalityId = Nationality::where('name', 'like', '%'.$row['guardians_nationality'].'%')->first();
+                    $identityType = Identity_type::where('national_code', 'like', '%'.$row['guardians_identity_type'].'%')->first();
                     $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
@@ -339,7 +339,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => str_replace('-','',$openemisGuardian),
+                                    'username' => str_replace('-', '', $openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
@@ -358,22 +358,22 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         $guardian['guardian_relation_id'] = 3;
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
-                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($guardian, $this->file['security_user_id']);
                         }  
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
-                    } else {
+                    }else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
-                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                            User_contact::createOrUpdate($guardian, $this->file['security_user_id']);
                         } 
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
 
-                $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $optionalSubjects = Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
                 // $stundetSubjects = $this->getStudentSubjects($student);
@@ -382,10 +382,10 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 if (!empty($allSubjects)) {
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
                     $this->student = $student;
-                    $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
+                    $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
                     // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    array_walk($allSubjects,array($this,'insertSubject'));
+                    array_walk($allSubjects, array($this, 'insertSubject'));
                     // Institution_subject_student::insert((array) $allSubjects);
 //                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
@@ -396,7 +396,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 if ($totalStudents['total'] > $institutionClass->no_of_students) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is ' . $institutionClass->no_of_students], [null]);
+                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is '.$institutionClass->no_of_students], [null]);
                     $failures = [0 => $failure];
                     throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
                     Log::info('email-sent', [$this->file]);
@@ -408,7 +408,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             'total_male_students' => $totalStudents['total_male_students'],
                             'total_female_students' => $totalStudents['total_female_students']]);
             }
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failures = $e->failures();
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
@@ -422,8 +422,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ->where('institution_class_id', '=', $student->institution_class_id)->get()->toArray();
     }
 
-    protected function insertSubject($subject){
-        if(!Institution_subject_student::isDuplicated($subject))
+    protected function insertSubject($subject) {
+        if (!Institution_subject_student::isDuplicated($subject))
                 Institution_subject_student::updateOrInsert($subject);
     }
 
@@ -452,7 +452,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.admission_no' => 'nullable|max:12|min:4',
             '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
-            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name
+            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able', //|exists:special_need_difficulties,name
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.fathers_full_name',
             '*.fathers_address' => 'required_with:*.fathers_full_name',

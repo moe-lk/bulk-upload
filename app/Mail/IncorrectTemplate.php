@@ -11,11 +11,11 @@ class IncorrectTemplate extends Mailable
 {
     use Queueable, SerializesModels;
 
-     /**
-     * Create a new message instance.
-     *
-     * @return void
-     */
+        /**
+         * Create a new message instance.
+         *
+         * @return void
+         */
     public function __construct($file)
     {
 
@@ -23,15 +23,15 @@ class IncorrectTemplate extends Mailable
 
 
         $this->user = User::find($file['security_user_id']);
-        $this->subject = 'SIS Bulk Upload: IncorrectTemplate'.$institution->institution->code.': '. $institution->name.' '. date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk Upload: IncorrectTemplate'.$institution->institution->code.': '.$institution->name.' '.date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' =>  env('APP_URL').'/download/' .$file['filename'] 
+            'link' =>  env('APP_URL').'/download/'.$file['filename'] 
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "The Template you used for upload having some issues, please reconfirm and re-upload with correct template",
-            'link' => env('APP_URL').'/download/' .$file['filename'] 
+            'link' => env('APP_URL').'/download/'.$file['filename'] 
         ];
     }
 
@@ -43,7 +43,7 @@ class IncorrectTemplate extends Mailable
     public function build()
     {
         return $this->view('emails.mail')
-            ->from($this->from_address,$this->from_name)
+            ->from($this->from_address, $this->from_name)
             ->to($this->user->email)
             ->subject($this->subject)
             ->with($this->with);

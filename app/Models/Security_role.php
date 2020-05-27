@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Security_role extends Model  {
+class Security_role extends Model {
 
     /**
      * The database table used by the model.
@@ -42,8 +42,8 @@ class Security_role extends Model  {
     protected $dates = ['modified', 'created'];
 
 
-    public function securityUsers(){
-        return $this->belongsToMany(Security_group_user::class,'security_group_users','security_group_id','security_group_id');
+    public function securityUsers() {
+        return $this->belongsToMany(Security_group_user::class, 'security_group_users', 'security_group_id', 'security_group_id');
     }
 
 

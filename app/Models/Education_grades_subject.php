@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Education_grades_subject extends Model  {
+class Education_grades_subject extends Model {
 
     /**
      * The database table used by the model.
@@ -42,8 +42,8 @@ class Education_grades_subject extends Model  {
     protected $dates = ['modified', 'created'];
 
 
-    public function institutionGradeSubject(){
-        return $this->hasMany('App\Models\Institution_subject','education_grade_id','education_grade_id');
+    public function institutionGradeSubject() {
+        return $this->hasMany('App\Models\Institution_subject', 'education_grade_id', 'education_grade_id');
     }
 
 

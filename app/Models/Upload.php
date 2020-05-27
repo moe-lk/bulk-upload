@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Upload extends Model  {
+class Upload extends Model {
 
     /**
      * The database table used by the model.
@@ -43,12 +43,12 @@ class Upload extends Model  {
 
     public $timestamps = true;
 
-    public function user(){
-        return $this->belongsTo('App\Models\Security_user','security_user_id');
+    public function user() {
+        return $this->belongsTo('App\Models\Security_user', 'security_user_id');
     }
 
-    public function classRoom(){
-        return $this->belongsTo('App\Models\Institution_class','institution_class_id');
+    public function classRoom() {
+        return $this->belongsTo('App\Models\Institution_class', 'institution_class_id');
     }
 
 }

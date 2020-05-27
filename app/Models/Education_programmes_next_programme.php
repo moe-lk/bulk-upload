@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 
-class Education_programmes_next_programme extends Model  {
+class Education_programmes_next_programme extends Model {
 
     /**
      * The database table used by the model.

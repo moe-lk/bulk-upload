@@ -48,8 +48,8 @@ class CloneConfigData extends Command
         $this->academic_period = new Academic_period();
         $this->institution_classes = new Institution_class();
         $this->institution_class_subjects = new Institution_class_subject();
-        $this->institution_subjects =  new Institution_subject();
-        $this->education_grade_subjects =  new Education_grades_subject();
+        $this->institution_subjects = new Institution_subject();
+        $this->education_grade_subjects = new Education_grades_subject();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
@@ -76,9 +76,9 @@ class CloneConfigData extends Command
         $this->end_time = microtime(TRUE);
 
 
-       $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-       $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
-       $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
 
     }
 
@@ -113,13 +113,13 @@ class CloneConfigData extends Command
                     $this->output->writeln('updating from '. $shiftId);
 
                 }catch (\Exception $e){
-                     Log::error($e->getMessage(),[$e]);
+                        Log::error($e->getMessage(),[$e]);
                 }
             }
 //            DB::commit();
         }catch (\Exception $e){
 //            DB::rollBack();
-             Log::error($e->getMessage(),[$e]);
+                Log::error($e->getMessage(),[$e]);
         }
     }
 
@@ -130,16 +130,16 @@ class CloneConfigData extends Command
      * @param $academicPeriod
      */
     public function insertInstitutionSubjects($subjects, $count,$academicPeriod){
-       try{
-           $subjects['academic_period_id'] = $academicPeriod->id;
-           $subjects['created'] = now();
-           unset($subjects['total_male_students']);
-           unset($subjects['total_female_students']);
-           unset($subjects['id']);
-           $classSubject = Institution_subject::create($subjects);
-       }catch (\Exception $e){
+        try{
+            $subjects['academic_period_id'] = $academicPeriod->id;
+            $subjects['created'] = now();
+            unset($subjects['total_male_students']);
+            unset($subjects['total_female_students']);
+            unset($subjects['id']);
+            $classSubject = Institution_subject::create($subjects);
+        }catch (\Exception $e){
             Log::error($e->getMessage(),[$e]);
-       }
+        }
     }
 
 
@@ -181,7 +181,7 @@ class CloneConfigData extends Command
                 $this->insertInstitutionClassSubjects($institutionSubjects,$class);
 //                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),[$e]);
+                    Log::error($e->getMessage(),[$e]);
             }
     }
 
@@ -191,7 +191,7 @@ class CloneConfigData extends Command
                 array_walk($subjects,array($this,'insertClassSubjects'),$class);
                 $this->output->writeln('updating subjects '. $class->name);
             }catch (\Exception $e){
-                 Log::error($e->getMessage(),[$e]);
+                    Log::error($e->getMessage(),[$e]);
             }
         };
     }
@@ -209,7 +209,7 @@ class CloneConfigData extends Command
                 $this->institution_class_subjects->create($subjectobj);
             }
         }catch (\Exception $e){
-             Log::error($e->getMessage(),[$e]);
+                Log::error($e->getMessage(),[$e]);
         }
     }
 
@@ -221,15 +221,15 @@ class CloneConfigData extends Command
      * @param $academicPeriod
      * @return array
      */
-    public function generateNewClass($classes,$shiftId,$academicPeriod){
+    public function generateNewClass($classes, $shiftId, $academicPeriod) {
         $newClasses = [];
-        foreach ( $classes as $class) {
+        foreach ($classes as $class) {
             $noOfStudents = $class['no_of_students'] == 0 ? 40 : $class['no_of_students'];
             $class['academic_period_id'] = $academicPeriod;
             $class['no_of_students'] = $noOfStudents;
             $class['created'] = now();
             $class['institution_shift_id'] = $shiftId;
-            array_push($newClasses,$class);
+            array_push($newClasses, $class);
         }
         return $newClasses;
     }
@@ -240,11 +240,11 @@ class CloneConfigData extends Command
      * @param $shift
      * @return mixed
      */
-    public function updateShifts($year,$shift){
+    public function updateShifts($year, $shift) {
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
-        $this->shifts->where('id',$shift['id'])->update(['cloned' => '2020']);
+        $this->shifts->where('id', $shift['id'])->update(['cloned' => '2020']);
         $shift['academic_period_id'] = $academicPeriod->id;
         $exist = $this->shifts->shiftExists($shift);
-        return $this->shifts->create((array)$shift)->id;
+        return $this->shifts->create((array) $shift)->id;
     }
 }

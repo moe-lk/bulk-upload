@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution extends Model  {
+class Institution extends Model {
 
     /**
      * The database table used by the model.
@@ -42,7 +42,7 @@ class Institution extends Model  {
     protected $dates = ['date_opened', 'date_closed', 'modified', 'created'];
 
     public function isActive($id){
-       return  self::query()->find($id)->get()->first()->institution_status_id == 1;
+        return  self::query()->find($id)->get()->first()->institution_status_id == 1;
     }
 
 }

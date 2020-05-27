@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Education_grade extends Model  {
+class Education_grade extends Model {
 
     /**
      * The database table used by the model.
@@ -41,17 +41,17 @@ class Education_grade extends Model  {
      */
     protected $dates = ['modified', 'created'];
 
-    public function getNextGrade($gradeId,$getNextProgrammeGrades = false, $firstGradeOnly = false){
+    public function getNextGrade($gradeId, $getNextProgrammeGrades = false, $firstGradeOnly = false) {
         if (!empty($gradeId)) {
             $gradeObj = $this->find($gradeId);
             $programmeId = $gradeObj->education_programme_id;
             $order = $gradeObj->order;
-            $gradeOptions = self::where( 'education_programme_id',$programmeId
-            )->where('order',$order+1)->get()->first();
+            $gradeOptions = self::where('education_programme_id', $programmeId
+            )->where('order', $order + 1)->get()->first();
             $nextProgramme = self::getNextProgrammeList($programmeId);
-            if(empty($gradeOptions) && !is_null($nextProgramme)){
+            if (empty($gradeOptions) && !is_null($nextProgramme)) {
                 $programmeId = $nextProgramme->next_programme_id;
-                $gradeOptions = self::where( 'education_programme_id',$programmeId
+                $gradeOptions = self::where('education_programme_id', $programmeId
                 )->get()->first();
             }
             // Default is to get the list of grades with the next programme grades
@@ -66,7 +66,7 @@ class Education_grade extends Model  {
 //                $results = $gradeOptions;
 //            }
             return $gradeOptions;
-        } else {
+        }else {
             return null;
         }
     }
@@ -78,11 +78,11 @@ class Education_grade extends Model  {
 
             foreach ($nextProgrammeList as $nextProgrammeId) {
                 $nextProgrammeGradeResults = self::
-                    where('education_programme_id',$nextProgrammeId->next_programme_id)->get()->toArray();
+                    where('education_programme_id', $nextProgrammeId->next_programme_id)->get()->toArray();
 
                 $results = $results + [key($nextProgrammeGradeResults) => current($nextProgrammeGradeResults)];
             }
-        } else {
+        }else {
             $results = [];
         }
 
@@ -100,9 +100,9 @@ class Education_grade extends Model  {
 
         $nextProgrammeList = $this->getNextProgrammeList($id);
         if (!empty($nextProgrammeList)) {
-            $results = self::whereIn('education_programme_id',$nextProgrammeList)
+            $results = self::whereIn('education_programme_id', $nextProgrammeList)
                 ->get()->toArray();
-        } else {
+        }else {
             $results = [];
         }
 
@@ -116,7 +116,7 @@ class Education_grade extends Model  {
      * @return array List of next education programmes id
      */
     public function getNextProgrammeList($id) {
-        return Education_programmes_next_programme::where('education_programme_id',$id)
+        return Education_programmes_next_programme::where('education_programme_id', $id)
             ->get()->first();
     }
 

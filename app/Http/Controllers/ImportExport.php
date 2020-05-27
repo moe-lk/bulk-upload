@@ -29,24 +29,24 @@ class ImportExport extends Controller
 
     }
 
-     /**
-    * @return \Illuminate\Support\Collection
-    */
+        /**
+         * @return \Illuminate\Support\Collection
+         */
     public function importExportView()
     {
-        $classes = (!Auth::user()->permissions->isEmpty())  ?  Auth::user()->permissions[0]->staff_class : Auth::user()->principal[0]->security_group_institution->institution_classes;
+        $classes = (!Auth::user()->permissions->isEmpty()) ?  Auth::user()->permissions[0]->staff_class : Auth::user()->principal[0]->security_group_institution->institution_classes;
 
-        return view('importExport')->with('classes',$classes);
+        return view('importExport')->with('classes', $classes);
     }
 
 
    
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     public function export(Request $request) 
     {
-         $request->validate([
+            $request->validate([
                 'class' => 'required'
             ]);
         return Excel::download(new UsersExport($request->input('class')), 'users.xlsx');
@@ -55,8 +55,8 @@ class ImportExport extends Controller
 
 
     /**
-    * @return \Illuminate\Support\Collection
-    */
+     * @return \Illuminate\Support\Collection
+     */
     public function import(Request $request)
     {
 
@@ -70,9 +70,9 @@ class ImportExport extends Controller
 
 
             $import = new UsersImport();
-            try{
+            try {
                 $files = Storage::disk('sis-bulk-data-files')->allFiles();
-                Excel::import($import,request()->file('import_file'));
+                Excel::import($import, request()->file('import_file'));
             }catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $failures = $e->failures();
 

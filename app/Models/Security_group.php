@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Security_group extends Model  {
+class Security_group extends Model {
 
     /**
      * The database table used by the model.
@@ -45,13 +45,13 @@ class Security_group extends Model  {
 //        return $this->hasMany( User::class);
 //    }
 
-    public function security_users(){
-        return $this->belongsTo('App\Models\Security_group_user','security_group_id');
+    public function security_users() {
+        return $this->belongsTo('App\Models\Security_group_user', 'security_group_id');
     }
 
 
-    public function security_group_institution(){
-        return $this->hasMany('App\Models\Security_group_institution','security_group_id');
+    public function security_group_institution() {
+        return $this->hasMany('App\Models\Security_group_institution', 'security_group_id');
     }
 
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_shift extends Base_Model  {
+class Institution_shift extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -42,7 +42,7 @@ class Institution_shift extends Base_Model  {
     protected $dates = ['modified', 'created'];
 
     public function shiftExists($shift){
-       return self::query()
+        return self::query()
             ->where('institution_id',$shift['institution_id'])
             ->where('location_institution_id',$shift['location_institution_id'])
             ->where('shift_option_id',$shift['shift_option_id'])

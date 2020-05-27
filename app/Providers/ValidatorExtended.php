@@ -56,43 +56,43 @@ class ValidatorExtended extends IlluminateValidator {
         if (empty($value)) {
             return false;
         } elseif ($gradeEntity !== null) {
-            $admissionAge = (($gradeEntity->admission_age)*12)-1;
+            $admissionAge = (($gradeEntity->admission_age)*12) - 1;
             $to = $academicPeriod->start_date;
             $diff_in_months = $to->diffInMonths($value);
             $ageOfStudent = $diff_in_months;
             $enrolmentMaximumAge = $admissionAge + 120;
             return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
-        } else {
+        }else {
             return false;
         }
     }
 
     protected function validateBmi($attribute, $value, $parameters)
     {
-        $bmiGrades =  ['G1','G4','G7','G10'];
+        $bmiGrades = ['G1', 'G4', 'G7', 'G10'];
         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])
-        ->join('education_grades','institution_class_grades.education_grade_id','education_grades.id')
+        ->join('education_grades', 'institution_class_grades.education_grade_id', 'education_grades.id')
         ->first();
-        $educationGrade =  Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-            if(in_array($institutionGrade->code,$bmiGrades)){
-                if(!empty($value)){
-                    if(($attribute == 'bmi_height') || ('bmi_weight')){
+        $educationGrade = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+            if (in_array($institutionGrade->code, $bmiGrades)) {
+                if (!empty($value)) {
+                    if (($attribute == 'bmi_height') || ('bmi_weight')) {
                         $v = Validator::make([$attribute => $value], [
                             $attribute => 'number|min:10|max:200'
                             ]);
-                        if($v->fails()) {
-                            $this->_custom_messages['bmi'] =  $attribute.' is not a valid input';
+                        if ($v->fails()) {
+                            $this->_custom_messages['bmi'] = $attribute.' is not a valid input';
                             $this->_set_custom_stuff();
                             return false;
                         }
                         return true;
                     }
-                }else{
-                    $this->_custom_messages['bmi'] =  $attribute.' is required for '. $educationGrade->name;
+                }else {
+                    $this->_custom_messages['bmi'] = $attribute.' is required for '.$educationGrade->name;
                     $this->_set_custom_stuff();
                     return false;
                 }
-            }else{
+            }else {
                 return true;
             }
     }
@@ -125,23 +125,23 @@ class ValidatorExtended extends IlluminateValidator {
             $check =  Institution_class_student::where('student_id', '=', $student['id'])->where('institution_class_id','=',$perameters[0])->count();
             if($check == 1){
                 return true;
-            }else{
+            } else{
                 return false;
             }
-        }else{
+        } else{
             return false;
         }
 
     }
     protected function validateNic($attribute, $value, $perameters, $validator){
         $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
-       if(!$valid){
-             $this->_custom_messages['nic'] = $attribute. ' is not valid,  Please check the NIC number';
-             $this->_set_custom_stuff();
-             return false;
-       }else{
-           return true;
-       }
+        if(!$valid){
+                $this->_custom_messages['nic'] = $attribute. ' is not valid,  Please check the NIC number';
+                $this->_set_custom_stuff();
+                return false;
+        }else{
+            return true;
+        }
     }
 
     protected function validateUserUnique($attribute, $value, $perameters, $validator) {
@@ -161,39 +161,39 @@ class ValidatorExtended extends IlluminateValidator {
 
     protected function validateIsBc($attribute, $value, $perameters, $validator) {
         foreach ($validator->getData() as $data) {
-            $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
+            $identityType = Identity_type::where('national_code', 'like', '%'.$data['identity_type'].'%')->first();
             if (($identityType !== null) && ($identityType !== "")) {
                 if (($identityType->national_code) === 'BC') {
                     return  (strlen((string) $data['identity_number']) < 7);
-                } else {
+                }else {
                     return true;
                 }
-            } else {
+            }else {
                 return true;
             }
         }
     }
 
-    protected function checkUnique($value, $data,$identityType) {
+    protected function checkUnique($value, $data, $identityType) {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
         if ($isUnique->count() > 0) {
-            $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
+            $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : '.$isUnique->first()->openemis_no;
             $this->_set_custom_stuff();
             return false;
-        } else {
+        }else {
             return true;
         }
     }
 
     protected function IsBc($data, $value) {
-        $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
+        $identityType = Identity_type::where('national_code', 'like', '%'.$data['identity_type'].'%')->first();
         if ($identityType !== null) {
             if (($identityType->national_code) === 'BC' && strlen((string) $value) < 8) {
                 return false;
-            } else {
+            }else {
                 return true;
             }
-        } else {
+        }else {
             return true;
         }
     }

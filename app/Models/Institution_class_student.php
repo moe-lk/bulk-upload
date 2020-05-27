@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Webpatser\Uuid\Uuid;
 
-class Institution_class_student extends Model  {
+class Institution_class_student extends Model {
 
     /**
      * The database table used by the model.
@@ -51,26 +51,26 @@ class Institution_class_student extends Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
             $model->created = now();
         });
     }
 
-    public function student(){
-        return $this->belongsTo('App\Models\Security_user','student_id');
+    public function student() {
+        return $this->belongsTo('App\Models\Security_user', 'student_id');
     }
 
     public  static function getStudentsCount($institution_class_id) {
         $total_male_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 1);
-                    }])->whereHas('student', function ($query) {
+                    }])->whereHas('student', function($query) {
                     $query->where('gender_id', '=', 1);
                 })->where('institution_class_id', '=', $institution_class_id)->count();
 
         $total_female_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 2);
-                    }])->whereHas('student', function ($query) {
+                    }])->whereHas('student', function($query) {
                     $query->where('gender_id', '=', 2);
                 })->where('institution_class_id', '=', $institution_class_id)->count();
 
@@ -84,19 +84,19 @@ class Institution_class_student extends Model  {
         ];
     }
 
-    public static function  isDuplicated($inputs){
+    public static function  isDuplicated($inputs) {
 
-        $exists = self::where('student_id','=',$inputs['student_id'])
-            ->where('institution_class_id',$inputs['institution_class_id'])
+        $exists = self::where('student_id', '=', $inputs['student_id'])
+            ->where('institution_class_id', $inputs['institution_class_id'])
             ->count();
 
         return $exists;
     }
 
-    public function getStudentNewClass($student){
+    public function getStudentNewClass($student) {
         return self::query()
-            ->where('student_id',$student['student_id'])
-            ->join('institution_classes','institution_class_students.institution_class_id','=','institution_classes.id')
+            ->where('student_id', $student['student_id'])
+            ->join('institution_classes', 'institution_class_students.institution_class_id', '=', 'institution_classes.id')
             ->where('institution_class_students.student_id', $student['student_id'])
             ->get()->last();
     }

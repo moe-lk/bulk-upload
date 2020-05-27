@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
 
-class User_nationality extends Base_Model  {
+class User_nationality extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -47,7 +47,7 @@ class User_nationality extends Base_Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
         });
 

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Institution_student_admission extends Base_Model  {
+class Institution_student_admission extends Base_Model {
 
     public const CREATED_AT = 'created';
 
