@@ -2,27 +2,24 @@
 
 namespace App\Http\Controllers;
 
-\Session::get('panier');
-
 use Session;
+use FuzzyWuzzy\Fuzz;
+use FuzzyWuzzy\Process;
 use App\Models\Institution;
 use Illuminate\Http\Request;
 use App\Models\Security_user;
+use Lsflk\UniqueUid\UniqueUid;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
-use App\Imports\ExaminationStudents;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Institution_class_student;
-use App\Exports\ExmainationStudentsExport;
+use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
 use App\Models\Institution_student_admission;
-use FuzzyWuzzy\Fuzz;
-use FuzzyWuzzy\Process;
 
 class ExaminationStudentsController extends Controller
 {
@@ -77,8 +74,6 @@ class ExaminationStudentsController extends Controller
                     );
                     Session::flash('message', 'File upload successfully!');
                     // Redirect to index
-                    // Artisan::call('examination:migration');
-                    // Artisan::call('examination:migrate');
                 } else {
                     Session::flash('message', 'File too large. File must be less than 20MB.');
                 }
@@ -92,7 +87,7 @@ class ExaminationStudentsController extends Controller
     public static function callOnClick()
     {
         // Import CSV to Database
-        $excelFile = "/examination/exams_students.csv"; // public_path("examination/exams_students.csv");
+        $excelFile = "/examination/exams_students.csv";
 
         $import = new ExaminationStudentsImport();
         $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
@@ -112,6 +107,8 @@ class ExaminationStudentsController extends Controller
 
         // if the first match missing do complete insertion
         $institution = Institution::where('code', '=', $student['schoolid'])->first();
+
+        // ge the class lists to belong the school
         $institutionClass = Institution_class::where(
             [
                 'institution_id' => $institution->id,
@@ -120,38 +117,42 @@ class ExaminationStudentsController extends Controller
             ]
         )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
+        // set search variables 
         $admissionInfo = [
             'instituion_class' => $institutionClass,
             'instituion' => $institution,
             'education_grade' =>  $this->education_grade,
             'academic_period' => $this->academic_period
         ];
+
+        // if no matching found
         if (empty($isMatching)) {
             $sis_student = $this->student->insertExaminationStudent($student);
             $this->updateNSID($student, $sis_student);
 
-            //TODO imlement insert student to admission table
+            //TODO implement insert student to admission table
             $student['id'] = $sis_student['id'];
             if (count($institutionClass) == 1) {
                 $admissionInfo['instituion_class'] = $institutionClass[0];
                 Institution_student::createExaminationData($student, $admissionInfo);
                 Institution_student_admission::createExaminationData($student, $admissionInfo);
                 Institution_class_student::createExaminationData($student, $admissionInfo);
-            }else{
+            } else {
                 Institution_student_admission::createExaminationData($student, $admissionInfo);
                 Institution_student::createExaminationData($student, $admissionInfo);
             }
-        } else{
+        // update the matched student's data    
+        } else {
             $this->student->updateExaminationStudent($student, $isMatching);
-            $isMatching = array_merge($student,$isMatching);
-            Institution_student::updateExaminationData($isMatching,$admissionInfo);
+            $isMatching = array_merge($student, $isMatching);
+            Institution_student::updateExaminationData($isMatching, $admissionInfo);
             $this->updateNSID($student, $isMatching);
         }
     }
 
     /**
-     * This funciton is implemented fuzzy search algorythem 
-     * to get the most matching name with the exisitng students
+     * This function is implemented fuzzy search algorithm 
+     * to get the most matching name with the existing students
      * data set
      *
      * @param [type] $student
@@ -164,7 +165,7 @@ class ExaminationStudentsController extends Controller
         if (is_null($sis_users)) {
             $studentData = [];
         } elseif (count($sis_users) > 0) {
-            //Extract highest one   
+            //Extract most highest matched one   
             $matchingStudentName =  $this->process->extractOne($student['f_name'], array_column($sis_users, 'first_name'), null, [$this->fuzzy, 'ratio']);
             $matchingStudentId = (array_search($matchingStudentName[0], array_column($sis_users, 'first_name')));
             $matchingStudent = $sis_users[$matchingStudentId];
@@ -176,7 +177,7 @@ class ExaminationStudentsController extends Controller
 
 
     /**
-     * Generate new NSID for studets
+     * Generate new NSID for students
      *
      * @param [type] $student
      * @param [type] $sis_student
@@ -184,7 +185,10 @@ class ExaminationStudentsController extends Controller
      */
     public function updateNSID($student, $sis_student)
     {
-        $student['nsid'] = $sis_student['openemis_no'];
+        $student['nsid'] = UniqueUid::isValidUniqeId($sis_student['openemis_no']) ? $sis_student['openemis_no'] : UniqueUid::getUniqueAlphanumeric(3);
+        $this->student->where('id', $sis_student['id'])->update([
+            'openemis_no' => $student['nsid']
+        ]);
         $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
     }
 
@@ -195,6 +199,6 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        return Excel::download(new ExmainationStudentsExport, 'Students_data_with_nsid.csv');
+        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
     }
 }

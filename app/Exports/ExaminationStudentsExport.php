@@ -6,7 +6,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use App\Models\Examination_student;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExmainationStudentsExport implements FromCollection , WithHeadings
+class ExaminationStudentsExport implements FromCollection , WithHeadings
 {
 
     public function headings(): array
