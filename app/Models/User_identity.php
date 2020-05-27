@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
 
-class User_identity extends Model  {
+class User_identity extends Model {
     
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';

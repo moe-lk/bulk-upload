@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Base_Model;
 use Webpatser\Uuid\Uuid;
 
-class Student_guardian extends Base_Model  {
+class Student_guardian extends Base_Model {
 
 
     public const CREATED_AT = 'created';
@@ -55,13 +55,13 @@ class Student_guardian extends Base_Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
             $model->created_user_id = 1;
         });
     }
 
-    public static function createStudentGuardian($student,$guardian,$user){
+    public static function createStudentGuardian($student, $guardian, $user) {
      
         $data = [
             'student_id' => $student->student_id,

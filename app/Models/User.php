@@ -7,7 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 
 
-class User extends Authenticatable   {
+class User extends Authenticatable {
 
     use HasApiTokens, Notifiable;
 
@@ -71,8 +71,8 @@ class User extends Authenticatable   {
 
     public function permissions(){
         return $this->hasMany('App\Models\Security_group_user','security_user_id','id')
-             ->where('security_group_users.security_role_id','=',5)
-             ->with(['security_group_institution','institution_staff','security_group'  , 'staff_class','institution_group' , 'roles']);
+                ->where('security_group_users.security_role_id','=',5)
+                ->with(['security_group_institution','institution_staff','security_group'  , 'staff_class','institution_group' , 'roles']);
     }
 
     public function principal(){

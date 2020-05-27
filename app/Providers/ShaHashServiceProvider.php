@@ -12,7 +12,7 @@ class ShaHashServiceProvider extends HashServiceProvider
 
     public function register()
     {
-        $this->app->singleton('hash',function (){
+        $this->app->singleton('hash', function() {
             return new SHAHasher($this->app);
         });
     }

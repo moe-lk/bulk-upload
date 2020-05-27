@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Academic_period extends Base_Model  {
+class Academic_period extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -41,8 +41,8 @@ class Academic_period extends Base_Model  {
      */
     protected $dates = ['start_date', 'end_date', 'modified', 'created'];
 
-    public function getAcademicPeriod($year){
-        return self::query()->where('code',$year)->first();
+    public function getAcademicPeriod($year) {
+        return self::query()->where('code', $year)->first();
     }
 
 }

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Special_need_difficulty extends Model  {
+class Special_need_difficulty extends Model {
 
     /**
      * The database table used by the model.

@@ -25,7 +25,7 @@ class EmptyFile extends Mailable
 
 
         $this->user = User::find($file['security_user_id']);
-        $this->subject = 'SIS Bulk Upload: ' .$file['subject'].' Empty ' . $institution->institution->code.': '. $institution->name.' '. date('Y:m:d H:i:s');
+        $this->subject = 'SIS Bulk Upload: '.$file['subject'].' Empty '.$institution->institution->code.': '.$institution->name.' '.date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
@@ -33,7 +33,7 @@ class EmptyFile extends Mailable
             'link' =>  env('APP_URL').'bulk-upload/'
         ];
         $this->viewData = [
-            'name'=>$this->user->first_name, "body" => "No data Found in ". $file['filename']. ' Please re-upload the file with data',
+            'name'=>$this->user->first_name, "body" => "No data Found in ".$file['filename'].' Please re-upload the file with data',
             'link' =>  env('APP_URL').'bulk-upload/'
         ];
     }
@@ -46,7 +46,7 @@ class EmptyFile extends Mailable
     public function build()
     {
         return $this->view('emails.mail')
-            ->from($this->from_address,$this->from_name)
+            ->from($this->from_address, $this->from_name)
             ->to($this->user->email)
             ->subject($this->subject)
             ->with($this->with);

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
 
-class Institution_class_grade extends Base_Model  {
+class Institution_class_grade extends Base_Model {
 
     /**
      * The database table used by the model.
@@ -46,9 +46,9 @@ class Institution_class_grade extends Base_Model  {
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
-    public function educationSubject(){
-        return $this->hasManyThrough('App\Models\Education_grades_subject','App\Models\Institution_subject',
-            'education_subject_id' ,'education_subject_id');
+    public function educationSubject() {
+        return $this->hasManyThrough('App\Models\Education_grades_subject', 'App\Models\Institution_subject',
+            'education_subject_id', 'education_subject_id');
     }
 
     /**
@@ -70,7 +70,7 @@ class Institution_class_grade extends Base_Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
         });
     }
@@ -79,7 +79,7 @@ class Institution_class_grade extends Base_Model  {
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function classes(){
-        return $this->belongsTo('App\Models\Institution_grade','institution_class_id','id');
+    public function classes() {
+        return $this->belongsTo('App\Models\Institution_grade', 'institution_class_id', 'id');
     }
 }

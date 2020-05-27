@@ -8,7 +8,7 @@ use App\Models\Base_Model;
 use Webpatser\Uuid\Uuid;
 
 
-class Security_user extends Base_Model  {
+class Security_user extends Base_Model {
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
@@ -23,7 +23,7 @@ class Security_user extends Base_Model  {
     protected $table = 'security_users';
 
     protected $appends = [
-      'special_need_name'
+        'special_need_name'
     ];
 
     /**
@@ -83,13 +83,13 @@ class Security_user extends Base_Model  {
      */
     protected $casts = [];
 
-    public function institutionStudents(){
-        return $this->hasOne(Institution_student::class,'student_id');
+    public function institutionStudents() {
+        return $this->hasOne(Institution_student::class, 'student_id');
     }
 
 
 
-    public function institutionStudentsClass(){
+    public function institutionStudentsClass() {
         return $this->hasOne(Institution_student::class, 'student_id');
     }
 
@@ -104,7 +104,7 @@ class Security_user extends Base_Model  {
 
 
 
-   public function rules()
+    public function rules()
     {
         return [
                 'identity_number' => [
@@ -126,7 +126,7 @@ class Security_user extends Base_Model  {
     }
 
     public function uploads(){
-       return $this->hasMany('App\Models\Upload');
+        return $this->hasMany('App\Models\Upload');
     }
 
     public function class(){

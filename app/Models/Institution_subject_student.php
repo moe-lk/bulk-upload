@@ -6,7 +6,7 @@ use function foo\func;
 use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
 
-class Institution_subject_student extends Model  {
+class Institution_subject_student extends Model {
 
 
     public const CREATED_AT = 'created';
@@ -51,7 +51,7 @@ class Institution_subject_student extends Model  {
     public static function boot()
     {
         parent::boot();
-        self::creating(function ($model) {
+        self::creating(function($model) {
             $model->id = (string) Uuid::generate(4);
         });
 
@@ -71,21 +71,21 @@ class Institution_subject_student extends Model  {
      */
     public static function  isDuplicated($inputs){
 
-       $exists = self::where('student_id','=',$inputs['student_id'])
-           ->where('institution_subject_id','=',$inputs['institution_subject_id'])
-           ->where('education_subject_id','=',$inputs['education_subject_id'])->count();
+        $exists = self::where('student_id','=',$inputs['student_id'])
+            ->where('institution_subject_id','=',$inputs['institution_subject_id'])
+            ->where('education_subject_id','=',$inputs['education_subject_id'])->count();
 
 
         return $exists ? true :false;
     }
 
     
-     public function student(){
+        public function student(){
         return $this->belongsTo('App\Models\Security_user','student_id');
     }
     
     public static function getStudentsCount(){
-         $total_male_students = self::with(['student' => function($query) {
+            $total_male_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 1);
                     }])->whereHas('student', function ($query) {
                     $query->where('gender_id', '=', 1);

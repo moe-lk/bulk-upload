@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Security_group_institution extends Model  {
+class Security_group_institution extends Model {
 
 
     /**
@@ -44,16 +44,16 @@ class Security_group_institution extends Model  {
 
 
 
-    public function institution(){
-        return $this->belongsTo('App\Models\Institution','institution_id');
+    public function institution() {
+        return $this->belongsTo('App\Models\Institution', 'institution_id');
     }
 
-    public function institution_classes(){
-        return $this->hasMany('App\Models\Institution_class','institution_id','institution_id');
+    public function institution_classes() {
+        return $this->hasMany('App\Models\Institution_class', 'institution_id', 'institution_id');
     }
 
-    public function security_group(){
-        return $this->belongsTo('App\Models\Security_group','security_group_id');
+    public function security_group() {
+        return $this->belongsTo('App\Models\Security_group', 'security_group_id');
     }
 
 }

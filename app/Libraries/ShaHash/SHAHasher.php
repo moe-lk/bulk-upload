@@ -13,13 +13,13 @@ class SHAHasher  extends HashManager implements HasherContract
 
     public function check($value, $hashedValue, array $options = [])
     {
-        return password_verify ($value , $hashedValue);
+        return password_verify($value, $hashedValue);
     }
 
 
     public function make($value, array $options = [])
     {
-        return password_hash($value,PASSWORD_DEFAULT,$options);
+        return password_hash($value, PASSWORD_DEFAULT, $options);
     }
 
 
@@ -27,7 +27,7 @@ class SHAHasher  extends HashManager implements HasherContract
 
     public function needsRehash($hashedValue, array $options = [])
     {
-        return password_needs_rehash($hashedValue,$options);
+        return password_needs_rehash($hashedValue, $options);
     }
 
 

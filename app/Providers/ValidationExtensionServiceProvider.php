@@ -11,7 +11,7 @@ class ValidationExtensionServiceProvider extends ServiceProvider
 
     public function boot() {
         $this->app->validator->resolver( function( $translator, $data, $rules,
-                                                   $messages = array(), $customAttributes = array() ) {
+                                                    $messages = array(), $customAttributes = array() ) {
             return new ValidatorExtended( $translator, $data, $rules, $messages,
                 $customAttributes );
         } );

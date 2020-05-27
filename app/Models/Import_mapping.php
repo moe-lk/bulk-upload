@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Import_mapping extends Model  {
+class Import_mapping extends Model {
 
     /**
      * The database table used by the model.
@@ -42,7 +42,7 @@ class Import_mapping extends Model  {
     protected $dates = [];
 
 
-    public static  function getSheetColumns($model = null){
+    public static  function getSheetColumns($model = null) {
         $columns = Import_mapping::where('model', '=', $model)
             ->orderBy('order')
             ->get()->toArray();
