@@ -165,7 +165,7 @@ class ExaminationStudentsController extends Controller
         if (is_null($sis_users)) {
             $studentData = [];
         } elseif (count($sis_users) > 0) {
-            //Extract most highest matched one   
+            //Extract most highest matched one  in the openemis the full saved on first_name
             $matchingStudentName =  $this->process->extractOne($student['f_name'], array_column($sis_users, 'first_name'), null, [$this->fuzzy, 'ratio']);
             $matchingStudentId = (array_search($matchingStudentName[0], array_column($sis_users, 'first_name')));
             $matchingStudent = $sis_users[$matchingStudentId];
