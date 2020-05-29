@@ -48,7 +48,11 @@ class Institution_student_admission extends Base_Model
     protected $dates = ['modified', 'created', 'modified', 'created', 'start_date', 'end_date', 'modified', 'created'];
 
     /**
-     * 
+     * Create new Institution student admission from examination data
+     *
+     * @param [type] $student
+     * @param [type] $admissionInfo
+     * @return void
      */
     public static function createExaminationData($student, $admissionInfo)
     {
