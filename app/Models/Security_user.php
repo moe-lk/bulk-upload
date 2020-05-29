@@ -177,7 +177,6 @@ class Security_user extends Base_Model
             'created_user_id' => 1
         ];
         try {
-            DB::beginTransaction();
             $id = $this->insertGetId($studentData);
             $studentData['id'] = $id;
             // try to feed unique user id
@@ -185,10 +184,8 @@ class Security_user extends Base_Model
                 'security_user_id' => $id,
                 'unique_id' =>  $uniqueId
             ]);
-            DB::commit();
         } catch (\Exception $th) {
             // in case of duplication of the Unique ID this will recursive.
-            DB::rollBack();
             $this->insertExaminationStudent($student);
         }
         return $studentData;
@@ -218,17 +215,13 @@ class Security_user extends Base_Model
         ];
 
         try {
-            DB::beginTransaction();
             $this->update($studentData);
             // try to feed unique user id
-            Unique_user_id::create([
-                'security_user_id' => $sis_student['id'],
-                'unique_id' =>  $uniqueId
-            ]);
-            DB::commit();
+            Unique_user_id::where([
+                'security_user_id' => $sis_student['id']
+            ])->update(['unique_id' =>  $uniqueId]);
         } catch (\Exception $th) {
             // in case of duplication of the Unique ID this will recursive.
-            DB::rollBack();
             $this->updateExaminationStudent($student, $sis_student);
         }
         return $studentData;
