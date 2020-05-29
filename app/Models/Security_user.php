@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Base_Model;
 use Lsflk\UniqueUid\UniqueUid;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Security_user extends Base_Model
 {
@@ -177,6 +179,7 @@ class Security_user extends Base_Model
 
         while (true) {
             try {
+                DB::beginTransaction();
                 $id = $this->insertGetId($studentData);
                 $studentData['id'] = $id;
                 // try to feed unique user id
@@ -184,9 +187,12 @@ class Security_user extends Base_Model
                     'security_user_id' => $id,
                     'unique_id' =>  $uniqueId
                 ]);
+                DB::commit();
                 break;
             } catch (\Throwable $th) {
                 // in case of duplication of the Unique ID this will recursive.
+                DB::rollBack();
+                Log::error($th);
                 $this->insertExaminationStudent($student);
             }
         }
@@ -218,14 +224,19 @@ class Security_user extends Base_Model
 
         while (true) {
             try {
-                return $this->update($studentData);
+                DB::beginTransaction();
+                $this->update($studentData);
+                // try to feed unique user id
                 Unique_user_id::create([
                     'security_user_id' => $sis_student['id'],
                     'unique_id' =>  $uniqueId
                 ]);
+                DB::commit();
                 break;
             } catch (\Throwable $th) {
                 // in case of duplication of the Unique ID this will recursive.
+                DB::rollBack();
+                Log::error($th);
                 $this->updateExaminationStudent($student, $sis_student);
             }
         }
