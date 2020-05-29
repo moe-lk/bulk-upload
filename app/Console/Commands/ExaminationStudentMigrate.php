@@ -15,7 +15,7 @@ class ExaminationStudentMigrate extends Command
     protected $signature = 'examination:migrate {year} {grade}';
 
     /**
-     * The console command description.
+     * This will migrate set of examination student's from DoE to SIS.
      *
      * @var string
      */
@@ -44,8 +44,4 @@ class ExaminationStudentMigrate extends Command
         $this->examinationController->doMatch();
         $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
-
-    //TODO implement the main algorythem
-
-    //TODO implement the seed fucntions
 }

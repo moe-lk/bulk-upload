@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Session;
-use FuzzyWuzzy\Fuzz;
-use FuzzyWuzzy\Process;
 use App\Models\Institution;
 use Illuminate\Http\Request;
 use App\Models\Security_user;
@@ -29,10 +27,10 @@ class ExaminationStudentsController extends Controller
         $this->grade = $grade;
         $this->student = new Security_user();
         $this->examination_student = new Examination_student();
-        $this->fuzzy = new Fuzz();
-        $this->process = new Process($this->fuzzy);
         $this->academic_period =  Academic_period::where('code', '=', $this->year)->first();
         $this->education_grade = Education_grade::where('code', '=', $this->grade)->first();
+        $this->uniqueId = new UniqueUid();
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
     public function index()
@@ -50,9 +48,7 @@ class ExaminationStudentsController extends Controller
             // File Details
             $filename = 'exams_students.csv';
             $extension = $file->getClientOriginalExtension();
-            $tempPath = $file->getRealPath();
             $fileSize = $file->getSize();
-            $mimeType = $file->getMimeType();
 
             // Valid File Extensions
             $valid_extension = array("csv");
@@ -84,6 +80,11 @@ class ExaminationStudentsController extends Controller
         return redirect()->action('ExaminationStudentsController@index');
     }
 
+    /**
+     * Import students data to the Examinations table 
+     *
+     * @return void
+     */
     public static function callOnClick()
     {
         // Import CSV to Database
@@ -93,6 +94,11 @@ class ExaminationStudentsController extends Controller
         $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
     }
 
+    /**
+     * Iterate over existing student's data
+     *
+     * @return void
+     */
     public  function doMatch()
     {
         $students = Examination_student::get()->toArray();
@@ -100,53 +106,61 @@ class ExaminationStudentsController extends Controller
         array_walk($students, array($this, 'clone'));
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param [type] $student
+     * @return void
+     */
     public function clone($student)
     {
         //get student matching with same dob and gender
-        $isMatching = $this->isMatching($student);
+        $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
         $institution = Institution::where('code', '=', $student['schoolid'])->first();
 
-        // ge the class lists to belong the school
-        $institutionClass = Institution_class::where(
-            [
-                'institution_id' => $institution->id,
-                'academic_period_id' => $this->academic_period->id,
-                'education_grade_id' => $this->education_grade->id
-            ]
-        )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
+        if (!is_null($institution)) {
+            // ge the class lists to belong the school
+            $institutionClass = Institution_class::where(
+                [
+                    'institution_id' => $institution->id,
+                    'academic_period_id' => $this->academic_period->id,
+                    'education_grade_id' => $this->education_grade->id
+                ]
+            )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
-        // set search variables 
-        $admissionInfo = [
-            'instituion_class' => $institutionClass,
-            'instituion' => $institution,
-            'education_grade' =>  $this->education_grade,
-            'academic_period' => $this->academic_period
-        ];
+            // set search variables 
+            $admissionInfo = [
+                'instituion_class' => $institutionClass,
+                'instituion' => $institution,
+                'education_grade' =>  $this->education_grade,
+                'academic_period' => $this->academic_period
+            ];
+            // if no matching found
+            if (empty($matchedStudent)) {
+                $sis_student = $this->student->insertExaminationStudent($student);
+                $this->updateStudentId($student, $sis_student);
 
-        // if no matching found
-        if (empty($isMatching)) {
-            $sis_student = $this->student->insertExaminationStudent($student);
-            $this->updateNSID($student, $sis_student);
-
-            //TODO implement insert student to admission table
-            $student['id'] = $sis_student['id'];
-            if (count($institutionClass) == 1) {
-                $admissionInfo['instituion_class'] = $institutionClass[0];
-                Institution_student::createExaminationData($student, $admissionInfo);
-                Institution_student_admission::createExaminationData($student, $admissionInfo);
-                Institution_class_student::createExaminationData($student, $admissionInfo);
+                //TODO implement insert student to admission table
+                $student['id'] = $sis_student['id'];
+                if (count($institutionClass) == 1) {
+                    $admissionInfo['instituion_class'] = $institutionClass[0];
+                    Institution_student::createExaminationData($student, $admissionInfo);
+                    Institution_student_admission::createExaminationData($student, $admissionInfo);
+                    Institution_class_student::createExaminationData($student, $admissionInfo);
+                } else {
+                    Institution_student_admission::createExaminationData($student, $admissionInfo);
+                    Institution_student::createExaminationData($student, $admissionInfo);
+                }
+                // update the matched student's data    
             } else {
-                Institution_student_admission::createExaminationData($student, $admissionInfo);
-                Institution_student::createExaminationData($student, $admissionInfo);
+                $this->student->updateExaminationStudent($student, $matchedStudent);
+                $matchedStudent = array_merge((array) $student, $matchedStudent);
+                Institution_student::updateExaminationData($matchedStudent, $admissionInfo);
+                $matchedStudent['id'] = $matchedStudent['student_id'];
+                $this->updateStudentId($student, $matchedStudent);
             }
-        // update the matched student's data    
-        } else {
-            $this->student->updateExaminationStudent($student, $isMatching);
-            $isMatching = array_merge($student, $isMatching);
-            Institution_student::updateExaminationData($isMatching, $admissionInfo);
-            $this->updateNSID($student, $isMatching);
         }
     }
 
@@ -158,23 +172,53 @@ class ExaminationStudentsController extends Controller
      * @param [type] $student
      * @return array
      */
-    public function isMatching($student)
+    public function getMatchingStudents($student)
     {
         $sis_users = $this->student->getMatches($student);
         $studentData = [];
-        if (is_null($sis_users)) {
-            $studentData = [];
-        } elseif (count($sis_users) > 0) {
-            //Extract most highest matched one  in the openemis the full saved on first_name
-            $matchingStudentName =  $this->process->extractOne($student['f_name'], array_column($sis_users, 'first_name'), null, [$this->fuzzy, 'ratio']);
-            $matchingStudentId = (array_search($matchingStudentName[0], array_column($sis_users, 'first_name')));
-            $matchingStudent = $sis_users[$matchingStudentId];
-            $studentData = $matchingStudent;
+        if (!is_null($sis_users) && (count($sis_users) > 0)) {
+            $studentData = $this->searchSimilarName($student, $sis_users);
         }
         return $studentData;
     }
 
+    /**
+     * Search most matching name
+     *
+     * @param [type] $student
+     * @param [type] $sis_students
+     * @return void
+     */
+    public function searchSimilarName($student, $sis_students)
+    {
+        $highest = [];
+        $previousValue = null;
+        foreach ($sis_students as $key => $value) {
+            similar_text(get_l_name($student['f_name']), get_l_name($value['first_name']), $percentage);
+            $value['rate'] = $percentage;
+            if (($previousValue)) {
+                $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
+            } else {
+                $highest = $value;
+            }
+            $previousValue = $value;
+        }
 
+        //If the not matched 100% try to get most highest value with full name
+        if(!($highest['rate'] > 99) ){
+            foreach ($sis_students as $key => $value) {
+                similar_text($student['f_name'],$value['first_name'], $percentage);
+                $value['rate'] = $percentage;
+                if (($previousValue)) {
+                    $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
+                } else {
+                    $highest = $value;
+                }
+                $previousValue = $value;
+            }
+        }
+        return $highest;
+    }
 
     /**
      * Generate new NSID for students
@@ -183,13 +227,16 @@ class ExaminationStudentsController extends Controller
      * @param [type] $sis_student
      * @return void
      */
-    public function updateNSID($student, $sis_student)
+    public function updateStudentId($student, $sis_student)
     {
-        $student['nsid'] = UniqueUid::isValidUniqeId($sis_student['openemis_no']) ? $sis_student['openemis_no'] : UniqueUid::getUniqueAlphanumeric(3);
+        $student['nsid'] =  $sis_student['openemis_no'];
+
         $this->student->where('id', $sis_student['id'])->update([
-            'openemis_no' => $student['nsid']
+            'openemis_no' => $sis_student['openemis_no']
         ]);
+        // add new NSID to the examinations data set
         $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
+        $this->output->writeln('Updated '.$sis_student['id'] .' to NSID'. $sis_student['openemis_no']);
     }
 
     /**
