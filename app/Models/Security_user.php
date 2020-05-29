@@ -176,25 +176,21 @@ class Security_user extends Base_Model
             'is_student' => 1,
             'created_user_id' => 1
         ];
-
-        while (true) {
-            try {
-                DB::beginTransaction();
-                $id = $this->insertGetId($studentData);
-                $studentData['id'] = $id;
-                // try to feed unique user id
-                Unique_user_id::create([
-                    'security_user_id' => $id,
-                    'unique_id' =>  $uniqueId
-                ]);
-                DB::commit();
-                break;
-            } catch (\Throwable $th) {
-                // in case of duplication of the Unique ID this will recursive.
-                DB::rollBack();
-                Log::error($th);
-                $this->insertExaminationStudent($student);
-            }
+        try {
+            DB::beginTransaction();
+            $id = $this->insertGetId($studentData);
+            $studentData['id'] = $id;
+            // try to feed unique user id
+            Unique_user_id::create([
+                'security_user_id' => $id,
+                'unique_id' =>  $uniqueId
+            ]);
+            DB::commit();
+        } catch (\Throwable $th) {
+            // in case of duplication of the Unique ID this will recursive.
+            DB::rollBack();
+            Log::error($th);
+            $this->insertExaminationStudent($student);
         }
         return $studentData;
     }
@@ -222,23 +218,20 @@ class Security_user extends Base_Model
             'modified' => now()
         ];
 
-        while (true) {
-            try {
-                DB::beginTransaction();
-                $this->update($studentData);
-                // try to feed unique user id
-                Unique_user_id::create([
-                    'security_user_id' => $sis_student['id'],
-                    'unique_id' =>  $uniqueId
-                ]);
-                DB::commit();
-                break;
-            } catch (\Throwable $th) {
-                // in case of duplication of the Unique ID this will recursive.
-                DB::rollBack();
-                Log::error($th);
-                $this->updateExaminationStudent($student, $sis_student);
-            }
+        try {
+            DB::beginTransaction();
+            $this->update($studentData);
+            // try to feed unique user id
+            Unique_user_id::create([
+                'security_user_id' => $sis_student['id'],
+                'unique_id' =>  $uniqueId
+            ]);
+            DB::commit();
+        } catch (\Throwable $th) {
+            // in case of duplication of the Unique ID this will recursive.
+            DB::rollBack();
+            Log::error($th);
+            $this->updateExaminationStudent($student, $sis_student);
         }
         return $studentData;
     }
