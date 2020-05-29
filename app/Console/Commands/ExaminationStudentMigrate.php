@@ -19,7 +19,7 @@ class ExaminationStudentMigrate extends Command
      *
      * @var string
      */
-    protected $description = 'This command desinged to map and produce new students id for examination';
+    protected $description = 'This command designed to map and produce new students id for examination';
 
     /**
      * Create a new command instance.
@@ -38,6 +38,7 @@ class ExaminationStudentMigrate extends Command
      */
     public function handle()
     {
+        ini_set('memory_limit', -1);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
         $this->examinationController = new ExaminationStudentsController($this->argument('year'),$this->argument('grade'));
