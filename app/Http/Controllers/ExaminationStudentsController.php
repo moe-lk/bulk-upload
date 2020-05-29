@@ -106,8 +106,9 @@ class ExaminationStudentsController extends Controller
         array_walk($students, array($this, 'clone'));
     }
 
+
     /**
-     * Undocumented function
+     * Main function to merge the student's to SIS
      *
      * @param [type] $student
      * @return void
@@ -193,6 +194,7 @@ class ExaminationStudentsController extends Controller
     {
         $highest = [];
         $previousValue = null;
+        // search for matching name with last name
         foreach ($sis_students as $key => $value) {
             similar_text(get_l_name($student['f_name']), get_l_name($value['first_name']), $percentage);
             $value['rate'] = $percentage;
@@ -205,9 +207,9 @@ class ExaminationStudentsController extends Controller
         }
 
         //If the not matched 100% try to get most highest value with full name
-        if(!($highest['rate'] > 99) ){
+        if (!($highest['rate'] > 99)) {
             foreach ($sis_students as $key => $value) {
-                similar_text($student['f_name'],$value['first_name'], $percentage);
+                similar_text($student['f_name'], $value['first_name'], $percentage);
                 $value['rate'] = $percentage;
                 if (($previousValue)) {
                     $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
@@ -236,7 +238,7 @@ class ExaminationStudentsController extends Controller
         ]);
         // add new NSID to the examinations data set
         $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
-        $this->output->writeln('Updated '.$sis_student['id'] .' to NSID'. $sis_student['openemis_no']);
+        $this->output->writeln('Updated ' . $sis_student['id'] . ' to NSID' . $sis_student['openemis_no']);
     }
 
     /**
