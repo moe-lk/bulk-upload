@@ -189,7 +189,6 @@ class Security_user extends Base_Model
         } catch (\Exception $th) {
             // in case of duplication of the Unique ID this will recursive.
             DB::rollBack();
-            Log::error($th->getMessage());
             $this->insertExaminationStudent($student);
         }
         return $studentData;
@@ -230,7 +229,6 @@ class Security_user extends Base_Model
         } catch (\Exception $th) {
             // in case of duplication of the Unique ID this will recursive.
             DB::rollBack();
-            Log::error($th->getMessage());
             $this->updateExaminationStudent($student, $sis_student);
         }
         return $studentData;
