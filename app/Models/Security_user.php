@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Validation\Rule;
 use App\Models\Base_Model;
-use Mohamednizar\MoeUuid\MoeUuid;
+use Lsflk\UniqueUid\UniqueUid;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class Security_user extends Base_Model  {
+class Security_user extends Base_Model
+{
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
@@ -22,7 +23,7 @@ class Security_user extends Base_Model  {
     protected $table = 'security_users';
 
     protected $appends = [
-      'special_need_name'
+        'special_need_name'
     ];
 
     /**
@@ -68,10 +69,13 @@ class Security_user extends Base_Model  {
 
     ];
 
+    public function __construct()
+    {
+        $this->uniqueUserId = new UniqueUid();
+    }
 
-
-
-    public function getSpecialNeedNameAttribute() {
+    public function getSpecialNeedNameAttribute()
+    {
         return optional($this->special_needs())->special_need_difficulty_id;
     }
 
@@ -82,17 +86,15 @@ class Security_user extends Base_Model  {
      */
     protected $casts = [];
 
-    public function institutionStudents(){
-        return $this->hasOne(Institution_student::class,'student_id');
-    }
-
-
-
-    public function institutionStudentsClass(){
+    public function institutionStudents()
+    {
         return $this->hasOne(Institution_student::class, 'student_id');
     }
 
-
+    public function institutionStudentsClass()
+    {
+        return $this->hasOne(Institution_student::class, 'student_id');
+    }
 
     /**
      * The attributes that should be mutated to dates.
@@ -101,58 +103,57 @@ class Security_user extends Base_Model  {
      */
     protected $dates = ['date_of_birth', 'date_of_death', 'last_login', 'modified', 'created'];
 
-
-
-   public function rules()
+    public function rules()
     {
         return [
-                'identity_number' => [
-                    'required',
-                    'unique:security_users,identity_number',
-                ],
-            // 'identity_number' => 'unique:security_users,identity_number,NULL,id,identity_type_id,'.,
-            // 'identity_number' => 'unique:identity_type_id',
+            'identity_number' => [
+                'required',
+                'unique:security_users,identity_number',
+            ]
         ];
     }
 
-
-
-
-
-
-    public function getAuthPassword(){
+    public function getAuthPassword()
+    {
         return $this->password;
     }
 
-    public function uploads(){
-       return $this->hasMany('App\Models\Upload');
+    public function uploads()
+    {
+        return $this->hasMany('App\Models\Upload');
     }
 
-    public function class(){
-        return $this->belongsTo('App\Models\Institution_class_student','id','student_id');
+    public function class()
+    {
+        return $this->belongsTo('App\Models\Institution_class_student', 'id', 'student_id');
     }
 
-    public function special_needs(){
-        return $this->hasMany('App\Models\User_special_need','id','security_user_id');
+    public function special_needs()
+    {
+        return $this->hasMany('App\Models\User_special_need', 'id', 'security_user_id');
     }
 
-    public function genUUID(){
+    public function genUUID()
+    {
         $uuid = Uuid::generate(4);
-        return str_split($uuid,'8')[0];
+        return str_split($uuid, '8')[0];
     }
 
     /**
      * First level search for students
+     *
+     * @param [type] $student
+     * @return void
      */
-
-    public function getMatches($student){
-       return $this->where([
-            'gender_id' => $student['gender']+1, 
+    public function getMatches($student)
+    {
+        return $this->where([
+            'gender_id' => $student['gender'] + 1, // DoE id differs form MoE id
             'date_of_birth' => $student['b_date'],
             'institutions.code' => $student['schoolid']
-            ])
-            ->join('institution_students','security_users.id','institution_students.student_id')
-            ->join('institutions','institution_students.institution_id','institutions.id')
+        ])
+            ->join('institution_students', 'security_users.id', 'institution_students.student_id')
+            ->join('institutions', 'institution_students.institution_id', 'institutions.id')
             ->get()->toArray();
     }
 
@@ -161,34 +162,84 @@ class Security_user extends Base_Model  {
      * @input array
      * @return array
      */
-    public function insertExaminationStudent ($student){
-        $studentNSID = MoeUuid::getUniqueAlphanumeric(3);
-        $student = $this->create([
-            'username' => str_replace('-','',$studentNSID),
-            'openemis_no' => $studentNSID,
+    public function insertExaminationStudent($student)
+    {
+        $uniqueId = $this->uniqueUserId::getUniqueAlphanumeric();
+        $studentData = [
+            'username' => str_replace('-', '', $uniqueId),
+            'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
             'last_name' => genNameWithInitials($student['f_name']),
-            'gender_id' => $student['gender']+1,
+            'gender_id' => $student['gender'] + 1,
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'is_student' => 1,
             'created_user_id' => 1
-        ]);
+        ];
 
-        return $student;
+        while (true) {
+            try {
+                DB::beginTransaction();
+                $id = $this->insertGetId($studentData);
+                $studentData['id'] = $id;
+                // try to feed unique user id
+                Unique_user_id::create([
+                    'security_user_id' => $id,
+                    'unique_id' =>  $uniqueId
+                ]);
+                DB::commit();
+                break;
+            } catch (\Throwable $th) {
+                // in case of duplication of the Unique ID this will recursive.
+                DB::rollBack();
+                Log::error($th);
+                $this->insertExaminationStudent($student);
+            }
+        }
+        return $studentData;
     }
 
-    public function updateExaminationStudent($student,$sis_student){
-        $studentNSID = !MoeUuid::isValidMoeUuid($sis_student['openemis_no']) ? MoeUuid::getUniqueAlphanumeric(3) : $sis_student['openemis_no'];
-        $student = $this->update([
+    /**
+     * Update the existing student's data
+     *
+     * @param [type] $student
+     * @param [type] $sis_student
+     * @return void
+     */
+    public function updateExaminationStudent($student, $sis_student)
+    {
+        // regenerate unique id if it's not available
+        $uniqueId = !$this->uniqueUserId::isValidUniqueId($sis_student['openemis_no']) ? $this->uniqueUserId::getUniqueAlphanumeric() : $sis_student['openemis_no'];
+
+        $studentData = [
             'id' => $sis_student['id'],
-            'username' => str_replace('-','',$studentNSID),
-            'openemis_no' => $studentNSID,
+            'username' => str_replace('-', '', $uniqueId),
+            'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
             'last_name' => genNameWithInitials($student['f_name']),
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'modified' => now()
-        ]);
+        ];
+
+        while (true) {
+            try {
+                DB::beginTransaction();
+                $this->update($studentData);
+                // try to feed unique user id
+                Unique_user_id::create([
+                    'security_user_id' => $sis_student['id'],
+                    'unique_id' =>  $uniqueId
+                ]);
+                DB::commit();
+                break;
+            } catch (\Throwable $th) {
+                // in case of duplication of the Unique ID this will recursive.
+                DB::rollBack();
+                Log::error($th);
+                $this->updateExaminationStudent($student, $sis_student);
+            }
+        }
+        return $studentData;
     }
 }
