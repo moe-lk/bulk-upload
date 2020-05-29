@@ -3,9 +3,7 @@
 namespace App\Models;
 
 use App\Models\Base_Model;
-use Lsflk\UniqueUid\UniqueUid;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Lsf\UniqueUid\UniqueUid;
 
 class Security_user extends Base_Model
 {
@@ -142,8 +140,8 @@ class Security_user extends Base_Model
     /**
      * First level search for students
      *
-     * @param [type] $student
-     * @return void
+     * @param array $student
+     * @return array
      */
     public function getMatches($student)
     {
@@ -194,9 +192,9 @@ class Security_user extends Base_Model
     /**
      * Update the existing student's data
      *
-     * @param [type] $student
-     * @param [type] $sis_student
-     * @return void
+     * @param array $student
+     * @param array $sis_student
+     * @return array
      */
     public function updateExaminationStudent($student, $sis_student)
     {
@@ -216,10 +214,19 @@ class Security_user extends Base_Model
 
         try {
             $this->update($studentData);
-            // try to feed unique user id
-            Unique_user_id::where([
-                'security_user_id' => $sis_student['id']
-            ])->update(['unique_id' =>  $uniqueId]);
+            
+            //check if the user's entry exits ?
+            $exit = Unique_user_id::where([
+                'security_user_id' => $sis_student['id'],
+                'unique_id' =>  $uniqueId
+            ])->exists();
+            if (!$exit) {
+                // try to feed unique user id
+                Unique_user_id::updateOrCreate([
+                    'security_user_id' => $sis_student['id'],
+                    'unique_id' =>  $uniqueId
+                ]);
+            }
         } catch (\Exception $th) {
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);

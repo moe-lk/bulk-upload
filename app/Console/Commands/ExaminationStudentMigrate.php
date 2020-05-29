@@ -38,7 +38,6 @@ class ExaminationStudentMigrate extends Command
      */
     public function handle()
     {
-        ini_set('memory_limit', -1);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
         $this->examinationController = new ExaminationStudentsController($this->argument('year'),$this->argument('grade'));
