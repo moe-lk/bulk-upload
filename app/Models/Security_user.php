@@ -175,17 +175,22 @@ class Security_user extends Base_Model
             'created_user_id' => 1
         ];
 
-        try {
-            $id = $this->insertGetId($studentData);
-            $studentData['id'] = $id;
-            Unique_user_id::create([
-                'security_user_id' => $id,
-                'unique_id' =>  $uniqueId
-            ]);
-            return $studentData;
-        } catch (\Throwable $th) {
-            $this->insertExaminationStudent($student);
+        while (true) {
+            try {
+                $id = $this->insertGetId($studentData);
+                $studentData['id'] = $id;
+                // try to feed unique user id
+                Unique_user_id::create([
+                    'security_user_id' => $id,
+                    'unique_id' =>  $uniqueId
+                ]);
+                break;
+            } catch (\Throwable $th) {
+                // in case of duplication of the Unique ID this will recursive.
+                $this->insertExaminationStudent($student);
+            }
         }
+        return $studentData;
     }
 
     /**
@@ -200,7 +205,7 @@ class Security_user extends Base_Model
         // regenerate unique id if it's not available
         $uniqueId = !$this->uniqueUserId::isValidUniqueId($sis_student['openemis_no']) ? $this->uniqueUserId::getUniqueAlphanumeric() : $sis_student['openemis_no'];
 
-        $student = [
+        $studentData = [
             'id' => $sis_student['id'],
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
@@ -211,15 +216,19 @@ class Security_user extends Base_Model
             'modified' => now()
         ];
 
-        try {
-            return $this->update($student);
-            Unique_user_id::create([
-                'security_user_id' => $sis_student['id'],
-                'unique_id' =>  $uniqueId
-            ]);
-        } catch (\Throwable $th) {
-            // in case of duplication of the Unique ID this will recursive.
-            $this->updateExaminationStudent($student, $sis_student);
+        while (true) {
+            try {
+                return $this->update($studentData);
+                Unique_user_id::create([
+                    'security_user_id' => $sis_student['id'],
+                    'unique_id' =>  $uniqueId
+                ]);
+                break;
+            } catch (\Throwable $th) {
+                // in case of duplication of the Unique ID this will recursive.
+                $this->updateExaminationStudent($student, $sis_student);
+            }
         }
+        return $studentData;
     }
 }
