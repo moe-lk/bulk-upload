@@ -246,7 +246,7 @@ class ExaminationStudentsController extends Controller
         }
 
         //If the not matched 100% try to get most highest value with full name
-        if (!($highest['rate'] > 99) || (count($matchedData) > 1)) {
+        if ( ($highest['rate']  < 100) || (count($matchedData) > 1)) {
             foreach ($sis_students as $key => $value) {
                 similar_text($student['f_name'], $value['first_name'], $percentage);
                 $value['rate'] = $percentage;
