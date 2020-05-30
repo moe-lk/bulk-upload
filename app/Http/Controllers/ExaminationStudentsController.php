@@ -6,7 +6,6 @@ use Session;
 use App\Models\Institution;
 use Illuminate\Http\Request;
 use App\Models\Security_user;
-use Lsflk\UniqueUid\UniqueUid;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
@@ -29,7 +28,6 @@ class ExaminationStudentsController extends Controller
         $this->examination_student = new Examination_student();
         $this->academic_period =  Academic_period::where('code', '=', $this->year)->first();
         $this->education_grade = Education_grade::where('code', '=', $this->grade)->first();
-        $this->uniqueId = new UniqueUid();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
@@ -106,11 +104,41 @@ class ExaminationStudentsController extends Controller
         array_walk($students, array($this, 'clone'));
     }
 
+    /**
+     * Set Examination values
+     *
+     * @param array $students
+     * @return array
+     */
+    public function setIsTakingExam($students){
+        $students['taking_g5_exam'] = false;
+        $students['taking_ol_exam'] = false;
+        $students['taking_al_exam'] = false;
+        switch($this->education_grade->code){
+            case 'G5':
+                $students['taking_g5_exam'] = true;
+                break;
+            case 'G4':
+                $students['taking_g5_exam'] = true;
+                break;
+            case 'G10':
+                $students['taking_ol_exam'] = true;
+                break;
+            case 'G11':
+                $students['taking_ol_exam'] = true;
+                break;
+            case preg_match('13',$this->education_grade->code):  
+                $students['taking_al_exam'] = true;
+                break;             
+        }
+        return $students;
+    }
+
 
     /**
      * Main function to merge the student's to SIS
      *
-     * @param [type] $student
+     * @param array $student
      * @return void
      */
     public function clone($student)
@@ -122,6 +150,7 @@ class ExaminationStudentsController extends Controller
         $institution = Institution::where('code', '=', $student['schoolid'])->first();
 
         if (!is_null($institution)) {
+
             // ge the class lists to belong the school
             $institutionClass = Institution_class::where(
                 [
@@ -138,6 +167,7 @@ class ExaminationStudentsController extends Controller
                 'education_grade' =>  $this->education_grade,
                 'academic_period' => $this->academic_period
             ];
+
             // if no matching found
             if (empty($matchedStudent)) {
                 $sis_student = $this->student->insertExaminationStudent($student);
@@ -145,6 +175,8 @@ class ExaminationStudentsController extends Controller
 
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
+
+                $student = $this->setIsTakingExam($student);
                 if (count($institutionClass) == 1) {
                     $admissionInfo['instituion_class'] = $institutionClass[0];
                     Institution_student::createExaminationData($student, $admissionInfo);
@@ -166,11 +198,11 @@ class ExaminationStudentsController extends Controller
     }
 
     /**
-     * This function is implemented fuzzy search algorithm 
+     * This function is implemented similar_text search algorithm 
      * to get the most matching name with the existing students
      * data set
      *
-     * @param [type] $student
+     * @param array $student
      * @return array
      */
     public function getMatchingStudents($student)
@@ -186,18 +218,25 @@ class ExaminationStudentsController extends Controller
     /**
      * Search most matching name
      *
-     * @param [type] $student
-     * @param [type] $sis_students
-     * @return void
+     * @param array $student
+     * @param array $sis_students
+     * @return array
      */
     public function searchSimilarName($student, $sis_students)
     {
         $highest = [];
         $previousValue = null;
+        $matchedData = [];
+
         // search for matching name with last name
         foreach ($sis_students as $key => $value) {
             similar_text(get_l_name($student['f_name']), get_l_name($value['first_name']), $percentage);
             $value['rate'] = $percentage;
+
+            if ($value['rate'] == 100) {
+                $matchedData[] = $value;
+            }
+
             if (($previousValue)) {
                 $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
             } else {
@@ -207,7 +246,7 @@ class ExaminationStudentsController extends Controller
         }
 
         //If the not matched 100% try to get most highest value with full name
-        if (!($highest['rate'] > 99)) {
+        if (!($highest['rate'] > 99) || (count($matchedData) > 1)) {
             foreach ($sis_students as $key => $value) {
                 similar_text($student['f_name'], $value['first_name'], $percentage);
                 $value['rate'] = $percentage;
@@ -225,8 +264,8 @@ class ExaminationStudentsController extends Controller
     /**
      * Generate new NSID for students
      *
-     * @param [type] $student
-     * @param [type] $sis_student
+     * @param array $student
+     * @param array $sis_student
      * @return void
      */
     public function updateStudentId($student, $sis_student)

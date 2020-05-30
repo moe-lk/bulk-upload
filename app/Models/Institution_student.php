@@ -136,7 +136,13 @@ class Institution_student extends Base_Model
             self::create([
                 'student_status_id' => 1,
                 'student_id' => $student['id'],
-                'taking_g5_exam' => 1,
+                'taking_g5_exam' => $student['taking_g5_exam'],
+                'taking_ol_exam' =>$student['taking_ol_exam'],
+                'taking_al_exam' => $student['taking_al_exam'],
+                // Set special examination center
+                'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : false,
+                'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : false,
+                'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : false,
                 'income_at_g5' => $student['a_income'],
                 'education_grade_id' => $admissionInfo['education_grade']->id,
                 'academic_period_id' => $admissionInfo['academic_period']->id,
@@ -169,7 +175,14 @@ class Institution_student extends Base_Model
                 'academic_period_id' => $admissionInfo['academic_period']->id,
             ])->update(
                 [
-                    'taking_g5_exam' => 1,
+                    'taking_g5_exam' => $student['taking_g5_exam'],
+                    'taking_ol_exam' => $student['taking_ol_exam'],
+                    'taking_al_exam' => $student['taking_al_exam'],
+                    // Set special examination center
+                    'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : false,
+                    'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : false,
+                    'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : false,
+    
                     'income_at_g5' => $student['a_income'],
                     'modified' => now(),
                     'modified_user_id' => 1
