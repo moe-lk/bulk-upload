@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Base_Model;
 use Lsf\UniqueUid\UniqueUid;
+use App\Models\Unique_user_id;
+use Illuminate\Support\Facades\Log;
 
 class Security_user extends Base_Model
 {
@@ -69,7 +71,8 @@ class Security_user extends Base_Model
 
     public function __construct()
     {
-        $this->uniqueUserId = new UniqueUid();
+        $this->uniqueUserId = new Unique_user_id();
+        $this->uniqueUId = new UniqueUid();
     }
 
     public function getSpecialNeedNameAttribute()
@@ -177,12 +180,10 @@ class Security_user extends Base_Model
         try {
             $id = $this->insertGetId($studentData);
             $studentData['id'] = $id;
-            // try to feed unique user id
-            Unique_user_id::create([
-                'security_user_id' => $id,
-                'unique_id' =>  $uniqueId
-            ]);
+            $this->uniqueUserId->updateOrInsertRecord($studentData);
+            return $studentData;
         } catch (\Exception $th) {
+            Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->insertExaminationStudent($student);
         }
@@ -199,7 +200,7 @@ class Security_user extends Base_Model
     public function updateExaminationStudent($student, $sis_student)
     {
         // regenerate unique id if it's not available
-        $uniqueId = !$this->uniqueUserId::isValidUniqueId($sis_student['openemis_no']) ? $this->uniqueUserId::getUniqueAlphanumeric() : $sis_student['openemis_no'];
+        $uniqueId = !$this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ? $this->uniqueUId::getUniqueAlphanumeric() : $sis_student['openemis_no'];
 
         $studentData = [
             'id' => $sis_student['id'],
@@ -214,20 +215,10 @@ class Security_user extends Base_Model
 
         try {
             $this->update($studentData);
-            
-            //check if the user's entry exits ?
-            $exit = Unique_user_id::where([
-                'security_user_id' => $sis_student['id'],
-                'unique_id' =>  $uniqueId
-            ])->exists();
-            if (!$exit) {
-                // try to feed unique user id
-                Unique_user_id::updateOrCreate([
-                    'security_user_id' => $sis_student['id'],
-                    'unique_id' =>  $uniqueId
-                ]);
-            }
+            $this->uniqueUserId->updateOrInsertRecord($studentData);
+            return $studentData;
         } catch (\Exception $th) {
+            Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);
         }

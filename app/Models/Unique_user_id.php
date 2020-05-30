@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use Lsf\UniqueUid\UniqueUid;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 
-class Unique_user_id extends Model  {
+class Unique_user_id extends Model
+{
 
     /**
      * The database table used by the model.
@@ -41,4 +44,33 @@ class Unique_user_id extends Model  {
      */
     protected $dates = [];
 
+    public function __construct()
+    {
+        $this->uniqueUserId = new UniqueUid();
+    }
+
+
+
+    public  function updateOrInsertRecord($user)
+    {
+       try {
+            // regenerate unique id if it's not available
+        $uniqueId =  $this->uniqueUserId::isValidUniqueId($user['openemis_no']) ? $this->uniqueUserId::getUniqueAlphanumeric() : $user['openemis_no'];
+
+        //check if the user's entry exits ?
+        $exists = Unique_user_id::where([
+            'security_user_id' => $user['id'],
+            'unique_id' =>  $uniqueId
+        ])->exists();
+        if (!$exists) {
+            // try to feed unique user id
+            Unique_user_id::insert([
+                'security_user_id' => $user['id'],
+                'unique_id' =>  $uniqueId
+            ]);
+        }
+       } catch (\Exception $th) {
+           Log::error($th->getMessage());
+       }
+    }
 }
