@@ -165,7 +165,7 @@ class Security_user extends Base_Model
      */
     public function insertExaminationStudent($student)
     {
-        $uniqueId = $this->uniqueUserId::getUniqueAlphanumeric();
+        $uniqueId = $this->uniqueUId::getUniqueAlphanumeric();
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
