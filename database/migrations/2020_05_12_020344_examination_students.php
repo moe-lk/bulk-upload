@@ -29,7 +29,7 @@ class ExaminationStudents extends Migration
             $table->boolean('spl_need')->nullable();
             $table->string('disability_type')->nullable();
             $table->string('disability')->nullable();
-            $table->string('sp_centre')->nullable();
+            $table->string('sp_center')->nullable();
             $table->timestamps();
         });
     }
