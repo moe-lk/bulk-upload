@@ -17,6 +17,11 @@
 
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
+Route::get('/uploadcsv', 'ExaminationStudentsController@index')->middleware('Role:ADMIN');
+Route::get('/oauth/auth', 'Auth\LoginController@authenticated');
+Route::get('/oauth/user', 'GrafanaOAuth@user');
+//token
+Route::get('/exportexamination', 'ExaminationStudentsController@export')->middleware('Role:ADMIN');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
 Route::post('exportExcel', 'ImportExport@export');
@@ -31,6 +36,7 @@ Route::post('upload', 'FileController@upload')->name('upload');
 Route::get('create', 'FilesController@create');
 Route::get('index', 'FilesController@index');
 
+Route::post('uploadFile', 'ExaminationStudentsController@uploadFile');
 
 Route::get('download/{filename}', 'FileController@downloadErrorFile')->where('filename', '[A-Za-z0-9\-\_\.]+');
 Route::get('download_file/{filename}', 'FileController@downloadFile')->where('filename', '[A-Za-z0-9\-\_\.]+');
