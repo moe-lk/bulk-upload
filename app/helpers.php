@@ -1,11 +1,5 @@
 <?php
 
-function get_l_name($name){
-    $name = trim($name);
-    $last_name = (strpos($name,' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
-    return $last_name;
-}
-
 // Gen name with initials with help of fullname
 function genNameWithInitials($fullname = null){
     $names = explode(' ', $fullname);
