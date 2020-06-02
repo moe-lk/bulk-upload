@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\GrafanaOAuth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
 
 class LoginController extends Controller
 {
@@ -49,6 +46,11 @@ class LoginController extends Controller
         $this->username = $this->findUsername();
     }
 
+    public function authorize($ability, $arguments = [])
+    {
+
+    }
+
     /**
      * @return string
      */
@@ -61,28 +63,6 @@ class LoginController extends Controller
 
         return $fieldType;
     }
-
-    // public function authenticated(Request $request){
-    //         $state = $request->input('state');
-    //         $request_uri = 'http://localhost:3000/login/generic_oauth' ;//$request->input('redirect_ur');
-    //         $request_type = $request->input('response_type');
-    //         $url = "http://localhost:3000/login/generic_oauth?state={$state}&code=cc536d98d27750394a87ab9d057016e636a8ac31";
-    //         return redirect($url);
-    //     // $response_type = Session::get('response_type');
-    //     // $request_uri = Session::get('request_uri');
-    //     // $state = Session::get('state');
-    //     // if($response_type == 'code'){
-    //     //     $url = "{$request_uri}?state={$state}&code=cc536d98d27750394a87ab9d057016e636a8ac31";
-    //     //     // header("Location: {$url}");
-    //     //     return redirect($url);
-    //     // }else{
-    //     //     $this->grafana = new GrafanaOAuth();
-    //     //     $this->grafana->auth(request());
-    //     //     $url = "{$request_uri}?state={$state}&code=cc536d98d27750394a87ab9d057016e636a8ac31";
-    //     //     // header("Location: {$url}");
-    //     //     return redirect($url);
-    //     // }
-    // }   
 
     /**
      * @return string

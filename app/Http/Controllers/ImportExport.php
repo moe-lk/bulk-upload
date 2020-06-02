@@ -34,12 +34,9 @@ class ImportExport extends Controller
     */
     public function importExportView()
     {
-        if(Auth::user()->super_admin ){
-            return view('uploadcsv');
-        }else{
-            $classes = (!Auth::user()->permissions->isEmpty())  ?  Auth::user()->permissions[0]->staff_class : Auth::user()->principal[0]->security_group_institution->institution_classes;
-            return view('importExport')->with('classes',$classes);
-        }
+        $classes = (!Auth::user()->permissions->isEmpty())  ?  Auth::user()->permissions[0]->staff_class : Auth::user()->principal[0]->security_group_institution->institution_classes;
+
+        return view('importExport')->with('classes',$classes);
     }
 
 
