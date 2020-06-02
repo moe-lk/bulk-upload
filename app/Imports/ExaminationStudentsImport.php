@@ -60,7 +60,7 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
             "pvt_address" => $row['pvt_address'],
             "disability_type" => $row['disability_type'],
             "disability" => $row['disability'],
-            "sp_center" => $row['sp_center']
+            "sp_centre" => $row['sp_center']
         );
         Examination_student::insertData($insertData);
     }
