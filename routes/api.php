@@ -13,11 +13,8 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api','core')->get('/user', function (Request $request) {
+Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::middleware('auth:api','core')->get('/oauth/token','GrafanaOAuth@token');
-Route::middleware('auth:api','core')->post('/oauth/auth', 'GrafanaOAuth@auth');
 
-// Route::get('/oauth/token', 'GrafanaOAuth@token');
 Auth::routes(['register' => false]);
