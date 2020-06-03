@@ -175,6 +175,7 @@ class Security_user extends Base_Model
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'is_student' => 1,
+            'created' => now(),
             'created_user_id' => 1
         ];
         try {
@@ -200,7 +201,7 @@ class Security_user extends Base_Model
     public function updateExaminationStudent($student, $sis_student)
     {
         // regenerate unique id if it's not available
-        $uniqueId = !$this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ? $this->uniqueUId::getUniqueAlphanumeric() : $sis_student['openemis_no'];
+        $uniqueId = $this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
 
         $studentData = [
             'id' => $sis_student['id'],
