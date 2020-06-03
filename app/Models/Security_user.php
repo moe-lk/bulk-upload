@@ -202,9 +202,9 @@ class Security_user extends Base_Model
     {
         // regenerate unique id if it's not available
         $uniqueId = $this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
-
+        
         $studentData = [
-            'id' => $sis_student['id'],
+            'id' => $sis_student['student_id'],
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
@@ -215,7 +215,8 @@ class Security_user extends Base_Model
         ];
 
         try {
-            $this->update($studentData);
+            self::where(['id' => $sis_student['student_id']])
+            ->update($studentData);
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
