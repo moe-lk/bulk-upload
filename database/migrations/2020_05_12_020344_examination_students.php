@@ -18,7 +18,7 @@ class ExaminationStudents extends Migration
         Schema::create('examination_students',function(Blueprint $table){
             $table->integer('st_no',9);
             $table->string('stu_no',9);
-            $table->string('nsid',12);
+            $table->string('nsid',12)->nullable();
             $table->integer('schoolid');
             $table->string('f_name');
             $table->integer('medium');
