@@ -188,7 +188,7 @@ class ExaminationStudentsController extends Controller
                 }
                 // update the matched student's data    
             } else {
-                $this->student->updateExaminationStudent($student, $matchedStudent);
+                $student = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
                 Institution_student::updateExaminationData($matchedStudent, $admissionInfo);
                 $matchedStudent['id'] = $matchedStudent['student_id'];
@@ -271,10 +271,6 @@ class ExaminationStudentsController extends Controller
     public function updateStudentId($student, $sis_student)
     {
         $student['nsid'] =  $sis_student['openemis_no'];
-
-        $this->student->where('id', $sis_student['id'])->update([
-            'openemis_no' => $sis_student['openemis_no']
-        ]);
         // add new NSID to the examinations data set
         $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
         $this->output->writeln('Updated ' . $sis_student['id'] . ' to NSID' . $sis_student['openemis_no']);
