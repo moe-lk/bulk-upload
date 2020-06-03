@@ -168,6 +168,7 @@ class Institution_student extends Base_Model
      */
     public static function updateExaminationData($student, $admissionInfo)
     {
+        $student['sp_center'] = typeOf((int)$student['sp_center']) == 'integer' ?  $student['sp_center'] : 0;
         try {
             self::where([
                 'student_id' => $student['student_id'],
@@ -179,9 +180,9 @@ class Institution_student extends Base_Model
                     'taking_ol_exam' => $student['taking_ol_exam'],
                     'taking_al_exam' => $student['taking_al_exam'],
                     // Set special examination center
-                    'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : false,
-                    'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : false,
-                    'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : false,
+                    'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : 0,
+                    'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : 0,
+                    'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : 0,
     
                     'income_at_g5' => $student['a_income'],
                     'modified' => now(),

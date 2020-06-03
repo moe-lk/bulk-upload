@@ -190,9 +190,10 @@ class ExaminationStudentsController extends Controller
                 }
                 // update the matched student's data    
             } else {
-                $matchedStudent = $this->student->updateExaminationStudent($student, $matchedStudent);
+                $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
-                Institution_student::updateExaminationData($matchedStudent, $admissionInfo);
+                $studentData = array_merge((array) $matchedStudent, $matchedStudent);
+                Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $matchedStudent);
             }
         }
