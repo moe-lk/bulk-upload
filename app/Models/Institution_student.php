@@ -132,7 +132,7 @@ class Institution_student extends Base_Model
      */
     public static function createExaminationData($student, $admissionInfo)
     {
-        $student['sp_center'] = typeOf((int)$student['sp_center']) == 'integer' ?  $student['sp_center'] : 0;
+        $student['sp_center'] = gettype((int)$student['sp_center']) == 'integer' ?  $student['sp_center'] : 0;
         try {
             self::create([
                 'id' => (string) Uuid::generate(4),
@@ -170,7 +170,7 @@ class Institution_student extends Base_Model
      */
     public static function updateExaminationData($student, $admissionInfo)
     {
-        $student['sp_center'] = typeOf((int)$student['sp_center']) == 'integer' ?  $student['sp_center'] : 0;
+        $student['sp_center'] = gettype((int)$student['sp_center']) == 'integer' ?  $student['sp_center'] : 0;
         try {
             self::where([
                 'student_id' => $student['student_id'],
