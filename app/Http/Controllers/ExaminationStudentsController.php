@@ -17,6 +17,7 @@ use App\Models\Institution_class_student;
 use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
 use App\Models\Institution_student_admission;
+use Illuminate\Support\Facades\Log;
 
 class ExaminationStudentsController extends Controller
 {
@@ -110,11 +111,12 @@ class ExaminationStudentsController extends Controller
      * @param array $students
      * @return array
      */
-    public function setIsTakingExam($students){
+    public function setIsTakingExam($students)
+    {
         $students['taking_g5_exam'] = false;
         $students['taking_ol_exam'] = false;
         $students['taking_al_exam'] = false;
-        switch($this->education_grade->code){
+        switch ($this->education_grade->code) {
             case 'G5':
                 $students['taking_g5_exam'] = true;
                 break;
@@ -127,9 +129,9 @@ class ExaminationStudentsController extends Controller
             case 'G11':
                 $students['taking_ol_exam'] = true;
                 break;
-            case preg_match('13',$this->education_grade->code):  
+            case preg_match('13', $this->education_grade->code):
                 $students['taking_al_exam'] = true;
-                break;             
+                break;
         }
         return $students;
     }
@@ -188,10 +190,9 @@ class ExaminationStudentsController extends Controller
                 }
                 // update the matched student's data    
             } else {
-                $student = $this->student->updateExaminationStudent($student, $matchedStudent);
+                $matchedStudent = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
                 Institution_student::updateExaminationData($matchedStudent, $admissionInfo);
-                $matchedStudent['id'] = $matchedStudent['student_id'];
                 $this->updateStudentId($student, $matchedStudent);
             }
         }
@@ -230,7 +231,7 @@ class ExaminationStudentsController extends Controller
 
         // search for matching name with last name
         foreach ($sis_students as $key => $value) {
-            similar_text(get_l_name($student['f_name']), get_l_name($value['first_name']), $percentage);
+            similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
             $value['rate'] = $percentage;
 
             if ($value['rate'] == 100) {
@@ -246,9 +247,9 @@ class ExaminationStudentsController extends Controller
         }
 
         //If the not matched 100% try to get most highest value with full name
-        if ( ($highest['rate']  < 100) || (count($matchedData) > 1)) {
+        if (($highest['rate']  < 100) || (count($matchedData) > 1)) {
             foreach ($sis_students as $key => $value) {
-                similar_text($student['f_name'], $value['first_name'], $percentage);
+                similar_text(strtoupper($student['f_name']), strtoupper($value['first_name']), $percentage);
                 $value['rate'] = $percentage;
                 if (($previousValue)) {
                     $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
@@ -270,10 +271,15 @@ class ExaminationStudentsController extends Controller
      */
     public function updateStudentId($student, $sis_student)
     {
-        $student['nsid'] =  $sis_student['openemis_no'];
-        // add new NSID to the examinations data set
-        $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
-        $this->output->writeln('Updated ' . $sis_student['id'] . ' to NSID' . $sis_student['openemis_no']);
+        try {
+            $student['nsid'] =  $sis_student['openemis_no'];
+
+            // add new NSID to the examinations data set
+            $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
+            $this->output->writeln('Updated ' . $sis_student['id'] . ' to NSID' . $sis_student['openemis_no']);
+        } catch (\Exception $th) {
+            Log::error($th);
+        }
     }
 
     /**
