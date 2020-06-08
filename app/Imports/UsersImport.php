@@ -28,6 +28,7 @@ use App\Models\Workflow_transition;
 use App\Models\User_nationality;
 use App\Models\User_identity;
 use App\Models\Nationality;
+use App\Models\User_contact;
 use App\Rules\admissionAge;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -137,10 +138,10 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                 $identityNUmber = $row['identity_number'];
 
-                $openemisStudent = MoeUuid::getUniqueAlphanumeric(4);
+                $openemisStudent = MoeUuid::getUniqueAlphanumeric(3);
                 \Log::debug('Security_user');
                 $student =  Security_user::create([
-                            'username' => $openemisStudent,
+                            'username' => str_replace('-','',$openemisStudent),
                             'openemis_no' => $openemisStudent,
                             'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => genNameWithInitials($row['full_name']),
@@ -260,7 +261,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -275,7 +276,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => $openemisFather,
+                                    'username' => str_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -292,11 +293,19 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
 
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
@@ -305,7 +314,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -319,7 +328,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => $openemisMother,
+                                    'username' => str_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -344,12 +353,19 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                        }
 
                         $mother['guardian_relation_id'] = 2;
-
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
                 }
@@ -360,7 +376,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);;;
+                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -374,7 +390,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => $openemisGuardian,
+                                    'username' => str_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
@@ -399,11 +415,19 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 //                        }
 
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        }    
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        }  
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
@@ -477,6 +501,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
             '*.fathers_address' => 'required_with:fathers_full_name',
             '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
+            '*.fathers_phone' => 'nullable|required_with:fathers_full_name|regex:/[0-9]{9,10}/',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
             '*.fathers_identity_type' => 'required_with:fathers_identity_number',
             '*.fathers_identity_number' => 'nullable|required_with:fathers_identity_type|nic:fathers_identity_number',
@@ -484,6 +509,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:mothers_full_name',
             '*.mothers_address' => 'required_with:mothers_full_name',
             '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
+            '*.mothers_phone' => 'nullable|required_with:mothers_full_name|regex:/[0-9]{9,10}/',
             '*.mothers_nationality' => "required_with:mothers_full_name",
             '*.mothers_identity_type' => "required_with:mothers_identity_number",
             '*.mothers_identity_number' => 'nullable|required_with:mothers_identity_type|nic:mothers_identity_number',
@@ -492,6 +518,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:guardians_full_name',
             '*.guardians_address' => 'required_with:guardians_full_name',
             '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
+            '*.guardians_phone' => 'nullable|required_with:guardians_full_name|regex:/[0-9]{9,10}/',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
             '*.guardians_identity_type' => 'required_with:guardians_identity_number',
             '*.guardians_identity_number' => 'nullable|required_with:guardians_identity_type|nic:guardians_identity_number',

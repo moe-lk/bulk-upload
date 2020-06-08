@@ -95,73 +95,9 @@ class Import
     }
 
     public function validateColumns($column) {
-        $columns = [
-            "remarks",
-            "student_id",
-            "full_name",
-            "gender_mf",
-            "date_of_birth_yyyy_mm_dd",
-            "address",
-            "birth_registrar_office_as_in_birth_certificate",
-            "birth_divisional_secretariat",
-            "nationality",
-            "identity_type",
-            "identity_number",
-            "special_need_type",
-            "special_need",
-            "bmi_academic_period",
-            "bmi_date_yyyy_mm_dd",
-            "bmi_height",
-            "bmi_weight",
-            "admission_no",
-            "academic_period",
-            "education_grade",
-            "start_date_yyyy_mm_dd",
-            "option_1",
-            "option_2",
-            "option_3",
-            "option_4",
-            "option_5",
-            "option_6",
-            "option_7",
-            "option_8",
-            "option_9",
-            "option_10",
-            "option_11",
-            "option_12",
-            "option_13",
-            "option_14",
-            "option_15",
-            "option_16",
-            "fathers_full_name",
-            "fathers_date_of_birth_yyyy_mm_dd",
-            "fathers_address",
-            "fathers_address_area",
-            "fathers_nationality",
-            "fathers_identity_type",
-            "fathers_identity_number",
-            "mothers_full_name",
-            "mothers_date_of_birth_yyyy_mm_dd",
-            "mothers_address",
-            "mothers_address_area",
-            "mothers_nationality",
-            "mothers_identity_type",
-            "mothers_identity_number",
-            "guardians_full_name",
-            "name_with_initials",
-            "guardians_gender_mf",
-            "guardians_date_of_birth_yyyy_mm_dd",
-            "guardians_address",
-            "guardians_address_area",
-            "guardians_nationality",
-            "guardians_identity_type",
-            "guardians_identity_number",
-        ];
-
-
-
+        $columns = Config::get('excel.columns');
         if ( ($column !== "") && (!in_array($column,$columns))) {
-            // dd($column);
+
             $this->isValidSheet = false;
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
                        $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);

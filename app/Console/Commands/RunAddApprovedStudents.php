@@ -47,17 +47,11 @@ class RunAddApprovedStudents extends Command
      */
     public function handle()
     {
-        $institution = Unprocessed_students::where([
-            'is_processed' => 0
-        ])->get()->first();
+        $institution = Institution::where([
+            'id' => $this->argument('institution')
+        ])->first();
 
         if(!is_null($institution)){
-            Unprocessed_students::where([
-                'id' => $institution->id
-            ])->update([
-                'is_processed' => 1
-            ]);
-
             try {
                 $this->info('adding missing students to the admission ' . $institution->name);
                 $allApprovedStudents = Institution_student_admission::where([

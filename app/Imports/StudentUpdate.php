@@ -55,6 +55,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
 use Webpatser\Uuid\Uuid;
+use Mohamednizar\MoeUuid\MoeUuid;
 
 class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
 
@@ -219,7 +220,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this->getUniqueOpenemisId();;
+                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -234,7 +235,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     if ($father === null) {
 
                         $father = Security_user::create([
-                                    'username' => $openemisFather,
+                                    'username' => str_replace('-','',$openemisFather),
                                     'openemis_no' => $openemisFather,
                                     'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['fathers_full_name']),
@@ -250,11 +251,19 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
@@ -263,7 +272,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this->getUniqueOpenemisId();;
+                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -277,7 +286,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => $openemisMother,
+                                    'username' => str_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -293,12 +302,19 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $mother['guardian_relation_id'] = 2;
-
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }   
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
                 }
@@ -309,7 +325,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this->getUniqueOpenemisId();;
+                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -323,7 +339,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => $openemisGuardian,
+                                    'username' => str_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
@@ -340,11 +356,19 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        }  
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        } 
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }

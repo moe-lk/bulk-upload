@@ -9,6 +9,7 @@ use App\Models\Institution_class_grade;
 use App\Models\Institution_class_subject;
 use App\Models\Institution_shift;
 use App\Models\Institution_subject;
+use App\Models\Education_grades_subject;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -48,6 +49,7 @@ class CloneConfigData extends Command
         $this->institution_classes = new Institution_class();
         $this->institution_class_subjects = new Institution_class_subject();
         $this->institution_subjects =  new Institution_subject();
+        $this->education_grade_subjects =  new Education_grades_subject();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
@@ -69,6 +71,7 @@ class CloneConfigData extends Command
             'academic_period' => $academicPeriod,
             'previous_academic_period' => $previousAcademicPeriod
         ];
+        // dd($shift);
         array_walk($shift,array($this,'process'),$params);
         $this->end_time = microtime(TRUE);
 
@@ -91,7 +94,7 @@ class CloneConfigData extends Command
         try{
             $shiftId = $this->updateShifts($year, $shift);
             $institutionClasses = $this->institution_classes->getShiftClasses($shift['id']);
-            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'],$previousAcademicPeriod->id);
+            $institutionSubjects = $this->education_grade_subjects->getInstitutionSubjects($shift['institution_id']);
             array_walk($institutionSubjects , array($this,'insertInstitutionSubjects'),$academicPeriod);
             if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod) ) {
 
