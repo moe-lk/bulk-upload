@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Base_Model;
 use Lsf\UniqueUid\UniqueUid;
 use App\Models\Unique_user_id;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-class Security_user extends Base_Model
+class Security_user extends Model
 {
 
     public const CREATED_AT = 'created';
@@ -69,11 +69,6 @@ class Security_user extends Base_Model
 
     ];
 
-    public function __construct()
-    {
-        $this->uniqueUserId = new Unique_user_id();
-        $this->uniqueUId = new UniqueUid();
-    }
 
     public function getSpecialNeedNameAttribute()
     {
@@ -165,6 +160,8 @@ class Security_user extends Base_Model
      */
     public function insertExaminationStudent($student)
     {
+        $this->uniqueUserId = new Unique_user_id();
+        $this->uniqueUid = new UniqueUid();
         $uniqueId = $this->uniqueUId::getUniqueAlphanumeric();
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
@@ -200,6 +197,8 @@ class Security_user extends Base_Model
      */
     public function updateExaminationStudent($student, $sis_student)
     {
+        $this->uniqueUserId = new Unique_user_id();
+        $this->uniqueUid = new UniqueUid();
         // regenerate unique id if it's not available
         $uniqueId = $this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
         
@@ -226,4 +225,5 @@ class Security_user extends Base_Model
         }
         return $studentData;
     }
+
 }
