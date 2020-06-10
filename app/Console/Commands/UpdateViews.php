@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\DashboardViews;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Staudenmeir\LaravelMigrationViews\Facades\Schema;
 
 class UpdateViews extends Command
 {
@@ -40,13 +39,11 @@ class UpdateViews extends Command
     public function handle()
     {
         //Total number of students by institutions
-        //In Grafana query to get total students count `select total from students_count  where institution_id = $id`
-        $query = DB::table('institution_students')
-        ->select('institution_id', DB::raw('count(*) as total'))
-        ->distinct(['institution_id,student_id,academic_period_id'])
-        ->groupBy('institution_students.institution_id'); 
-        Schema::createOrReplaceView('students_count', $query);
-
-        //Todo implement other views for school dashboards
+        /** In Grafana query to get total students count 
+         * `select total from students_count  where institution_id = $id`
+         * `select male from students_count  where institution_id = $id`
+         * `select female from students_count  where institution_id = $id`
+        **/
+        DashboardViews::createOrUpdateStudentCount();
     }
 }
