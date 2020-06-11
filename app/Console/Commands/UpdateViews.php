@@ -48,5 +48,6 @@ class UpdateViews extends Command
         DashboardViews::createOrUpdateStudentList();
         DashboardViews::createOrUpdateUploadList();
         DashboardViews::createOrUpdateUploadCount();
+        DashboardViews::createOrUpdateInstitutionInfo();
     }
 }
