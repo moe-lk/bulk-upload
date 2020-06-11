@@ -291,4 +291,23 @@ class DashboardViews extends Model
         Schema::createOrReplaceView("students_count_by_bmi_view",$query);
     }
 
+    public static function createOrUpdateStudentCountByClass(){
+        $query = DB::table("institution_students as ist")
+        ->select(
+            "ist.institution_id",
+            "eg.name as Grade" , 
+            "ic.name as Class" , 
+            "st.first_name as 'Class Teacher'",  
+            DB::raw("format(count(*),0)   as 'No of Students'")  
+        )
+        ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
+        ->join("institutions as i" ,"i.id" , "ist.institution_id")
+        ->join('education_grades as eg','eg.id','ist.education_grade_id')
+        ->join('institution_student_admission as isa','isa.student_id','ist.student_id')
+        ->join('institution_classes as ic','ic.id','isa.institution_class_id')
+        ->leftJoin('security_users as st',"st.id","ic.staff_id")
+        ->groupBy("ic.id");
+        Schema::createOrReplaceView('student_count_by_class_view',$query);
+    }
+
 }
