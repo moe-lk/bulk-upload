@@ -25,7 +25,7 @@ class DashboardViews extends Model
             )
             ->join('security_users', 'security_users.id', 'institution_students.student_id')
             ->groupBy('institution_students.institution_id');
-        Schema::createOrReplaceView('students_count', $query);
+        Schema::createOrReplaceView('students_count_view', $query);
     }
 
     /**
@@ -142,11 +142,15 @@ class DashboardViews extends Model
             })
             ->groupBy("stu.openemis_no")
             ->groupBy("i.id");
-        Schema::createOrReplaceView('students_list', $query);
+        Schema::createOrReplaceView('students_list_view', $query);
     }
 
+    /**
+     * Create or update Upload list view
+     *
+     * @return void
+     */
     public static function createOrUpdateUploadList(){
-
         $query = DB::table("uploads as up")
         ->select(
             "i.id as institution_id", 
@@ -176,6 +180,11 @@ class DashboardViews extends Model
             WHEN up.update = 3 and up.updated_at < (hour(now())-2) then 'Processing' 
             WHEN up.update = 3  and up.updated_at > (hour(now())-2) then 'Terminated'
             end) as 'Create Students'") ,
+            DB::raw("(CASE 
+            WHEN up.is_email_sent = 0 then 'Not Send' 
+            WHEN up.is_email_sent = 1 then 'Email Sent' 
+            WHEN up.is_email_sent = 2 then 'Failed'
+            end) as 'Email Status'") ,
             "up.created_at as Uploaded Date",
             "up.updated_at as Last Processed Date")
         ->join('institution_classes as ic','up.institution_class_id','ic.id')
@@ -184,5 +193,31 @@ class DashboardViews extends Model
         ->join('education_grades as eg','eg.id','icg.education_grade_id')
         ->groupBy('up.id');
         Schema::createOrReplaceView('upload_list_view',$query);
+    }
+
+    /**
+     * Create or update upload counts
+     *
+     * @return void
+     */
+    public static function createOrUpdateUploadCount(){
+        $query = DB::table("uploads as up")
+        ->select(
+            "i.name as School",
+            "i.code as Census",
+            DB::raw('count(*) as total'),
+            DB::raw("SUM(CASE WHEN up.insert = 0  THEN 1 ELSE 0 END) AS 'No process Insert'"),
+            DB::raw("SUM(CASE WHEN up.insert = 1  THEN 1 ELSE 0 END) AS 'Success Insert'"),
+            DB::raw("SUM(CASE WHEN up.insert = 2  THEN 1 ELSE 0 END) AS 'Failed Insert'"),
+            DB::raw("SUM(CASE WHEN up.insert = 3  THEN 1 ELSE 0 END) AS 'Processing Insert'"),
+            DB::raw("SUM(CASE WHEN up.update = 0  THEN 1 ELSE 0 END) AS 'Success update'"),
+            DB::raw("SUM(CASE WHEN up.update = 1  THEN 1 ELSE 0 END) AS 'No Process update'"),
+            DB::raw("SUM(CASE WHEN up.update = 2  THEN 1 ELSE 0 END) AS 'Failed update'"),
+            DB::raw("SUM(CASE WHEN up.update = 3  THEN 1 ELSE 0 END) AS 'Processing update'"),
+            )
+        ->join('institution_classes as ic','up.institution_class_id','ic.id')
+        ->join('institutions as i','ic.institution_id','i.id')
+        ->groupBy('i.id');
+        Schema::createOrReplaceView("upload_count_view",$query);
     }
 }
