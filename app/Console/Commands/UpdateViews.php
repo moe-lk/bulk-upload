@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\DashboardViewsController;
 use App\Models\DashboardViews;
 use Illuminate\Console\Command;
 
@@ -38,19 +39,7 @@ class UpdateViews extends Command
      */
     public function handle()
     {
-        //Total number of students by institutions
-        /** In Grafana query to get total students count 
-         * `select total from students_count  where institution_id = $id`
-         * `select male from students_count  where institution_id = $id`
-         * `select female from students_count  where institution_id = $id`
-        **/
-        DashboardViews::createOrUpdateStudentCount();
-        DashboardViews::createOrUpdateStudentList();
-        DashboardViews::createOrUpdateUploadList();
-        DashboardViews::createOrUpdateUploadCount();
-        DashboardViews::createOrUpdateInstitutionInfo();
-        DashboardViews::createOrUpdateStudentsCountByGrade();
-        DashboardViews::createOrUpdateStudentCountByBMI();
-        DashboardViews::createOrUpdateStudentCountByClass();
+       $views = new DashboardViewsController();
+       $views->callback();
     }
 }

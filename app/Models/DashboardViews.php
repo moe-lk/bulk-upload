@@ -271,6 +271,11 @@ class DashboardViews extends Model
         Schema::createOrReplaceView('students_count_by_grade_view',$query);
     }
 
+    /**
+     * cerate or update students count by bmi
+     *
+     * @return void
+     */
     public  static function createOrUpdateStudentCountByBMI(){
         $query = DB::table('institution_students as ist')
         ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
@@ -291,6 +296,11 @@ class DashboardViews extends Model
         Schema::createOrReplaceView("students_count_by_bmi_view",$query);
     }
 
+    /**
+     * create or update the students count by class
+     *
+     * @return void
+     */
     public static function createOrUpdateStudentCountByClass(){
         $query = DB::table("institution_students as ist")
         ->select(
