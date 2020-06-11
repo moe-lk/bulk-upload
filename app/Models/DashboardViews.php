@@ -144,4 +144,45 @@ class DashboardViews extends Model
             ->groupBy("i.id");
         Schema::createOrReplaceView('students_list', $query);
     }
+
+    public static function createOrUpdateUploadList(){
+
+        $query = DB::table("uploads as up")
+        ->select(
+            "i.id as institution_id", 
+            "i.name as Name",
+            "i.code as Census",
+            "ic.name as Class Name",
+            "eg.name as Grade",
+            "up.filename as Filename",
+            DB::raw("(CASE 
+             WHEN up.is_processed = 0 then 'Not Processed' 
+             WHEN up.is_processed = 1 then 'Success' 
+             WHEN up.is_processed = 2 then 'Failed' 
+             WHEN up.is_processed = 3 and  up.updated_at > (hour(now())-2) then 'Terminated' 
+             WHEN up.is_processed = 3 and  up.updated_at < (hour(now())-2) then 'Processing' 
+             end) as Status "),
+            DB::raw("(CASE 
+            WHEN up.insert = 0 then 'No Process' 
+            WHEN up.insert = 1 then 'Success' 
+            WHEN up.insert = 2 then 'Failed'
+            WHEN up.insert = 3 and up.updated_at < (hour(now())-2) then 'Processing' 
+            WHEN up.insert = 3  and up.updated_at > (hour(now())-2) then 'Terminated'
+            end) as 'Insert Students'") ,
+            DB::raw("(CASE 
+            WHEN up.update = 0 then 'No Process' 
+            WHEN up.update = 1 then 'Success' 
+            WHEN up.update = 2 then 'Failed'
+            WHEN up.update = 3 and up.updated_at < (hour(now())-2) then 'Processing' 
+            WHEN up.update = 3  and up.updated_at > (hour(now())-2) then 'Terminated'
+            end) as 'Create Students'") ,
+            "up.created_at as Uploaded Date",
+            "up.updated_at as Last Processed Date")
+        ->join('institution_classes as ic','up.institution_class_id','ic.id')
+        ->join('institutions as i','ic.institution_id','i.id')
+        ->join('institution_class_grades as icg','ic.id','icg.institution_class_id')
+        ->join('education_grades as eg','eg.id','icg.education_grade_id')
+        ->groupBy('up.id');
+        Schema::createOrReplaceView('upload_list_view',$query);
+    }
 }
