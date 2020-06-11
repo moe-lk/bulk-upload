@@ -21,24 +21,9 @@ class DashboardViews extends Model
                 'ist.institution_id',
                 DB::raw('count(*) as total'),
                 DB::raw("SUM(CASE WHEN security_users.gender_id = 1  THEN 1 ELSE 0 END) AS male"),
-                DB::raw("SUM(CASE WHEN security_users.gender_id = 2  THEN 1 ELSE 0 END) AS female"),
-                DB::raw("(count(CASE WHEN eg.code = 'G1' THEN ist.student_id END)) as `G-1`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G2' THEN ist.student_id END)) as `G-2`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G3' THEN ist.student_id END)) as `G-3`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G4' THEN ist.student_id END)) as `G-4`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G5' THEN ist.student_id END)) as `G-5`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G6' THEN ist.student_id END)) as `G-6`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G7' THEN ist.student_id END)) as `G-7`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G8' THEN ist.student_id END)) as `G-8`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G9' THEN ist.student_id END)) as `G-9`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G10' THEN ist.student_id END)) as `G-10`"),
-                DB::raw("(count(CASE WHEN eg.code = 'G11' THEN ist.student_id END)) as `G-11`"),
-                DB::raw("(count(CASE WHEN eg.code like '%G12%' THEN ist.student_id END)) as `G-12`"),
-                DB::raw("(count(CASE WHEN eg.code like '%G13%' THEN ist.student_id END)) as `G-13`")
-
+                DB::raw("SUM(CASE WHEN security_users.gender_id = 2  THEN 1 ELSE 0 END) AS female")
             )
             ->join('security_users', 'security_users.id', 'ist.student_id')
-            ->join('education_grades as eg','eg.id','ist.education_grade_id')
             ->groupBy('ist.institution_id');
         Schema::createOrReplaceView('students_count_view', $query);
     }
@@ -255,6 +240,55 @@ class DashboardViews extends Model
             )
             ->join("areas as a", "a.id", "i.area_id");
         Schema::createOrReplaceView("institution_info_view", $query);
+    }
+
+    /**
+     * Create or update students count by grade view
+     *
+     * @return void
+     */
+    public static function createOrUpdateStudentsCountByGrade(){
+        $query = DB::table('institution_students as ist')
+        ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
+        ->select(
+            "ist.institution_id",
+            DB::raw("(count(CASE WHEN eg.code = 'G1' THEN ist.student_id END)) as `G-1`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G2' THEN ist.student_id END)) as `G-2`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G3' THEN ist.student_id END)) as `G-3`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G4' THEN ist.student_id END)) as `G-4`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G5' THEN ist.student_id END)) as `G-5`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G6' THEN ist.student_id END)) as `G-6`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G7' THEN ist.student_id END)) as `G-7`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G8' THEN ist.student_id END)) as `G-8`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G9' THEN ist.student_id END)) as `G-9`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G10' THEN ist.student_id END)) as `G-10`"),
+            DB::raw("(count(CASE WHEN eg.code = 'G11' THEN ist.student_id END)) as `G-11`"),
+            DB::raw("(count(CASE WHEN eg.code like '%G12%' THEN ist.student_id END)) as `G-12`"),
+            DB::raw("(count(CASE WHEN eg.code like '%G13%' THEN ist.student_id END)) as `G-13`")
+        )
+        ->join('education_grades as eg','eg.id','ist.education_grade_id')
+        ->groupBy('ist.institution_id');
+        Schema::createOrReplaceView('students_count_by_grade_view',$query);
+    }
+
+    public  static function createOrUpdateStudentCountByBMI(){
+        $query = DB::table('institution_students as ist')
+        ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
+        ->select(
+            "ist.institution_id",
+            DB::raw("count(CASE WHEN ubm.body_mass_index <  13 THEN ubm.body_mass_index END) as `Underweight`"),
+            DB::raw("count(CASE WHEN ubm.body_mass_index > 13 and ubm.body_mass_index <= 16  THEN ubm.body_mass_index END) as `Normal`"),
+            DB::raw("count(CASE WHEN ubm.body_mass_index > 16 and ubm.body_mass_index <= 18.25  THEN ubm.body_mass_index END) as `Overweight`"),
+            DB::raw("count(CASE WHEN ubm.body_mass_index > 18.25  THEN ubm.body_mass_index END) as `Severely obese`"),
+            "ist.created"
+        )
+        ->join("institutions as i" ,"i.id" , "ist.institution_id")
+        ->join('user_body_masses as ubm' , function($join){
+            $join->on('ubm.security_user_id' ,'ist.student_id');
+            $join->where('ubm.academic_period_id','ist.academic_period_id');
+        })
+        ->groupBy("i.id");
+        Schema::createOrReplaceView("students_count_by_bmi_view",$query);
     }
 
 }
