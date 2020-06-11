@@ -45,5 +45,6 @@ class UpdateViews extends Command
          * `select female from students_count  where institution_id = $id`
         **/
         DashboardViews::createOrUpdateStudentCount();
+        DashboardViews::createOrUpdateStudentList();
     }
 }
