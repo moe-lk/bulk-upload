@@ -97,8 +97,8 @@ class AddTransferConfigurations extends Migration
             ]
             ];
 
-            DB::table('security_functions')->whereIn('id',[1022,1023,8001,8002])->delete();
-            DB::table('security_functions')->insert($data);
+   //         DB::table('security_functions')->whereIn('id',[1022,1023,8001,8002])->delete();
+   //         DB::table('security_functions')->insert($data);
     }
 
     /**
