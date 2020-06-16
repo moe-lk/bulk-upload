@@ -161,7 +161,7 @@ class Security_user extends Model
     public function insertExaminationStudent($student)
     {
         $this->uniqueUserId = new Unique_user_id();
-        $this->uniqueUid = new UniqueUid();
+        $this->uniqueUId = new UniqueUid();
         $uniqueId = $this->uniqueUId::getUniqueAlphanumeric();
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
@@ -204,7 +204,6 @@ class Security_user extends Model
         $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) && $this->isUnique) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
 
         $studentData = [
-            'id' => $sis_student['id'],
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
@@ -215,7 +214,7 @@ class Security_user extends Model
         ];
 
         try {
-            $this->update($studentData);
+            $this->where(['id' => $sis_student['student_id']])->update($studentData);
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
