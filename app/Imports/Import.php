@@ -58,6 +58,7 @@ use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Webpatser\Uuid\Uuid;
 use Exception;
 use App\Imports\StudentUpdate;
+use Lsf\UniqueUid\UniqueUid;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
 class Import
@@ -78,6 +79,7 @@ class Import
         $this->femaleStudentsCount = 0;
         $this->highestRow = 0;
         $this->isValidSheet = true;
+        $this->uniqueUid = new UniqueUid();
     }
 
     public function limit(): int {

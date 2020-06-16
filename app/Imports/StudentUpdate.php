@@ -2,60 +2,57 @@
 
 namespace App\Imports;
 
+use App\Models\User;
+use function foo\func;
+use App\Models\Nationality;
+use App\Rules\admissionAge;
+use App\Models\User_contact;
+use App\Models\Identity_type;
+use App\Models\Security_user;
+use App\Models\User_identity;
+use App\Models\Import_mapping;
+use App\Models\Security_group;
+use App\Models\User_body_mass;
+use App\Models\Academic_period;
+use App\Models\Student_guardian;
+use App\Models\User_nationality;
+use App\Models\Institution_class;
+use App\Models\User_special_need;
 use App\Mail\StudentCountExceeded;
 use App\Mail\StudentImportSuccess;
+use Illuminate\Support\Facades\DB;
+use App\Models\Area_administrative;
+use App\Models\Institution_student;
+use App\Models\Institution_subject;
+use App\Models\Workflow_transition;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Institution_class_grade;
+use App\Models\Special_need_difficulty;
+use Illuminate\Support\Facades\Request;
+use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
-use App\Models\Institution_student_admission;
-use App\Models\Institution_subject;
-use App\Models\Institution_subject_student;
-use App\Models\User_special_need;
-use App\Models\Security_group;
-use App\Models\Security_user;
-use App\Models\User;
-use App\Models\User_body_mass;
-use App\Models\Institution_student;
-use App\Models\Import_mapping;
-use App\Models\Identity_type;
-use App\Models\Student_guardian;
-use App\Models\Academic_period;
-use App\Models\Institution_class;
-use App\Models\Institution_class_grade;
-use App\Models\Area_administrative;
-use App\Models\Special_need_difficulty;
-use App\Models\Workflow_transition;
-use App\Models\User_nationality;
-use App\Models\User_identity;
-use App\Models\Nationality;
-use App\Rules\admissionAge;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use function foo\func;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Request;
-use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithStartRow;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\Importable;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Concerns\WithLimit;
 use Maatwebsite\Excel\Events\BeforeSheet;
-use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
-use Webpatser\Uuid\Uuid;
-use Mohamednizar\MoeUuid\MoeUuid;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use App\Models\Institution_subject_student;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\WithStartRow;
+use App\Models\Institution_student_admission;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 
 class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
 
@@ -63,6 +60,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
         RegistersEventListeners,
         SkipsFailures,
         SkipsErrors;
+
 
     public function sheets(): array {
         return [
@@ -220,7 +218,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = MoeUuid::getUniqueAlphanumeric(4);
+                    $openemisFather =  $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -233,23 +231,23 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
                     if ($father === null) {
-
-                        $father = Security_user::create([
-                                    'username' => str_replace('-','',$openemisFather),
-                                    'openemis_no' => $openemisFather,
-                                    'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
-                                    'last_name' => genNameWithInitials($row['fathers_full_name']),
-                                    'gender_id' => 1,
-                                    'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'],
-                                    'address' => $row['fathers_address'],
-                                    'address_area_id' => $AddressArea->id,
-                                    'nationality_id' => $nationalityId,
-                                    'identity_type_id' => $identityType,
-                                    'identity_number' => $row['fathers_identity_number'],
-                                    'is_guardian' => 1,
-                                    'created_user_id' => $this->file['security_user_id']
-                        ]);
-
+                        $data = [
+                            'username' => str_replace('-','',$openemisFather),
+                            'openemis_no' => $openemisFather,
+                            'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                            'last_name' => genNameWithInitials($row['fathers_full_name']),
+                            'gender_id' => 1,
+                            'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'],
+                            'address' => $row['fathers_address'],
+                            'address_area_id' => $AddressArea->id,
+                            'nationality_id' => $nationalityId,
+                            'identity_type_id' => $identityType,
+                            'identity_number' => $row['fathers_identity_number'],
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
+                        ];
+                        $father = Security_user::create($data);
+                             
                         $father['guardian_relation_id'] = 1;
                         if (array_key_exists('fathers_phone', $row)) {
                             $father['contact'] = $row['fathers_phone'];
@@ -272,7 +270,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = MoeUuid::getUniqueAlphanumeric(4);
+                    $openemisMother = $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -325,7 +323,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = MoeUuid::getUniqueAlphanumeric(4);
+                    $openemisGuardian = $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
