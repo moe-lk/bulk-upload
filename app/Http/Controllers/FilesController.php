@@ -73,19 +73,19 @@ class FilesController extends Controller
             })
             ->editColumn('filename', function ($data) {
                 if(\App::environment('local') || \App::environment('stage')  || \App::environment('prod')){
-                    return '<a href="/download_file/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
+                    return '<a href="/download_file/'.$data->filename.'">'.$data->classRoom->name.'</a>';
 
                 }else{
-                    return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
+                    return '<a href="/bulk-upload/download_file/'.$data->filename.'">'.$data->classRoom->name.'</a>';
                 }
 
             })
              ->editColumn('error', function ($data) {
                 if(\App::environment('local') || \App::environment('stage')  || \App::environment('prod')){
-                    return '<a href="/download/'.$data->filename.'">'.substr($data->filename, 0, 10).'</a>';
+                    return '<a href="/download/'.$data->filename.'">'.$data->classRoom->name.'</a>';
 
                 }else{
-                    return '<a href="/bulk-upload/download/'.$data->filename.'">'.substr($data->filename, 0,10).'</a>';
+                    return '<a href="/bulk-upload/download/'.$data->filename.'">'.$data->classRoom->name.'</a>';
                 }
 
             })->editColumn('actions', function ($data) {
