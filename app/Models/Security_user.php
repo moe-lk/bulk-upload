@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Base_Model;
 use Lsf\UniqueUid\UniqueUid;
 use App\Models\Unique_user_id;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-class Security_user extends Base_Model
+class Security_user extends Model
 {
 
     public const CREATED_AT = 'created';
@@ -69,11 +69,6 @@ class Security_user extends Base_Model
 
     ];
 
-    public function __construct()
-    {
-        $this->uniqueUserId = new Unique_user_id();
-        $this->uniqueUId = new UniqueUid();
-    }
 
     public function getSpecialNeedNameAttribute()
     {
@@ -165,6 +160,8 @@ class Security_user extends Base_Model
      */
     public function insertExaminationStudent($student)
     {
+        $this->uniqueUserId = new Unique_user_id();
+        $this->uniqueUid = new UniqueUid();
         $uniqueId = $this->uniqueUId::getUniqueAlphanumeric();
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
@@ -200,11 +197,14 @@ class Security_user extends Base_Model
      */
     public function updateExaminationStudent($student, $sis_student)
     {
+        $this->isUnique = true;
+        $this->uniqueUserId = new Unique_user_id();
+        $this->uniqueUId = new UniqueUid();
         // regenerate unique id if it's not available
-        $uniqueId = $this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
-        
+        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) && $this->isUnique) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
+
         $studentData = [
-            'id' => $sis_student['student_id'],
+            'id' => $sis_student['id'],
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
@@ -215,15 +215,16 @@ class Security_user extends Base_Model
         ];
 
         try {
-            self::where(['id' => $sis_student['student_id']])
-            ->update($studentData);
+            $this->update($studentData);
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
+            $this->isUnique = false;
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);
         }
         return $studentData;
     }
+
 }
