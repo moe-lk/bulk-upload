@@ -214,7 +214,7 @@ class Security_user extends Model
         ];
 
         try {
-            $this->where(['id' => $sis_student['student_id']])->update($studentData);
+            self::where(['id' => $sis_student['student_id']])->update($studentData);
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
