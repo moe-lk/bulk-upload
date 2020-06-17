@@ -216,7 +216,7 @@ class DashboardViews extends Model
                 DB::raw("SUM(CASE WHEN up.insert = 3  THEN 1 ELSE 0 END) AS 'Processing Insert'"),
                 DB::raw("SUM(CASE WHEN up.update = 0  THEN 1 ELSE 0 END) AS 'Success update'"),
                 DB::raw("SUM(CASE WHEN up.update = 2  THEN 1 ELSE 0 END) AS 'Failed update'"),
-                DB::raw("SUM(CASE WHEN up.update = 3  THEN 1 ELSE 0 END) AS 'Processing update'"),
+                DB::raw("SUM(CASE WHEN up.update = 3  THEN 1 ELSE 0 END) AS 'Processing update'")
             )
             ->join('institution_classes as ic', 'up.institution_class_id', 'ic.id')
             ->join('institutions as i', 'ic.institution_id', 'i.id')
