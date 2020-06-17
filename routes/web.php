@@ -18,8 +18,6 @@
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('/uploadcsv', 'ExaminationStudentsController@index')->middleware('Role:ADMIN');
-Route::get('/oauth/auth', 'Auth\LoginController@authenticated');
-Route::get('/oauth/user', 'GrafanaOAuth@user');
 //token
 Route::get('/exportexamination', 'ExaminationStudentsController@export')->middleware('Role:ADMIN');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
