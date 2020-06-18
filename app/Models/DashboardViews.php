@@ -143,6 +143,7 @@ class DashboardViews extends Model
             })
             ->groupBy("stu.openemis_no")
             ->groupBy("i.id");
+        Schema::dropIfExists("students_list_view");    
         Schema::createOrReplaceView('students_list_view', $query);
     }
 
@@ -222,6 +223,7 @@ class DashboardViews extends Model
             ->join('institution_classes as ic', 'up.institution_class_id', 'ic.id')
             ->join('institutions as i', 'ic.institution_id', 'i.id')
             ->groupBy('i.id');
+        Schema::dropIfExists("upload_count_view");    
         Schema::createOrReplaceView("upload_count_view", $query);
     }
 
@@ -241,6 +243,7 @@ class DashboardViews extends Model
                 "a.name as 'Zone'"
             )
             ->join("areas as a", "a.id", "i.area_id");
+        Schema::dropIfExists("institution_info_view");    
         Schema::createOrReplaceView("institution_info_view", $query);
     }
 
@@ -270,6 +273,7 @@ class DashboardViews extends Model
         )
         ->join('education_grades as eg','eg.id','ist.education_grade_id')
         ->groupBy('ist.institution_id');
+        Schema::dropIfExists("students_count_by_grade_view");
         Schema::createOrReplaceView('students_count_by_grade_view',$query);
     }
 
@@ -295,6 +299,7 @@ class DashboardViews extends Model
             $join->where('ubm.academic_period_id','ist.academic_period_id');
         })
         ->groupBy("i.id");
+        Schema::dropIfExists("students_count_by_bmi_view");
         Schema::createOrReplaceView("students_count_by_bmi_view",$query);
     }
 
@@ -319,6 +324,7 @@ class DashboardViews extends Model
         ->join('institution_classes as ic','ic.id','isa.institution_class_id')
         ->leftJoin('security_users as st',"st.id","ic.staff_id")
         ->groupBy("ic.id");
+        Schema::dropIfExists("student_count_by_class_view");
         Schema::createOrReplaceView('student_count_by_class_view',$query);
     }
 
