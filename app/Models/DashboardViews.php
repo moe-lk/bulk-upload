@@ -233,10 +233,11 @@ class DashboardViews extends Model
     {
         $query = DB::table("institutions as i")
             ->select(
-                "i.name as `School Name`",
-                "i.code as `Census Code`",
-                "i.address  as `Address`",
-                "a.name as `Zone`"
+                "i.id as institution_id",
+                "i.name as 'School Name'",
+                "i.code as 'Census Code'",
+                "i.address  as 'Address'",
+                "a.name as 'Zone'"
             )
             ->join("areas as a", "a.id", "i.area_id");
         Schema::createOrReplaceView("institution_info_view", $query);
