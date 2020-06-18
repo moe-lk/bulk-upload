@@ -207,6 +207,7 @@ class DashboardViews extends Model
     {
         $query = DB::table("uploads as up")
             ->select(
+                "i.id as institution_id",
                 "i.name as School",
                 "i.code as Census",
                 DB::raw('count(*) as total'),
