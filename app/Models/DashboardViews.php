@@ -207,6 +207,7 @@ class DashboardViews extends Model
     {
         $query = DB::table("uploads as up")
             ->select(
+                "i.id as institution_id",
                 "i.name as School",
                 "i.code as Census",
                 DB::raw('count(*) as total'),
@@ -216,7 +217,7 @@ class DashboardViews extends Model
                 DB::raw("SUM(CASE WHEN up.insert = 3  THEN 1 ELSE 0 END) AS 'Processing Insert'"),
                 DB::raw("SUM(CASE WHEN up.update = 0  THEN 1 ELSE 0 END) AS 'Success update'"),
                 DB::raw("SUM(CASE WHEN up.update = 2  THEN 1 ELSE 0 END) AS 'Failed update'"),
-                DB::raw("SUM(CASE WHEN up.update = 3  THEN 1 ELSE 0 END) AS 'Processing update'"),
+                DB::raw("SUM(CASE WHEN up.update = 3  THEN 1 ELSE 0 END) AS 'Processing update'")
             )
             ->join('institution_classes as ic', 'up.institution_class_id', 'ic.id')
             ->join('institutions as i', 'ic.institution_id', 'i.id')
@@ -233,10 +234,11 @@ class DashboardViews extends Model
     {
         $query = DB::table("institutions as i")
             ->select(
-                "i.name as `School Name`",
-                "i.code as `Census Code`",
-                "i.address  as `Address`",
-                "a.name as `Zone`"
+                "i.id as institution_id",
+                "i.name as 'School Name'",
+                "i.code as 'Census Code'",
+                "i.address  as 'Address'",
+                "a.name as 'Zone'"
             )
             ->join("areas as a", "a.id", "i.area_id");
         Schema::createOrReplaceView("institution_info_view", $query);
