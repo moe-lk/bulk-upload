@@ -197,13 +197,14 @@ class Security_user extends Model
      */
     public function updateExaminationStudent($student, $sis_student)
     {
+        $this->isUnique = true;
         $this->uniqueUserId = new Unique_user_id();
-        $this->uniqueUid = new UniqueUid();
+        $this->uniqueUId = new UniqueUid();
         // regenerate unique id if it's not available
-        $uniqueId = $this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
-        
+        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) && $this->isUnique) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
+
         $studentData = [
-            'id' => $sis_student['student_id'],
+            'id' => $sis_student['id'],
             'username' => str_replace('-', '', $uniqueId),
             'openemis_no' => $uniqueId, // Openemis no is unique field, in case of the duplication it will failed
             'first_name' => $student['f_name'], // here we save full name in the column of first name. re reduce breaks of the system.
@@ -214,11 +215,11 @@ class Security_user extends Model
         ];
 
         try {
-            self::where(['id' => $sis_student['student_id']])
-            ->update($studentData);
+            $this->update($studentData);
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
+            $this->isUnique = false;
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);
