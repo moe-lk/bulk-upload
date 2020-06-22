@@ -498,7 +498,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.admission_no' => 'required|max:12|min:1',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
-            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name',
+            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
             '*.fathers_address' => 'required_with:fathers_full_name',
