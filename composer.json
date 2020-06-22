@@ -15,14 +15,15 @@
         "fzaninotto/faker": "^1.9",
         "guzzlehttp/guzzle": "^6.4",
         "laracademy/model-generator": "^1.2",
-        "laravel/framework": "5.8.*",
+        "laravel/framework": "5.8.38",
         "laravel/passport": "^7.5",
         "laravel/tinker": "^1.0",
-        "lsflk/unique-uid": "v1.0.0",
+        "lsflk/unique-uid": "v1.2.2",
         "mohamednizar/excel": "^3.1",
         "webpatser/laravel-uuid": "^3.0",
         "wyndow/fuzzywuzzy": "^0.6.0",
-        "yajra/laravel-datatables-oracle": "^9.4"
+        "yajra/laravel-datatables-oracle": "^9.4",
+        "staudenmeir/laravel-migration-views": "v1.3"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
@@ -76,6 +77,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/mohamednizar/Laravel-Excel.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/moe-lk/laravel-migration-views.git"
         }
     ],
     "minimum-stability": "dev",
