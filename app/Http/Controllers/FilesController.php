@@ -72,7 +72,7 @@ class FilesController extends Controller
 
             })
             ->editColumn('filename', function ($data) {
-                if(\App::environment('local') || \App::environment('stage')  || \App::environment('prod')){
+                if(\App::environment('local') || \App::environment('stage')){
                     return '<a href="/download_file/'.$data->filename.'">'.$data->classRoom->name.'</a>';
 
                 }else{
@@ -81,7 +81,7 @@ class FilesController extends Controller
 
             })
              ->editColumn('error', function ($data) {
-                if(\App::environment('local') || \App::environment('stage')  || \App::environment('prod')){
+                if(\App::environment('local') || \App::environment('stage')){
                     return '<a href="/download/'.$data->filename.'">'.$data->classRoom->name.'</a>';
 
                 }else{
