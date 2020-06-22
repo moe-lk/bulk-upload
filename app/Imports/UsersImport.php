@@ -241,16 +241,20 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
 
-                    \Log::debug('User_body_mass');
-                    User_body_mass::create([
-                        'height' => $row['bmi_height'],
-                        'weight' => $row['bmi_weight'],
-                        'date' => $row['bmi_date_yyyy_mm_dd'],
-                        'body_mass_index' => $bodyMass,
-                        'academic_period_id' => $bmiAcademic->id,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                    try {
+                        \Log::debug('User_body_mass');
+                        User_body_mass::create([
+                            'height' => $row['bmi_height'],
+                            'weight' => $row['bmi_weight'],
+                            'date' => $row['bmi_date_yyyy_mm_dd'],
+                            'body_mass_index' => $bodyMass,
+                            'academic_period_id' => $bmiAcademic->id,
+                            'security_user_id' => $student->student_id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    } catch (\Throwable $th) {
+                        dd($th);
+                    }
                 }
 
 
