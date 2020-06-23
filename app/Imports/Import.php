@@ -96,17 +96,31 @@ class Import
         return $higestRow;
     }
 
-    public function validateColumns($column) {
+    public function validateColumns($column,$existingColumns) {
         $columns = Config::get('excel.columns');
         if ( ($column !== "") && (!in_array($column,$columns))) {
-
             $this->isValidSheet = false;
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                       $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+                       $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system '.$column. ' Not found'], [null]);
                        $failures = [0 => $failure];
                        throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
+        
     }
+
+    public function validateColumnsToMap($existingColumns) {
+        $columns = Config::get('excel.columns');
+        foreach ($columns as  $column) {
+            if ( ($column !== "") && (!in_array($column,$existingColumns))) {
+                $this->isValidSheet = false;
+                $error = \Illuminate\Validation\ValidationException::withMessages([]);
+                           $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system '.$column. ' Not found'], [null]);
+                           $failures = [0 => $failure];
+                           throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+            }
+        }
+    }
+
 
 
     public function batchSize(): int {
@@ -154,7 +168,7 @@ class Import
             return $row;
         }catch (Exception $e){
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
+            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system '.$row[$column] . ' Not a valid date formate'], [null]);
             $failures = [0 => $failure];
             throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         }
@@ -166,6 +180,7 @@ class Import
 
         $keys = array_keys($row);
 
+        $this->validateColumnsToMap($keys);
         array_walk($keys,array($this,'validateColumns'));
             $row = $this->formateDate($row,'date_of_birth_yyyy_mm_dd');
             $row = $this->formateDate($row,'bmi_date_yyyy_mm_dd');
@@ -200,7 +215,7 @@ class Import
            return true;
        }else{
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure($count, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'. $key ,' Is missing form the template'], [null]);
+            $failure = new Failure($count, 'remark', [0 => 'Template is not valid for upload, use the template given in the system ' . $key ,' Is missing form the template'], [null]);
             $failures = [0 => $failure];
             new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
         };
@@ -217,14 +232,7 @@ class Import
      * @throws \Exception
      */
     public function map($row): array {
-        try {
-         $row = $this->mapFields($row);
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system'], [null]);
-                $failures = [0 => $failure];
-                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
+        $row = $this->mapFields($row);
         return $row;
     }
 
