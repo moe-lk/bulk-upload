@@ -241,16 +241,20 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
 
                     $bmiAcademic = Academic_period::where('name', '=', $row['bmi_academic_period'])->first();
 
-                    \Log::debug('User_body_mass');
-                    User_body_mass::create([
-                        'height' => $row['bmi_height'],
-                        'weight' => $row['bmi_weight'],
-                        'date' => $row['bmi_date_yyyy_mm_dd'],
-                        'body_mass_index' => $bodyMass,
-                        'academic_period_id' => $bmiAcademic->id,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                    try {
+                        \Log::debug('User_body_mass');
+                        User_body_mass::create([
+                            'height' => $row['bmi_height'],
+                            'weight' => $row['bmi_weight'],
+                            'date' => $row['bmi_date_yyyy_mm_dd'],
+                            'body_mass_index' => $bodyMass,
+                            'academic_period_id' => $bmiAcademic->id,
+                            'security_user_id' => $student->student_id,
+                            'created_user_id' => $this->file['security_user_id']
+                        ]);
+                    } catch (\Throwable $th) {
+                        dd($th);
+                    }
                 }
 
 
@@ -489,12 +493,12 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'bail|bmi:'. $this->file['institution_class_id'],
             '*.bmi_weight' => 'bail|bmi:'. $this->file['institution_class_id'],
-            '*.bmi_date_yyyy_mm_dd' => 'bail|bmi:'. $this->file['institution_class_id'].'date',
-            '*.bmi_academic_period' => 'bail|bmi:'. $this->file['institution_class_id'].'exists:academic_periods,name',
+            '*.bmi_date_yyyy_mm_dd' => 'bail|bmi:'. $this->file['institution_class_id'].'|date',
+            '*.bmi_academic_period' => 'bail|bmi:'. $this->file['institution_class_id'].'|exists:academic_periods,name',
             '*.admission_no' => 'required|max:12|min:1',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
-            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name',
+            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'required_with:fathers_full_name',
             '*.fathers_address' => 'required_with:fathers_full_name',
