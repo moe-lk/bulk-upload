@@ -21,6 +21,7 @@ class FileController extends Controller
 
     public function __construct()
     {
+        $this->middleware('auth');
         $this->ses = new SesClient(
             [
                 'version' => '2010-12-01',
