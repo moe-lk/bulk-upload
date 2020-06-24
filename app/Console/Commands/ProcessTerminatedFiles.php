@@ -46,7 +46,7 @@ class ProcessTerminatedFiles extends ImportStudents
             $files = $this->getFiles();
             try {
                 if(!empty($files)){
-                    $this->process($files);
+                    array_walk($files,array($this,'process'));
                     unset($files);
                     exit();
 
@@ -71,21 +71,14 @@ class ProcessTerminatedFiles extends ImportStudents
         $files = Upload::where('is_processed', '=', 3)
             ->where('is_email_sent','=',0)
             ->where('updated_at', '<=', Carbon::now()->tz('Asia/Colombo')->subHours(3))
-            ->limit(1)
+            ->limit(50)
             ->get()->toArray();
-        if(!empty($files)){
-            DB::beginTransaction();
-            DB::table('uploads')
-                ->where('id', $files[0]['id'])
-                ->update(['is_processed' => 3,'updated_at' => now()]);
-            DB::commit();
-        }
         return $files;
     }
 
     protected function  process($file){
         $time = Carbon::now()->tz('Asia/Colombo');
-        $this->processSheet($file[0]);
+        $this->processSheet($file);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $now = Carbon::now()->tz('Asia/Colombo');
         $output->writeln('=============== Time taken to batch ' .$now->diffInMinutes($time));
@@ -95,7 +88,6 @@ class ProcessTerminatedFiles extends ImportStudents
     protected function processSheet($file){
         $this->startTime = Carbon::now()->tz('Asia/Colombo');
         $user = User::find($file['security_user_id']);
-        $this->checkNode($file);
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('##########################################################################################################################');
         $output->writeln('Processing the file: '.$file['filename']);

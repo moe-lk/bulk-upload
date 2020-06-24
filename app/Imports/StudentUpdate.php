@@ -74,8 +74,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             BeforeSheet::class => function(BeforeSheet $event) {
                 $this->sheetNames[] = $event->getSheet()->getTitle();
                 $this->worksheet = $event->getSheet();
-
-                $this->validateClass();
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
             },
@@ -450,7 +448,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.admission_no' => 'nullable|max:12|min:4',
             '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
-            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name
+            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.fathers_full_name',
             '*.fathers_address' => 'required_with:*.fathers_full_name',
