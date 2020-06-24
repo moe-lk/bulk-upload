@@ -74,8 +74,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             BeforeSheet::class => function(BeforeSheet $event) {
                 $this->sheetNames[] = $event->getSheet()->getTitle();
                 $this->worksheet = $event->getSheet();
-
-                $this->validateClass();
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
             },

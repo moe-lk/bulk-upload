@@ -262,15 +262,11 @@ class Import
         $exceededStudents = ($totalStudents + $this->limit()) > $institutionClass->no_of_students ? true : false;
 
         if ($exceededStudents == true) {
-            try {
-                $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                $failure = new Failure(3, 'remark', [3 => 'Class student count exceeded! Max number of students is' . $institutionClass->no_of_students], [null]);
-                $failures = [0 => $failure];
-                throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                Log::info('email-sent', [$this->file]);
-            } catch (Exception $e) {
-                Log::info('email-sending-failed', [$e]);
-            }
+            $error = \Illuminate\Validation\ValidationException::withMessages([]);
+            $failure = new Failure(3, 'remark', ['Class student count exceeded! Max number of students is' . $institutionClass->no_of_students], [null]);
+            $failures = [0 => $failure];
+            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+            Log::info('email-sent', [$this->file]);
         } else {
             return true;
         }
