@@ -177,7 +177,6 @@ class ImportStudents extends Command
                     ->where('id', $file['id'])
                     ->update(['is_processed' => 2, 'is_email_sent' => 1,'updated_at' => now()]);
         } catch (\Exception $ex) {
-            dd
             $this->output->writeln( $ex->getMessage());
             DB::table('uploads')
                     ->where('id', $file['id'])
