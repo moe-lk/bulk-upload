@@ -83,22 +83,21 @@ class ValidatorExtended extends IlluminateValidator
     protected function validateHW($attribute, $value)
     {
 
-        if (!is_numeric($value)) {
+        if (is_numeric($value)) {
+            if ($value < 10) {
+                $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
+                $this->_set_custom_stuff();
+                return false;
+            } elseif ($value > 250) {
+                $this->_custom_messages['bmi'] =  $attribute . ' is must smaller than 250';
+                $this->_set_custom_stuff();
+                return false;
+            }
+        }else{
             $this->_custom_messages['bmi'] =  $attribute . ' is must a valid numeric';
             $this->_set_custom_stuff();
             return false;
         }
-
-        if ($value < 10) {
-            $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
-            $this->_set_custom_stuff();
-            return false;
-        } elseif ($value > 250) {
-            $this->_custom_messages['bmi'] =  $attribute . ' is must smaller than 250';
-            $this->_set_custom_stuff();
-            return false;
-        }
-
         return true;
     }
 
