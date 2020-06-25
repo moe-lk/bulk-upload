@@ -83,13 +83,7 @@ class ValidatorExtended extends IlluminateValidator
     protected function validateHW($attribute, $value)
     {
 
-        if (!is_numeric($value)) {
-            $this->_custom_messages['bmi'] =  $attribute . ' is must a valid numeric';
-            $this->_set_custom_stuff();
-            return false;
-        }
-
-        if ($attribute == 'bmi_height') {
+        if (is_numeric($value)) {
             if ($value < 10) {
                 $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
                 $this->_set_custom_stuff();
@@ -99,8 +93,11 @@ class ValidatorExtended extends IlluminateValidator
                 $this->_set_custom_stuff();
                 return false;
             }
+        }else{
+            $this->_custom_messages['bmi'] =  $attribute . ' is must a valid numeric';
+            $this->_set_custom_stuff();
+            return false;
         }
-
         return true;
     }
 
