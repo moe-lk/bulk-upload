@@ -232,7 +232,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 }
 
 
-                if(!empty($row['bmi_weight']) && !empty($row['bmi_weight']) && !empty($row['bmi_date_yyyy_mm_dd'])){
+                if(!empty($row['bmi_weight']) && !empty($row['bmi_weight']) && ($row['bmi_height']!== 0 || null) && ($row['bmi_weight']!== 0 || null) && !empty($row['bmi_date_yyyy_mm_dd'])){
                     // convert Meeter to CM
                     $hight = $row['bmi_height'] / 100;
 
