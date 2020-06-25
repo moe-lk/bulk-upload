@@ -89,16 +89,14 @@ class ValidatorExtended extends IlluminateValidator
             return false;
         }
 
-        if ($attribute == 'bmi_height') {
-            if ($value < 10) {
-                $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
-                $this->_set_custom_stuff();
-                return false;
-            } elseif ($value > 250) {
-                $this->_custom_messages['bmi'] =  $attribute . ' is must smaller than 250';
-                $this->_set_custom_stuff();
-                return false;
-            }
+        if ($value < 10) {
+            $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
+            $this->_set_custom_stuff();
+            return false;
+        } elseif ($value > 250) {
+            $this->_custom_messages['bmi'] =  $attribute . ' is must smaller than 250';
+            $this->_set_custom_stuff();
+            return false;
         }
 
         return true;
