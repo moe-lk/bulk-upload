@@ -232,7 +232,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                 }
 
 
-                if(!empty($row['bmi_weight']) && !empty($row['bmi_weight']) && !empty($row['bmi_date_yyyy_mm_dd'])){
+                if(!empty($row['bmi_weight']) && !empty($row['bmi_weight']) && ($row['bmi_height']!== 0 || null) && ($row['bmi_weight']!== 0 || null) && !empty($row['bmi_date_yyyy_mm_dd'])){
                     // convert Meeter to CM
                     $hight = $row['bmi_height'] / 100;
 
@@ -493,8 +493,8 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'bail|required_with:bmi_weight|bmi:'. $this->file['institution_class_id'],
             '*.bmi_weight' => 'bail|required_with:bmi_height|bmi:'. $this->file['institution_class_id'],
-            '*.bmi_date_yyyy_mm_dd' => 'nullable|required_with:bmi_height|date',//bmi:'. $this->file['institution_class_id'].'
-            '*.bmi_academic_period' => 'nullable|required_with:bmi_height|exists:academic_periods,name',
+            '*.bmi_date_yyyy_mm_dd' => 'bail|required_with:bmi_height|date',//bmi:'. $this->file['institution_class_id'].'
+            '*.bmi_academic_period' => 'bail|required_with:bmi_height|exists:academic_periods,name',
             '*.admission_no' => 'required|max:12|min:1',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
