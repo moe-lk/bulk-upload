@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Staudenmeir\LaravelMigrationViews\Facades\Schema;
 
 class DashboardViews extends Model
@@ -47,8 +48,8 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
-            $query = DB::table('institution_students as ist')
-                ->distinct(['institution_id,student_id,academic_period_id'])
+            $query = DB::table('security_users as stu')
+                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),
@@ -95,11 +96,11 @@ class DashboardViews extends Model
                     DB::raw("IFNULL(sugu.identity_number, 'NA') as `Guardian's Identity Number`"),
                     DB::raw("IFNULL(ubm.body_mass_index , 'N/A') as `BMI`")
                 )
+                ->leftJoin("institution_students  as ist", "ist.student_id", "stu.id")
                 ->leftJoin("institutions as i", "ist.institution_id", "i.id")
                 ->leftJoin("education_grades as eg", "eg.id", "i.id")
                 ->leftJoin("institution_class_students as ics", "ist.student_id", "ics.student_id")
                 ->leftJoin("institution_classes  as ic", "ic.id", "ics.institution_class_id")
-                ->leftJoin("security_users  as stu", "ist.student_id", "stu.id")
                 ->leftJoin("student_guardians  as sgf", function ($join) {
                     $join->on("sgf.student_id", "stu.id");
                     $join->where("sgf.guardian_relation_id", 1);
@@ -156,7 +157,11 @@ class DashboardViews extends Model
                 ->groupBy("stu.openemis_no")
                 ->groupBy("i.id");
             Schema::dropIfExists("students_list_view");
-            Schema::createOrReplaceView('students_list_view', $query);
+            $exist = Schema::hasTable('students_list_view_table');
+            Schema::dropIfExists('students_list_view_table');
+            DB::statement('CREATE TABLE students_list_view_table  select * from openemis.students_list_view;');
+            DB::statement('CREATE INDEX user_institution ON students_list_view_table (institution_id);');
+            $output->writeln('created : students_list_view_table');
             $output->writeln('created : students_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
@@ -216,6 +221,7 @@ class DashboardViews extends Model
                 ->join('education_grades as eg', 'eg.id', 'icg.education_grade_id')
                 ->groupBy('up.id');
             Schema::createOrReplaceView('upload_list_view', $query);
+            Schema::disableForeignKeyConstraints('upload_list_view');
             $output->writeln('created : upload_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
@@ -270,10 +276,10 @@ class DashboardViews extends Model
             $query = DB::table("institutions as i")
                 ->select(
                     "i.id as institution_id",
-                    "i.name as 'School Name'",
-                    "i.code as 'Census Code'",
-                    "i.address  as 'Address'",
-                    "a.name as 'Zone'"
+                    "i.name as School Name",
+                    "i.code as Census Code",
+                    "i.address  as Address",
+                    "a.name as Zone"
                 )
                 ->join("areas as a", "a.id", "i.area_id");
             Schema::dropIfExists("institution_info_view");
