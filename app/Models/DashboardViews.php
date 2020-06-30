@@ -48,7 +48,7 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['institution_id,student_id,academic_period_id'])
+                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),
@@ -216,6 +216,7 @@ class DashboardViews extends Model
                 ->join('education_grades as eg', 'eg.id', 'icg.education_grade_id')
                 ->groupBy('up.id');
             Schema::createOrReplaceView('upload_list_view', $query);
+            Schema::disableForeignKeyConstraints('upload_list_view');
             $output->writeln('created : upload_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
