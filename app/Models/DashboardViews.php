@@ -158,10 +158,10 @@ class DashboardViews extends Model
                 ->groupBy("i.id");
             Schema::dropIfExists("students_list_view");
             $exist = Schema::hasTable('students_list_view_table');
-            if(!$exist ){
-                DB::statement('CREATE TABLE students_list_view_table select * from openemis.students_list_view;');
-                $output->writeln('created : students_list_view_table');
-            }
+            Schema::dropIfExists('students_list_view_table');
+            DB::statement('CREATE TABLE students_list_view_table  select * from openemis.students_list_view;');
+            DB::statement('CREATE INDEX user_institution ON students_list_view_table (institution_id);');
+            $output->writeln('created : students_list_view_table');
             $output->writeln('created : students_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
