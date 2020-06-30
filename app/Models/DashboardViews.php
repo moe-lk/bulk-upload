@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Staudenmeir\LaravelMigrationViews\Facades\Schema;
 
 class DashboardViews extends Model
@@ -156,7 +157,11 @@ class DashboardViews extends Model
                 ->groupBy("stu.openemis_no")
                 ->groupBy("i.id");
             Schema::dropIfExists("students_list_view");
-            Schema::createOrReplaceView('students_list_view', $query);
+            $exist = Schema::hasTable('students_list_view_table');
+            if(!$exist ){
+                DB::statement('CREATE TABLE students_list_view_table select * from openemis.students_list_view;');
+                $output->writeln('created : students_list_view_table');
+            }
             $output->writeln('created : students_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
