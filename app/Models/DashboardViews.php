@@ -47,7 +47,7 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
-            $query = DB::table('institution_students as ist')
+            $query = DB::table('security_users as stu')
                 ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "i.id as institution_id",
@@ -95,11 +95,11 @@ class DashboardViews extends Model
                     DB::raw("IFNULL(sugu.identity_number, 'NA') as `Guardian's Identity Number`"),
                     DB::raw("IFNULL(ubm.body_mass_index , 'N/A') as `BMI`")
                 )
+                ->leftJoin("institution_students  as ist", "ist.student_id", "stu.id")
                 ->leftJoin("institutions as i", "ist.institution_id", "i.id")
                 ->leftJoin("education_grades as eg", "eg.id", "i.id")
                 ->leftJoin("institution_class_students as ics", "ist.student_id", "ics.student_id")
                 ->leftJoin("institution_classes  as ic", "ic.id", "ics.institution_class_id")
-                ->leftJoin("security_users  as stu", "ist.student_id", "stu.id")
                 ->leftJoin("student_guardians  as sgf", function ($join) {
                     $join->on("sgf.student_id", "stu.id");
                     $join->where("sgf.guardian_relation_id", 1);
