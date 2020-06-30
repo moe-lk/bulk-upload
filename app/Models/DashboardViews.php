@@ -157,6 +157,7 @@ class DashboardViews extends Model
                 ->groupBy("stu.openemis_no")
                 ->groupBy("i.id");
             Schema::dropIfExists("students_list_view");
+            Schema::createOrReplaceView('students_list_view', $query);
             $exist = Schema::hasTable('students_list_view_table');
             Schema::dropIfExists('students_list_view_table');
             DB::statement('CREATE TABLE students_list_view_table  select * from openemis.students_list_view;');
