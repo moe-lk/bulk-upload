@@ -160,7 +160,7 @@ class DashboardViews extends Model
             Schema::createOrReplaceView('students_list_view', $query);
             $exist = Schema::hasTable('students_list_view_table');
             Schema::dropIfExists('students_list_view_table');
-            DB::statement('CREATE TABLE students_list_view_table  select * from openemis.students_list_view;');
+            DB::statement('CREATE TABLE students_list_view_table  select * from students_list_view;');
             DB::statement('CREATE INDEX user_institution ON students_list_view_table (institution_id);');
             $output->writeln('created : students_list_view_table');
             $output->writeln('created : students_list_view');
