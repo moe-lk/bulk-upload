@@ -117,15 +117,17 @@ class Import
     public function validateColumnsToMap($existingColumns)
     {
         $columns = Config::get('excel.columns');
+        $optional_columns = Config::get('excel.optional_columns');
+        $columns = array_diff ($columns,$optional_columns);
         $error = \Illuminate\Validation\ValidationException::withMessages([]);
         $this->failures = [];
         foreach ($columns as  $column) {
-            if (($column !== "") && (!in_array($column, $existingColumns))) {
-                $this->isValidSheet = false;
-                $this->error[] = 'Missing Column :' . $column . ' Not found';
-                $this->failure = new Failure(3, 'remark', $this->error, [null]);
-                $this->failures = new \Maatwebsite\Excel\Validators\ValidationException($error, [$this->failure]);
-            }
+                if (($column !== "") && (!in_array($column, $existingColumns))) {
+                    $this->isValidSheet = false;
+                    $this->error[] = 'Missing Column :' . $column . ' Not found';
+                    $this->failure = new Failure(3, 'remark', $this->error, [null]);
+                    $this->failures = new \Maatwebsite\Excel\Validators\ValidationException($error, [$this->failure]);
+                }
         }
         if (is_object($this->failures)) {
             throw $this->failures;
