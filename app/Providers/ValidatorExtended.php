@@ -64,18 +64,24 @@ class ValidatorExtended extends IlluminateValidator
     {
         $institutionClass = Institution_class::find($parameters[0]);
         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-        $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-        $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
-        if (empty($value)) {
-            return false;
-        } elseif ($gradeEntity !== null) {
-            $admissionAge = (($gradeEntity->admission_age) * 12) - 1;
-            $to = $academicPeriod->start_date;
-            $diff_in_months = $to->diffInMonths($value);
-            $ageOfStudent = $diff_in_months;
-            $enrolmentMaximumAge = $admissionAge + 120;
-            return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
+        if (!empty($institutionClass)) {
+            $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+            $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
+            if (empty($value)) {
+                return false;
+            } elseif ($gradeEntity !== null) {
+                $admissionAge = (($gradeEntity->admission_age) * 12) - 1;
+                $to = $academicPeriod->start_date;
+                $diff_in_months = $to->diffInMonths($value);
+                $ageOfStudent = $diff_in_months;
+                $enrolmentMaximumAge = $admissionAge + 120;
+                return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
+            } else {
+                return false;
+            }
         } else {
+            $this->_custom_messages['admission_age'] = 'given' . $attribute . 'Not found';
+            $this->_set_custom_stuff();
             return false;
         }
     }
@@ -93,7 +99,7 @@ class ValidatorExtended extends IlluminateValidator
                 $this->_set_custom_stuff();
                 return false;
             }
-        }else{
+        } else {
             $this->_custom_messages['bmi'] =  $attribute . ' is must a valid numeric';
             $this->_set_custom_stuff();
             return false;
