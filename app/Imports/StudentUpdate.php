@@ -130,11 +130,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
-
-
                 $identityNUmber = $row['identity_number'];
-
-
 
                 //create students data
                 \Log::debug('Security_user');
@@ -158,15 +154,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
 
-                // if (!empty($row['identity_number']) && $identityType !== null) {
-                //     User_identity::create([
-                //         'identity_type_id' => $identityType,
-                //         'number' => $identityNUmber,
-                //         'security_user_id' => $student->student_id,
-                //         'created_user_id' => $this->file['security_user_id']
-                //     ]);
-                // }
-
+                if(!empty($row['admission_no']) && !empty($academicPeriod)){
+                    Institution_student::where('student_id','=',$studentInfo->id)
+                    ->where('institution_id','=', $institution)
+                    ->where('academic_period_id','=',$academicPeriod->id)
+                    ->update(['admission_id'=> $row['admission_no']]);
+                }
+                
                 if (!empty($row['special_need'])) {
 
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
@@ -438,7 +432,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.nationality' => 'nullable',
             '*.identity_type' => 'required_with:identity_number',
 //            '*.identity_number' => 'user_unique:identity_number',
-            '*.academic_period' => 'nullable|exists:academic_periods,name',
+            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
