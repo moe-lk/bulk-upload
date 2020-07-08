@@ -445,7 +445,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.bmi_weight' => 'required_with:*.bmi_height|nullable|numeric|max:200|min:10',
             '*.bmi_date_yyyy_mm_dd' => 'required_with:*.bmi_height|nullable|date',
             '*.bmi_academic_period' => 'required_with:*.bmi_weight|nullable|exists:academic_periods,name',
-            '*.admission_no' => 'nullable|max:12|min:4',
+            '*.admission_no' => 'nullable|max:12|min:4|regex:/^[A-Za-z0-9\/]+$/',
             '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
