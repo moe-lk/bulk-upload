@@ -14,13 +14,55 @@ class AddExaminationAttributesToInstitutionStudentsTable extends Migration
     public function up()
     {
         Schema::table('institution_students', function (Blueprint $table) {
-            $table->boolean('taking_g5_exam')->nullable(true)->change();
-            $table->integer('income_at_g5')->nullable(true)->change();
-            $table->boolean('exam_center_for_special_education_g5')->nullable(true)->change();
-            $table->boolean('taking_ol_exam')->nullable(true)->change();
-            $table->boolean('exam_center_for_special_education_ol')->nullable(true)->change();
-            $table->boolean('taking_al_exam')->nullable(true)->change();
-            $table->boolean('exam_center_for_special_education_al')->nullable(true)->change();
+            $column = Schema::hasColumn('institution_students','taking_g5_exam');
+            if(!$column){
+                $table->dateTime('taking_g5_exam')->nullable(true);
+            }else{
+                $table->dateTime('taking_g5_exam')->nullable(true)->change();
+            }
+
+            $column1 = Schema::hasColumn('institution_students','income_at_g5');
+            if(!$column1){
+                $table->dateTime('income_at_g5')->nullable(true);
+            }else{
+                $table->dateTime('income_at_g5')->nullable(true)->change();
+            }
+
+            $column = Schema::hasColumn('institution_students','income_at_g5');
+            if(!$column){
+                $table->dateTime('exam_center_for_special_education_g5')->nullable(true);
+            }else{
+                $table->dateTime('exam_center_for_special_education_g5')->nullable(true)->change();
+            }
+
+            $column = Schema::hasColumn('institution_students','taking_ol_exam');
+            if(!$column){
+                $table->dateTime('taking_ol_exam')->nullable(true);
+            }else{
+                $table->dateTime('taking_ol_exam')->nullable(true)->change();
+            }
+
+            $column = Schema::hasColumn('institution_students','exam_center_for_special_education_ol');
+            if(!$column){
+                $table->dateTime('exam_center_for_special_education_ol')->nullable(true);
+            }else{
+                $table->dateTime('exam_center_for_special_education_ol')->nullable(true)->change();
+            }
+
+            $column = Schema::hasColumn('institution_students','taking_al_exam');
+            if(!$column){
+                $table->dateTime('taking_al_exam')->nullable(true);
+            }else{
+                $table->dateTime('taking_al_exam')->nullable(true)->change();
+            }
+
+            $column = Schema::hasColumn('institution_students','exam_center_for_special_education_al');
+            if(!$column){
+                $table->dateTime('exam_center_for_special_education_al')->nullable(true);
+            }else{
+                $table->dateTime('exam_center_for_special_education_al')->nullable(true)->change();
+            }
+
         });
     }
 
