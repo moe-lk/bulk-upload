@@ -14,13 +14,13 @@ class AddExaminationAttributesToInstitutionStudentsTable extends Migration
     public function up()
     {
         Schema::table('institution_students', function (Blueprint $table) {
-            $table->boolean('taking_g5_exam')->nullable(true);
-            $table->integer('income_at_g5')->nullable(true);
-            $table->boolean('exam_center_for_special_education_g5')->nullable(true);
-            $table->boolean('taking_ol_exam')->nullable(true);
-            $table->boolean('exam_center_for_special_education_ol')->nullable(true);
-            $table->boolean('taking_al_exam')->nullable(true);
-            $table->boolean('exam_center_for_special_education_al')->nullable(true);
+            $table->boolean('taking_g5_exam')->nullable(true)->change();
+            $table->integer('income_at_g5')->nullable(true)->change();
+            $table->boolean('exam_center_for_special_education_g5')->nullable(true)->change();
+            $table->boolean('taking_ol_exam')->nullable(true)->change();
+            $table->boolean('exam_center_for_special_education_ol')->nullable(true)->change();
+            $table->boolean('taking_al_exam')->nullable(true)->change();
+            $table->boolean('exam_center_for_special_education_al')->nullable(true)->change();
         });
     }
 
