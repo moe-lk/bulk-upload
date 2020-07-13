@@ -43,37 +43,11 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
         return 10000;
     }
 
-    protected function formateDate($row, $column, $format = 'Y-m-d')
-    {
-        try {
-            if (!empty($row[$column]) && ($row[$column] !== null)) {
-                switch (gettype($row[$column])) {
-                    case 'string':
-                        $row[$column] = preg_replace('/[^A-Za-z0-9\-]/', '-', $row[$column]);
-                        $row[$column] = date($format, strtotime($row[$column])); //date($row[$column]);
-                        $row[$column] =  \Carbon\Carbon::createFromFormat($format, $row[$column]);
-                        break;
-                    case 'double';
-                        $row[$column] =  \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[$column]);
-                        break;
-                }
-            }
-            return $row;
-        } catch (\Exception $e) {
-            $error = \Illuminate\Validation\ValidationException::withMessages([]);
-            $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system ' . $row[$column] . ' Not a valid date formate'], [null]);
-            $failures = [0 => $failure];
-            throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-        }
-    }
-
     /**
      * @param Collection $collection
      */
     public function model(array $row)
     {
-
-        $this->formateDate($row,'b_date');
         if(array_keys($row)){
             $insertData = array(
                 'st_no' => $row['st_no'],
@@ -81,7 +55,7 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
                 "f_name" => $row['f_name'],
                 "medium" => $row['medium'],
                 "gender" => $row['gender'],
-                "b_date" =>   $row['b_date'],
+                "b_date" =>    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['b_date']),
                 "a_income" => $row['a_income'],
                 "schoolid" => $row['schoolid'],
                 "spl_need" => $row['spl_need'],
