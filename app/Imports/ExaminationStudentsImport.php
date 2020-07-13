@@ -5,6 +5,7 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use App\Models\Examination_student;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Validators\Failure;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -58,7 +59,7 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
                 }
             }
             return $row;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failure = new Failure(3, 'remark', [0 => 'Template is not valid for upload, use the template given in the system ' . $row[$column] . ' Not a valid date formate'], [null]);
             $failures = [0 => $failure];
