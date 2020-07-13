@@ -226,7 +226,6 @@ class ExaminationStudentsController extends Controller
      */
     public function searchSimilarName($student, $sis_students)
     {
-        {
             $highest = [];
             $previousValue = null;
             $matchedData = [];
