@@ -53,7 +53,7 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
             "f_name" => $row['f_name'],
             "medium" => $row['medium'],
             "gender" => $row['gender'],
-            "b_date" =>   $row['b_date'],
+            "b_date" =>   \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['b_date']),
             "a_income" => $row['a_income'],
             "schoolid" => $row['schoolid'],
             "spl_need" => $row['spl_need'],
