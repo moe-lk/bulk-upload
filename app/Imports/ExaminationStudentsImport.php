@@ -5,7 +5,6 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use App\Models\Examination_student;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Validators\Failure;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
@@ -48,23 +47,21 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
      */
     public function model(array $row)
     {
-        if(array_keys($row)){
-            $insertData = array(
-                'st_no' => $row['st_no'],
-                'stu_no' => $row['stu_no'],
-                "f_name" => $row['f_name'],
-                "medium" => $row['medium'],
-                "gender" => $row['gender'],
-                "b_date" =>    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['b_date']),
-                "a_income" => $row['a_income'],
-                "schoolid" => $row['schoolid'],
-                "spl_need" => $row['spl_need'],
-                "pvt_address" => $row['pvt_address'],
-                "disability_type" => $row['disability_type'],
-                "disability" => $row['disability'],
-                "sp_center" => $row['sp_center']
-            );
-            Examination_student::insertData($insertData);
-        }
+        $insertData = array(
+            'st_no' => $row['st_no'],
+            'stu_no' => $row['stu_no'],
+            "f_name" => $row['f_name'],
+            "medium" => $row['medium'],
+            "gender" => $row['gender'],
+            "b_date" =>   $row['b_date'],
+            "a_income" => $row['a_income'],
+            "schoolid" => $row['schoolid'],
+            "spl_need" => $row['spl_need'],
+            "pvt_address" => $row['pvt_address'],
+            "disability_type" => $row['disability_type'],
+            "disability" => $row['disability'],
+            "sp_center" => $row['sp_center']
+        );
+        Examination_student::insertData($insertData);
     }
 }
