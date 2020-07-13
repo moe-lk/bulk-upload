@@ -227,24 +227,29 @@ class ExaminationStudentsController extends Controller
     public function searchSimilarName($student, $sis_students)
     {
         $highest = null;
+        $matchedStudents = [];
 
         // search for matching name with last name
         foreach ($sis_students as $key => $value) {
-            $studentName = metaphone(strtoupper($student['f_name']));
-            $sisStName = metaphone(strtoupper($value['first_name']));
+            $studentName = soundex(get_l_name(strtoupper($student['f_name'])));
+            $sisStName = soundex(get_l_name(strtoupper($value['first_name'])));
             if($studentName == $sisStName){
-                $highest = $value;
+                $matchedStudents[] = $value;
             }
         }
         
-        if($highest == null){
-            $studentName = metaphone(get_l_name(strtoupper($student['f_name'])));
-            $sisStName = metaphone(get_l_name(strtoupper($value['first_name'])));
-            if($studentName == $sisStName){
-                $highest = $value;
+        if(count($matchedStudents)>1){
+            foreach ($matchedStudents as $key => $value) {
+                $studentName = soundex(strtoupper($student['f_name']));
+                $sisStName = soundex(strtoupper($value['first_name']));
+                if($studentName == $sisStName){
+                    $$highest[] = $value;
+                }
             }
+            
+        }else{
+            $highest = $matchedStudents[0];
         }
-
         return $highest;
     }
 
