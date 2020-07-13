@@ -6,7 +6,6 @@ use Illuminate\Support\Collection;
 use App\Models\Examination_student;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
@@ -42,18 +41,26 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
         return 10000;
     }
 
+    private function transformDateTime(string $value, string $format = 'm/d/Y')
+    {
+        $date = date_create_from_format('m/d/Y', $value);
+        return date_format($date, 'Y-m-d');
+    }
+
+
     /**
      * @param Collection $collection
      */
     public function model(array $row)
     {
+       
         $insertData = array(
             'st_no' => $row['st_no'],
             'stu_no' => $row['stu_no'],
             "f_name" => $row['f_name'],
             "medium" => $row['medium'],
             "gender" => $row['gender'],
-            "b_date" =>   \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['b_date']),
+            "b_date" =>  $this->transformDateTime($row['b_date']),
             "a_income" => $row['a_income'],
             "schoolid" => $row['schoolid'],
             "spl_need" => $row['spl_need'],
