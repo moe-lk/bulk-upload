@@ -240,7 +240,7 @@ class ExaminationStudentsController extends Controller
                 }
     
                 if (($previousValue)) {
-                    $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
+                    $highest =  ($percentage > $previousValue['rate']) ? $value : $previousValue;
                 } else {
                     $highest = $value;
                 }
@@ -253,7 +253,7 @@ class ExaminationStudentsController extends Controller
                     similar_text(strtoupper($student['f_name']), strtoupper($value['first_name']), $percentage);
                     $value['rate'] = $percentage;
                     if (($previousValue)) {
-                        $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
+                        $highest =  ($percentage > $previousValue['rate']) ? $value : $previousValue;
                     } else {
                         $highest = $value;
                     }
