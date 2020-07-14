@@ -226,31 +226,33 @@ class ExaminationStudentsController extends Controller
      */
     public function searchSimilarName($student, $sis_students)
     {
-        $highest = null;
-        $matchedStudents = [];
+            $highest = [];
+            $matchedData = [];
 
-        // search for matching name with last name
-        foreach ($sis_students as $key => $value) {
-            $studentName = soundex(get_l_name(strtoupper($student['f_name'])));
-            $sisStName = soundex(get_l_name(strtoupper($value['first_name'])));
-            if($studentName == $sisStName){
-                $matchedStudents[] = $value;
-            }
-        }
-        
-        if(count($matchedStudents)>1){
-            foreach ($matchedStudents as $key => $value) {
-                $studentName = soundex(strtoupper($student['f_name']));
-                $sisStName = soundex(strtoupper($value['first_name']));
-                if($studentName == $sisStName){
-                    $$highest[] = $value;
+            //search name with first name
+            foreach ($sis_students as $key => $value) {
+                similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+                $value['rate'] = $percentage;
+                if ($value['rate'] == 100) {
+                    $matchedData[] = $value;
+                    $highest = $value;
                 }
+            }  
+
+
+            //search the name with full name
+            if(count($matchedData)>1){
+                foreach ($matchedData as $key => $value) {
+                    similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
+                    $value['rate'] = $percentage;
+                    if ($value['rate'] == 100) {
+                        $matchedData[] = $value;
+                        $highest = $value;
+                    }
+                } 
             }
-            
-        }else{
-            $highest = $matchedStudents[0];
-        }
-        return $highest;
+              
+            return $highest;
     }
 
     /**
