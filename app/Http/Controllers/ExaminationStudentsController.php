@@ -251,7 +251,6 @@ class ExaminationStudentsController extends Controller
                     }
                 } 
             }
-              
             return $highest;
     }
 
