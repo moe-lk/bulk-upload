@@ -227,38 +227,29 @@ class ExaminationStudentsController extends Controller
     public function searchSimilarName($student, $sis_students)
     {
             $highest = [];
-            $previousValue = null;
             $matchedData = [];
-    
-            // search for matching name with last name
+
+            //search name with first name
             foreach ($sis_students as $key => $value) {
                 similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
                 $value['rate'] = $percentage;
-    
                 if ($value['rate'] == 100) {
                     $matchedData[] = $value;
-                }
-    
-                if (($previousValue)) {
-                    $highest =  ($percentage > $previousValue['rate']) ? $value : $previousValue;
-                } else {
                     $highest = $value;
                 }
-                $previousValue = $value;
-            }
-    
-            //If the not matched 100% try to get most highest value with full name
-            if (($highest['rate']  < 100) || (count($matchedData) > 1)) {
-                foreach ($sis_students as $key => $value) {
-                    similar_text(strtoupper($student['f_name']), strtoupper($value['first_name']), $percentage);
+            }  
+
+
+            //search the name with full name
+            if(count($matchedData)>1){
+                foreach ($matchedData as $key => $value) {
+                    similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
                     $value['rate'] = $percentage;
-                    if (($previousValue)) {
-                        $highest =  ($percentage > $previousValue['rate']) ? $value : $previousValue;
-                    } else {
+                    if ($value['rate'] == 100) {
+                        $matchedData[] = $value;
                         $highest = $value;
                     }
-                    $previousValue = $value;
-                }
+                } 
             }
             return $highest;
     }
