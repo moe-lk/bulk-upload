@@ -17,6 +17,7 @@
                 <input type='submit' name='submit' value='Import' class="btn btn-active">
             </form>
             <a href="{{ url('exportexamination') }}"><button class="btn btn-success">Download Processed Examination Data </button></a>
+            <a href="{{ url('downloadErrors') }}"><button class="btn btn-success">Download Errors on Examination Data </button></a>
         @else
             <div class="h1">Access denied. Log in as admin!</div>
         @endif

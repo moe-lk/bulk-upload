@@ -15,6 +15,8 @@
 //     return view('welcome');
 // });
 
+use Carbon\Traits\Rounding;
+
 Route::group(['middleware' => 'auth'], function () {
     Route::post('uploadFile', 'ExaminationStudentsController@uploadFile');
 });
@@ -28,6 +30,7 @@ Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('/uploadcsv', 'ExaminationStudentsController@index')->middleware('Role:ADMIN');
 //token
 Route::get('/exportexamination', 'ExaminationStudentsController@export')->middleware('Role:ADMIN');
+Route::get('downloadErrors','ExaminationStudentsController@downloadErrors')->middleware('auth');
 Route::get('downloadExcel', 'FileController@downloadTemplate');
 Route::post('importExcel', 'ImportExport@import');
 Route::post('exportExcel', 'ImportExport@export');
