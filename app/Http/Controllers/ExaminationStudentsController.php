@@ -222,7 +222,7 @@ class ExaminationStudentsController extends Controller
             } else {
                 $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
-                $studentData = array_merge((array) $matchedStudent, $matchedStudent);
+                $studentData = array_merge((array) $matchedStudent, $studentData);
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
