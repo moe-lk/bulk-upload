@@ -44,7 +44,6 @@ class ExportReady extends Mailable
             ->from($this->from_address,$this->from_name)
             ->to($this->user->email)
             ->subject($this->subject)
-            ->body($this->body)
             ->with($this->with);
     }
 }
