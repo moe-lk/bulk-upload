@@ -2,13 +2,16 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromCollection;
 use App\Models\Examination_student;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExaminationStudentsExport implements FromCollection , WithHeadings
+class ExaminationStudentsExport implements FromQuery , WithHeadings
 {
 
+    use Exportable;
+    
     public function headings(): array
     {
         return [
@@ -34,9 +37,8 @@ class ExaminationStudentsExport implements FromCollection , WithHeadings
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function collection()
+    public function query()
     {
-        //
-        return Examination_student::all();
+        return Examination_student::query();
     }
 }

@@ -310,8 +310,8 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        ini_set('memory_limit', '-1');
-        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
+       (new ExaminationStudentsExport)->queue('/examination/Students_data_with_nsid.csv');
+       return back()->withSuccess('Export started!');
     }
 
     public function downloadErrors()
