@@ -18,6 +18,7 @@ use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
 use App\Models\Institution_student_admission;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 
 class ExaminationStudentsController extends Controller
 {
@@ -90,7 +91,36 @@ class ExaminationStudentsController extends Controller
         $excelFile = "/examination/exams_students.csv";
 
         $import = new ExaminationStudentsImport();
-        $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+        try {
+            $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+            if ($import->failures()->count() > 0) {
+                $errors = $import->failures();
+                $columns =  [
+                    'remarks',
+                    'st_no',
+                    'stu_no',
+                    "f_name",
+                    "medium",
+                    "gender",
+                    "b_date",
+                    "a_income",
+                    "schoolid",
+                    "spl_need",
+                    "pvt_address",
+                    "disability_type",
+                    "disability",
+                    "sp_center"
+                ];
+
+                $file = 'examination/errors.csv';
+                Storage::put($file, implode(',', $columns));
+
+                foreach ($errors as $error) {
+                    Storage::append($file, implode(':', $error->errors()) . ',' . implode(',', $error->values()));
+                }
+            }
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        }
     }
 
     /**
@@ -192,7 +222,7 @@ class ExaminationStudentsController extends Controller
             } else {
                 $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
-                $studentData = array_merge((array) $matchedStudent, $matchedStudent);
+                $studentData = array_merge((array) $matchedStudent, $studentData);
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
@@ -280,6 +310,14 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
+       (new ExaminationStudentsExport)->queue('/examination/Students_data_with_nsid.csv');
+       return back()->withSuccess('Export started!');
+    }
+
+    public function downloadErrors()
+    {
+
+        $file_path = storage_path() . '/app/examination/errors.csv';
+        return Response::download($file_path);
     }
 }
