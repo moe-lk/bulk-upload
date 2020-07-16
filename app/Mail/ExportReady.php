@@ -22,6 +22,7 @@ class ExportReady extends Mailable
         $this->subject = 'The DoE data is ready to download '. date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
+        $this->body = 'Your requested file is ready to download';
         $this->with = [
             'name' => $this->user->first_name,
             'link' => \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/exportexamination' : env('APP_URL').'/bulk-upload/exportexamination'
