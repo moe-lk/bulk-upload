@@ -2,9 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Mail\ExportReady as MailExportReady;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class ExportReady extends Notification
@@ -16,9 +18,9 @@ class ExportReady extends Notification
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(User $user)
     {
-        //
+        $this->user  = $user;
     }
 
     /**
@@ -40,10 +42,7 @@ class ExportReady extends Notification
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-                    ->line('The examination file is ready to download')
-                    ->action('Notification Action', url('/exportexamination'))
-                    ->line('Thank you for using our application!');
+        return (new MailExportReady($this->user));
     }
 
     /**
