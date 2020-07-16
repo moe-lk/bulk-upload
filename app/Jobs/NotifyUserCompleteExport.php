@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Mail\ExportReady as MailExportReady;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use App\Notifications\ExportReady;
@@ -9,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Notification;
 
 class NotifyUserCompleteExport implements ShouldQueue
 {
@@ -28,6 +30,6 @@ class NotifyUserCompleteExport implements ShouldQueue
      */
     public function handle()
     {
-        return (new ExportReady($this->user))->toMail($this->user);
+        $this->user->notify(new ExportReady($this->user));
     }
 }
