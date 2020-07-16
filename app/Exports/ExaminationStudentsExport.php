@@ -3,11 +3,12 @@
 namespace App\Exports;
 
 use App\Models\Examination_student;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExaminationStudentsExport implements FromQuery , WithHeadings
+class ExaminationStudentsExport implements FromQuery , WithHeadings , ShouldQueue
 {
 
     use Exportable;
