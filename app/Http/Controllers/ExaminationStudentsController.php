@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Institution_class_student;
 use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
+use App\Jobs\NotifyUserCompleteExport;
 use App\Models\Institution_student_admission;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
@@ -310,14 +311,21 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        ini_set('memory_limit', '-1');
-        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
+       (new ExaminationStudentsExport)->queue('/examination/Students_data_with_nsid.csv')->chain([
+        new NotifyUserCompleteExport(request()->user()),
+    ]);;
+       return back()->withSuccess('Export started!');
     }
 
     public function downloadErrors()
     {
 
         $file_path = storage_path() . '/app/examination/errors.csv';
+        return Response::download($file_path);
+    }
+
+    public function downloadProcessedFile(){
+        $file_path = storage_path() . '/app/examination/Students_data_with_nsid.csv';
         return Response::download($file_path);
     }
 }
