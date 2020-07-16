@@ -42,7 +42,7 @@ class ExportReady extends Notification
     {
         return (new MailMessage)
                     ->line('The examination file is ready to download')
-                    ->action('Notification Action', url('/'))
+                    ->action('Notification Action', url('/exportexamination'))
                     ->line('Thank you for using our application!');
     }
 
