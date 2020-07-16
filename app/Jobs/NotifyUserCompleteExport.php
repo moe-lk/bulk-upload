@@ -28,6 +28,6 @@ class NotifyUserCompleteExport implements ShouldQueue
      */
     public function handle()
     {
-        return (new ExportReady())->toMail($this->user);
+        return (new ExportReady($this->user))->toMail($this->user);
     }
 }
