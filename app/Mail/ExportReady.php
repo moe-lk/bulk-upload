@@ -22,10 +22,14 @@ class ExportReady extends Mailable
         $this->subject = 'The DoE data is ready to download '. date('Y:m:d H:i:s');
         $this->from_address = env('MAIL_FROM_ADDRESS');
         $this->from_name = 'SIS Bulk Uploader';
-        $this->body = 'Your requested file is ready to download';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' => \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/exportexamination' : env('APP_URL').'/bulk-upload/exportexamination'
+            'link' => \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/downloadExportexamination' : env('APP_URL').'/bulk-upload/downloadExportexamination'
+        ];
+
+        $this->viewData = [
+            'name'=>$this->user->first_name, "body" =>'Your requested file is ready to download',
+            'link' => \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/downloadExportexamination' : env('APP_URL').'/bulk-upload/downloadExportexamination'
         ];
     }
 
@@ -40,6 +44,7 @@ class ExportReady extends Mailable
             ->from($this->from_address,$this->from_name)
             ->to($this->user->email)
             ->subject($this->subject)
+            ->body($this->body)
             ->with($this->with);
     }
 }
