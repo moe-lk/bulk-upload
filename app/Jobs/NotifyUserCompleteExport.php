@@ -22,6 +22,7 @@ class NotifyUserCompleteExport implements ShouldQueue
     public function __construct(User $user)
     {
         $this->user = $user;
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
     /**
@@ -31,7 +32,11 @@ class NotifyUserCompleteExport implements ShouldQueue
      */
     public function handle()
     {
-        (new ExaminationStudentsExport)->queue('/examination/student_data_with_nsid.xlsx');
-        $this->user->notify(new ExportReady($this->user));
+        try{
+            (new ExaminationStudentsExport)->store('/examination/student_data_with_nsid.xlsx');
+            $this->user->notify(new ExportReady($this->user));
+        }catch(\Exception $e){
+            $this->output->writeln($e->getMessage());
+        }
     }
 }
