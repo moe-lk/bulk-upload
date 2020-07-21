@@ -33,8 +33,10 @@ class NotifyUserCompleteExport implements ShouldQueue
     public function handle()
     {
         try{
-            (new ExaminationStudentsExport)->store('/examination/student_data_with_nsid.csv');
-            $this->user->notify(new ExportReady($this->user));
+            (new ExaminationStudentsExport)->queue('/examination/student_data_with_nsid.csv')->chain([
+                $this->user->notify(new ExportReady($this->user))
+            ]);
+            
         }catch(\Exception $e){
             $this->output->writeln($e->getMessage());
         }
