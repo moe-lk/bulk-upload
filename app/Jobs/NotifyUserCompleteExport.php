@@ -22,7 +22,6 @@ class NotifyUserCompleteExport implements ShouldQueue
     public function __construct(User $user)
     {
         $this->user = $user;
-        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
 
     /**
@@ -38,7 +37,8 @@ class NotifyUserCompleteExport implements ShouldQueue
             ]);
             
         }catch(\Exception $e){
-            $this->output->writeln($e->getMessage());
+            $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $output->writeln($e->getMessage());
         }
     }
 }
