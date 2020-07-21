@@ -325,7 +325,7 @@ class ExaminationStudentsController extends Controller
     }
 
     public function downloadProcessedFile(){
-        $file_path = storage_path() . '/app/examination/Students_data_with_nsid.csv';
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
         return Response::download($file_path);
     }
 }
