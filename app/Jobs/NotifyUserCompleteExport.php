@@ -30,6 +30,7 @@ class NotifyUserCompleteExport implements ShouldQueue
     public function handle()
     {
         try{
+            ini_set('memory_limit', '-1');
             (new ExaminationStudentsExport)->queue('/examination/student_data_with_nsid.csv')->chain([
                 $this->user->notify(new NotificationsExportReady($this->user))
             ]);
