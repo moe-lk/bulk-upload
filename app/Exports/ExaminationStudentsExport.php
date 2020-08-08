@@ -8,7 +8,7 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExaminationStudentsExport implements FromQuery , WithHeadings , ShouldQueue
+class ExaminationStudentsExport implements FromQuery , WithHeadings , ShouldQueue 
 {
 
     use Exportable;

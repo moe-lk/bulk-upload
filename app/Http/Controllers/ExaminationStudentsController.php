@@ -11,15 +11,17 @@ use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Queue;
+use App\Jobs\NotifyUserCompleteExport;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 use App\Models\Institution_class_student;
 use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
-use App\Jobs\NotifyUserCompleteExport;
 use App\Models\Institution_student_admission;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Response;
 
 class ExaminationStudentsController extends Controller
 {
@@ -311,10 +313,8 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-       (new ExaminationStudentsExport)->queue('/examination/Students_data_with_nsid.csv')->chain([
-        new NotifyUserCompleteExport(request()->user()),
-    ]);;
-       return back()->withSuccess('Export started!');
+        Queue::push(new NotifyUserCompleteExport(Auth::user()));
+        return back()->withSuccess('Export started!');
     }
 
     public function downloadErrors()
@@ -325,7 +325,7 @@ class ExaminationStudentsController extends Controller
     }
 
     public function downloadProcessedFile(){
-        $file_path = storage_path() . '/app/examination/Students_data_with_nsid.csv';
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
         return Response::download($file_path);
     }
 }
