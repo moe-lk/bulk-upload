@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use App\Models\Institution_student;
 
 class RemoveDuplications extends Command
 {
@@ -39,13 +40,26 @@ class RemoveDuplications extends Command
     public function handle()
     {
         try {
-            DB::statement('DELETE t1 FROM institution_students t1
-        INNER JOIN institution_students t2 
-        WHERE 
-            t1.id < t2.id AND 
-            t1.student_id = t2.student_id AND 
-            t1.academic_period_id = t2.academic_period_id AND 
-            t1.institution_id = t2.institution_id');
+            $this->start_time = microtime(TRUE);
+            $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
+            $this->output->writeln('############### Starting delete Duplication ################');
+            Institution_student::chunk(100,function($Students){
+                foreach ($Students as $Student) {
+                    Institution_student::where('institution_students.id','>',$Student->id)
+                    ->where('institution_students.student_id',$Student->student_id)
+                    ->where('institution_students.academic_period_id',$Student->academic_period_id)
+                    ->where('institution_students.education_grade_id',$Student->education_grade_id)
+                    ->delete();
+                }
+                $this->end_time = microtime(TRUE);    
+                $this->output->writeln('Deleted 100 starting with' .$Students[0]->id);
+                $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+            });
+            $this->end_time = microtime(TRUE);
+            $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+            $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+            $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+          
         } catch (\Throwable $th) {
             dd($th);
         }
