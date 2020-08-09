@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Staudenmeir\LaravelMigrationViews\Facades\Schema;
+use Illuminate\Support\Facades\Schema as DbSchema;
 
 class DashboardViews extends Model
 {
@@ -32,6 +33,8 @@ class DashboardViews extends Model
                 ->join('security_users', 'security_users.id', 'ist.student_id')
                 ->groupBy('ist.institution_id');
             Schema::createOrReplaceView('students_count_view', $query);
+            DbSchema::dropIfExists('students_count_view_table');
+            DB::statement('CREATE TABLE students_count_view_table AS  (select * from students_count_view)');
             $output->writeln('creat : students_count_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
@@ -321,6 +324,7 @@ class DashboardViews extends Model
                 )
                 ->join('education_grades as eg', 'eg.id', 'ist.education_grade_id')
                 ->groupBy('ist.institution_id');
+            
             Schema::dropIfExists("students_count_by_grade_view");
             Schema::createOrReplaceView('students_count_by_grade_view', $query);
             $output->writeln('created : students_count_by_grade_view');
