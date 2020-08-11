@@ -23,7 +23,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     'ist.institution_id',
                     DB::raw('count(*) as total'),
@@ -51,8 +50,7 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
-            $query = DB::table('security_users as stu')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
+            $query = DB::table('institution_students as ist')
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),
@@ -305,7 +303,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_by_grade_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "ist.institution_id",
                     DB::raw("(count(CASE WHEN eg.code = 'G1' THEN ist.student_id END)) as `G-1`"),
@@ -344,7 +341,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_by_bmi_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "ist.institution_id",
                     DB::raw("count(CASE WHEN ubm.body_mass_index <  13 THEN ubm.body_mass_index END) as `Underweight`"),
