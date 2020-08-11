@@ -11,13 +11,17 @@ use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Queue;
+use App\Jobs\NotifyUserCompleteExport;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 use App\Models\Institution_class_student;
 use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
 use App\Models\Institution_student_admission;
-use Illuminate\Support\Facades\Log;
 
 class ExaminationStudentsController extends Controller
 {
@@ -90,7 +94,36 @@ class ExaminationStudentsController extends Controller
         $excelFile = "/examination/exams_students.csv";
 
         $import = new ExaminationStudentsImport();
-        $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+        try {
+            $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+            if ($import->failures()->count() > 0) {
+                $errors = $import->failures();
+                $columns =  [
+                    'remarks',
+                    'st_no',
+                    'stu_no',
+                    "f_name",
+                    "medium",
+                    "gender",
+                    "b_date",
+                    "a_income",
+                    "schoolid",
+                    "spl_need",
+                    "pvt_address",
+                    "disability_type",
+                    "disability",
+                    "sp_center"
+                ];
+
+                $file = 'examination/errors.csv';
+                Storage::put($file, implode(',', $columns));
+
+                foreach ($errors as $error) {
+                    Storage::append($file, implode(':', $error->errors()) . ',' . implode(',', $error->values()));
+                }
+            }
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        }
     }
 
     /**
@@ -192,7 +225,7 @@ class ExaminationStudentsController extends Controller
             } else {
                 $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
-                $studentData = array_merge((array) $matchedStudent, $matchedStudent);
+                $studentData = array_merge((array) $matchedStudent, $studentData);
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
@@ -227,39 +260,29 @@ class ExaminationStudentsController extends Controller
     public function searchSimilarName($student, $sis_students)
     {
         $highest = [];
-        $previousValue = null;
         $matchedData = [];
 
-        // search for matching name with last name
+        //search name with first name
         foreach ($sis_students as $key => $value) {
-            similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+            similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
             $value['rate'] = $percentage;
-
             if ($value['rate'] == 100) {
                 $matchedData[] = $value;
-            }
-
-            if (($previousValue)) {
-                $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
-            } else {
                 $highest = $value;
             }
-            $previousValue = $value;
         }
 
-        //If the not matched 100% try to get most highest value with full name
-        if (($highest['rate']  < 100) || (count($matchedData) > 1)) {
-            foreach ($sis_students as $key => $value) {
-                similar_text(strtoupper($student['f_name']), strtoupper($value['first_name']), $percentage);
-                $value['rate'] = $percentage;
-                if (($previousValue)) {
-                    $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
-                } else {
-                    $highest = $value;
-                }
-                $previousValue = $value;
-            }
-        }
+
+        //search the name with full name
+        // foreach ($matchedData as $key => $value) {
+        //     similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
+        //     $value['rate'] = $percentage;
+        //     if ($value['rate'] == 100) {
+        //         $matchedData[] = $value;
+        //         $highest = $value;
+        //     }
+        // }
+
         return $highest;
     }
 
@@ -290,6 +313,19 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
+        Queue::push(new NotifyUserCompleteExport(Auth::user()));
+        return back()->withSuccess('Export started!');
+    }
+
+    public function downloadErrors()
+    {
+
+        $file_path = storage_path() . '/app/examination/errors.csv';
+        return Response::download($file_path);
+    }
+
+    public function downloadProcessedFile(){
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
+        return Response::download($file_path);
     }
 }

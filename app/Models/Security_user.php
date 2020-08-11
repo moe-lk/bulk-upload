@@ -197,11 +197,10 @@ class Security_user extends Model
      */
     public function updateExaminationStudent($student, $sis_student)
     {
-        $this->isUnique = true;
         $this->uniqueUserId = new Unique_user_id();
         $this->uniqueUId = new UniqueUid();
         // regenerate unique id if it's not available
-        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no']) && $this->isUnique) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
+        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no'])) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
 
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
@@ -218,7 +217,6 @@ class Security_user extends Model
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
-            $this->isUnique = false;
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);

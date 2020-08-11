@@ -14,7 +14,10 @@ class AddSecurityTimeOutsOnSecirityUsersTable extends Migration
     public function up()
     {
         Schema::table('security_users', function (Blueprint $table) {
-            $table->dateTime('security_timeout')->nullable(true);
+            $column = Schema::hasColumn('security_users','security_timeout');
+            if(!$column){
+                $table->dateTime('security_timeout')->nullable(true);
+            }
         });
     }
 
