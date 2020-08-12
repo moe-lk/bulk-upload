@@ -318,6 +318,9 @@ class ExaminationStudentsController extends Controller
         (new ExaminationStudentsExport)->queue('/examination/student_data_with_nsid.csv')->chain([
             (new ExportReady($adminUser))
         ]);
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('###########################################------File processed and email sent------###########################################');
+
     }
 
     public function downloadErrors()
