@@ -6,9 +6,10 @@ use App\Models\Examination_student;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExaminationStudentsExport implements FromQuery , WithHeadings , ShouldQueue 
+class ExaminationStudentsExport implements FromQuery , WithHeadings , FromCollection 
 {
 
     use Exportable;
@@ -41,5 +42,9 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings , ShouldQueu
     public function query()
     {
         return Examination_student::query();
+    }
+
+    public function collection(){
+        return Examination_student:: all();
     }
 }

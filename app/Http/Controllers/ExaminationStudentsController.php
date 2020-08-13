@@ -315,12 +315,15 @@ class ExaminationStudentsController extends Controller
     public function export()
     {
         $adminUser = Security_user::where('username','admin')->first();
-        (new ExaminationStudentsExport)->queue('/examination/student_data_with_nsid.csv')->chain([
-            (new ExportReady($adminUser))
-        ]);
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $output->writeln('###########################################------File processed and email sent------###########################################');
+        try {
+            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.csv');
+            (new ExportReady($adminUser));
 
+        } catch (\Throwable $th) {
+            //throw $th;
+            dd($th);
+        }
+        return back()->withSuccess('Export started!');
     }
 
     public function downloadErrors()
