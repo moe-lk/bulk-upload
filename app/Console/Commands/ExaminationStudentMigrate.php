@@ -42,7 +42,7 @@ class ExaminationStudentMigrate extends Command
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
         $this->examinationController = new ExaminationStudentsController($this->argument('year'),$this->argument('grade'));
-        $this->examinationController->doMatch();
+        // $this->examinationController->doMatch();
         $this->examinationController->export();
         $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
