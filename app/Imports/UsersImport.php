@@ -479,7 +479,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.bmi_weight' => 'bail|required_with:*.bmi_height|bmi:' . $this->file['institution_class_id'],
             '*.bmi_date_yyyy_mm_dd' => 'bail|required_with:*.bmi_height|date', //bmi:'. $this->file['institution_class_id'].'
             '*.bmi_academic_period' => 'bail|required_with:*.bmi_height|exists:academic_periods,name',
-            '*.admission_no' => 'required|max:12|min:1',
+            '*.admission_no' => 'required|max:12|min:4|regex:/^[A-Za-z0-9\/]+$/',
             '*.start_date_yyyy_mm_dd' => 'required',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
