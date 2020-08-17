@@ -28,8 +28,6 @@ Route::get('download_file/{filename}', 'FileController@downloadFile')->where('fi
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:HOMEROOM_TEACHER');
 Route::get('/', 'ImportExport@importExportView')->middleware('Role:PRINCIPAL');
 Route::get('/uploadcsv', 'ExaminationStudentsController@index')->middleware('Role:ADMIN');
-//token
-Route::get('/exportexamination', 'ExaminationStudentsController@export')->middleware('Role:ADMIN');
 Route::get('/downloadExportexamination', 'ExaminationStudentsController@downloadProcessedFile')->middleware('Role:ADMIN');
 
 Route::get('downloadErrors','ExaminationStudentsController@downloadErrors')->middleware('auth');

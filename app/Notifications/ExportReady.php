@@ -18,7 +18,8 @@ class ExportReady extends Notification
      *
      * @return void
      */
-    public function __construct(User $user)
+
+    public function __construct($user)
     {
         $this->user  = $user;
     }

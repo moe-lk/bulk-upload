@@ -9,6 +9,7 @@ use App\Models\Security_user;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
+use App\Notifications\ExportReady;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
 use Illuminate\Support\Facades\Log;
@@ -313,7 +314,15 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        Queue::push(new NotifyUserCompleteExport(Auth::user()));
+        $adminUser = Security_user::where('username','admin')->first();
+        try {
+            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.csv');
+            (new ExportReady($adminUser));
+
+        } catch (\Throwable $th) {
+            //throw $th;
+            dd($th);
+        }
         return back()->withSuccess('Export started!');
     }
 
