@@ -44,6 +44,8 @@ class Examination_student extends Model
      */
     protected $dates = ['dob'];
 
+    protected $primaryKey = 'st_no';
+
     public $timestamps = true;
 
     public static function insertData($data)
