@@ -49,6 +49,10 @@ class Institution_student extends Base_Model
      */
     protected $casts = [];
 
+    protected $maps = [
+        'uuid' => 'id'
+    ];
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -69,10 +73,12 @@ class Institution_student extends Base_Model
         });
     }
 
+
     /**
      * @var string
      */
-    protected $primaryKey = 'uuid';
+    protected $primaryKey = 'id';
+    protected $keyType = 'string';
 
     /**
      * @param $inputs
