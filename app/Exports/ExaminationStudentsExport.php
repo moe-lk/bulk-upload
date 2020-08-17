@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class ExaminationStudentsExport implements FromQuery , WithHeadings , FromCollection 
+class ExaminationStudentsExport implements FromQuery , WithHeadings  
 {
 
     use Exportable;
@@ -42,9 +42,5 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings , FromCollec
     public function query()
     {
         return Examination_student::query();
-    }
-
-    public function collection(){
-        return Examination_student:: all();
     }
 }
