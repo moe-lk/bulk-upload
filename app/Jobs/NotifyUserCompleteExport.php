@@ -4,12 +4,15 @@ namespace App\Jobs;
 
 use App\Models\User;
 use Illuminate\Bus\Queueable;
+use App\Notifications\ExportReady;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Exports\ExaminationStudentsExport;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Notifications\ExportReady as NotificationsExportReady;
+use App\Mail\ExportReady as MailExportReady;
+use Illuminate\Support\Facades\Notification;
 
 class NotifyUserCompleteExport implements ShouldQueue
 {
