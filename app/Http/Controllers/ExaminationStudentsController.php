@@ -313,7 +313,7 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        Queue::later(60,new NotifyUserCompleteExport(Auth::user()));
+        Queue::push(new NotifyUserCompleteExport(Auth::user()));
         return back()->withSuccess('Export started!');
     }
 

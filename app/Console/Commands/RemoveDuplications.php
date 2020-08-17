@@ -43,7 +43,12 @@ class RemoveDuplications extends Command
             $this->start_time = microtime(TRUE);
             $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $this->output->writeln('############### Starting delete Duplication ################');
-            Institution_student::chunk(100,function($Students){
+            $studentsIdsWithDuplication =   DB::table('institution_students as ins')
+            ->select(DB::raw('count(*) as total'),'student_id','id','academic_period_id','education_grade_id')
+            ->having('total','>',1)
+            ->groupBy('ins.student_id')
+            ->orderBy('ins.student_id')
+            ->chunk(100,function($Students){
                 foreach ($Students as $Student) {
                     Institution_student::where('institution_students.id','>',$Student->id)
                     ->where('institution_students.student_id',$Student->student_id)
