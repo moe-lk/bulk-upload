@@ -48,15 +48,6 @@ class Institution_class_subject extends Base_Model  {
         ->whereHas('institutionGradeSubject', function ($query) {
                 $query->where('auto_allocation',1);
         });
-        // ->using('App\Models\Institution_subject','institution_subjects.education_subject_id','education_grades_subjects.education_subject_id');
-        // return $this->belongsToMany('App\Models\Education_grades_subject','institution_subjects','education_subject_id')
-        // ->using('App\Models\Institution_subject','institution_subjects.education_subject_id','education_grades_subjects.education_subject_id')
-        // ->where('education_grades_subjects.auto_allocation','=',1);
-        // ->wherePivotIn('auto_allocation', '=',1);
-        // ->with(['institutionGradeSubject'])
-            // ->whereHas('institutionGradeSubject', function ($query) {
-            //     $query->where('auto_allocation', '=',1);
-            // });
     }
 
     public function institutionOptionalSubject(){
@@ -94,6 +85,17 @@ class Institution_class_subject extends Base_Model  {
             ->where('institution_class_id', '=', $institutionClass)
             ->get()->toArray();
         return $mandatorySubject;
+    }
+
+    public static function getAllSubjects($institutionClass){
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass)->first();
+        $allSubjects = Institution_class_subject::with(['institutionSubject'])
+        ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
+            $query->whereHas('institutionGradeSubject')->where('education_grade_id', $institutionGrade->education_grade_id);
+        })
+        ->where('institution_class_id', '=', $institutionClass)
+        ->get()->toArray();
+        return $allSubjects;
     }
 
     public static function getStudentOptionalSubject($subjects, $student, $row, $institution) {

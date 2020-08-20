@@ -2,17 +2,21 @@
 
 namespace App\Console\Commands;
 
+use Webpatser\Uuid\Uuid;
 use App\Institution_grade;
+use App\Models\Institution;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
-use App\Models\Institution;
-use App\Models\Institution_class;
-use App\Models\Institution_class_student;
-use App\Models\Institution_student;
-use App\Models\Institution_student_admission;
 use Illuminate\Console\Command;
+use App\Models\Institution_class;
 use Illuminate\Support\Facades\DB;
+use App\Models\Institution_student;
+use App\Models\Institution_subject;
 use Illuminate\Support\Facades\Log;
+use App\Models\Institution_class_student;
+use App\Models\Institution_class_subject;
+use App\Models\Institution_subject_student;
+use App\Models\Institution_student_admission;
 
 /**
  * Class PromoteStudents
@@ -209,10 +213,13 @@ class PromoteStudents extends Command
                 'end_year' =>   $academicPeriod->end_year ,
                 'institution_id' => $student['institution_id'],
                 'admission_id' => $student['admission_id'],
+                // 'student_id' => $student['id'],
                 'created_user_id' => $student['created_user_id']
             ];
+
             try{
-               Institution_student::where('id',(string)$student['id'])->update($studentData);
+                // Institution_student::insert($studentData);
+                Institution_student::where('id',(string)$student['id'])->update($studentData);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('----------------- '. $student['admission_id'] . ' to ' . $studentData['education_grade_id']);
 
@@ -276,6 +283,15 @@ class PromoteStudents extends Command
                     'student_status_id' => $status,
                     'created_user_id' => $student['created_user_id']
                 ];
+                $allSubjects = Institution_class_subject::getAllSubjects($class['id']);
+
+                if (!empty($allSubjects)) {
+                    $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
+                    $this->student = $studentObj;
+                    $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+                    $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                    array_walk($allSubjects, array($this, 'insertSubject'));
+                }
                 if(!$this->institution_class_students->isDuplicated($studentObj)){
                     $this->institution_class_students->create($studentObj);
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
@@ -287,6 +303,43 @@ class PromoteStudents extends Command
                 }
             }
         }
+    }
 
+    protected function updateSubjectCount($subject)
+    {
+        $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
+        Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
+            ->update([
+                'total_male_students' => $totalStudents['total_male_students'],
+                'total_female_students' => $totalStudents['total_female_students']
+            ]);
+    }
+
+
+    /**
+     *
+     */
+    protected function setStudentSubjects($subject)
+    {
+        return [
+            'id' => (string) Uuid::generate(4),
+            'student_id' => $this->student['student_id'],
+            'institution_class_id' => $this->student['institution_class_id'],
+            'institution_subject_id' => $subject['institution_subject_id'],
+            'institution_id' => $this->student['institution_id'],
+            'academic_period_id' => $this->student['academic_period_id'],
+            'education_subject_id' => $subject['institution_subject']['education_subject_id'],
+            'education_grade_id' => $this->student['education_grade_id'],
+            'student_status_id' => 1,
+            'created_user_id' => $this->student['created_user_id'],
+            'created' => now()
+        ];
+    }
+
+    protected function insertSubject($subject)
+    {
+        if (!Institution_subject_student::isDuplicated($subject)) {
+            Institution_subject_student::updateOrInsert($subject);
+        }
     }
 }
