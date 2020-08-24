@@ -35,6 +35,7 @@ class DashboardViews extends Model
                 )
                 ->leftJoin('institution_students as ist', 'ins.id', 'ist.institution_id')
                 ->leftJoin('security_users', 'security_users.id', 'ist.student_id')
+                ->where('ins.institution_status_id',1)
                 ->groupBy('ins.id');
             Schema::createOrReplaceView('students_count_view', $query);
             DbSchema::dropIfExists('students_count_view_table');
