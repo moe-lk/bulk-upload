@@ -24,6 +24,10 @@ class DashboardViews extends Model
             $output->writeln('creating : students_count_view');
             $query = DB::table('institutions as ins')
                 ->select(
+                    'ins.latitude',
+                    'ins.longitude',
+                    'ins.name',
+                    'ins.code',
                     'ins.id as institution_id',
                     DB::raw('count(ist.id) as total'),
                     DB::raw("SUM(CASE WHEN security_users.gender_id = 1  THEN 1 ELSE 0 END) AS male"),
