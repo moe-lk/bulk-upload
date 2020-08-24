@@ -50,7 +50,7 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
-            $query = DB::table('institution_students as ist')
+            $query = DB::table('security_users as stu')
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),
