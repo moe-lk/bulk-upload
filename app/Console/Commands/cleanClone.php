@@ -68,16 +68,19 @@ class cleanClone extends Command
 
     public function process($shift){
        
-       $institutionClasses = $this->institution_classes->select('id')->where('id',$shift['id']);
-       $this->institution_classes->where('id',$shift['id'])->delete();
-
-       $this->institution_class_subjects->whereIn('id',$institutionClasses)->delete();
-
-       $this->shifts->where('id',$shift['id'])->delete();
-
-       $this->output->writeln('Deleted '. $shift['id'] . ($this->end_time - $this->start_time) . ' seconds to complete');
-
-
+    try {
+        $institutionClasses = $this->institution_classes->select('id')->where('id',$shift['id']);
+        $this->institution_classes->where('id',$shift['id'])->delete();
+ 
+        $this->institution_class_subjects->whereIn('id',$institutionClasses)->delete();
+ 
+        $this->shifts->where('id',$shift['id'])->delete();
+ 
+        $this->output->writeln('Deleted '. $shift['id'] . ($this->end_time - $this->start_time) . ' seconds to complete');
+ 
+    } catch (\Throwable $th) {
+        dd($th);
+    }
       
     }
 }

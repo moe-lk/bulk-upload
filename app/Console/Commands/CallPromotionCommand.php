@@ -45,6 +45,6 @@ class CallPromotionCommand extends Command
     }
 
     protected function callPromotion($institution,$count,$year){
-        $this->call('promote:students',['year' => $year,'institution' => $institution->code]);
+        $this->call('promote:students',['year' => $year,'institution' => $institution['code']]);
     }
 }

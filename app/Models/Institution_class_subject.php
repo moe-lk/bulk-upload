@@ -126,6 +126,6 @@ class Institution_class_subject extends Base_Model  {
 
     public function isDuplicated($subject){
         return self::query()->where('institution_subject_id',$subject['institution_subject_id'])
-            ->where('institution_class_id',$subject['institution_class_id'])->exists();
+            ->where('institution_class_id',$subject['institution_class_id'])->get()->toArray();
     }
 }
