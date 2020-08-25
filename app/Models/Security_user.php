@@ -172,6 +172,7 @@ class Security_user extends Model
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'is_student' => 1,
+            'updated_from' => 'doe',
             'created' => now(),
             'created_user_id' => 1
         ];
@@ -209,6 +210,7 @@ class Security_user extends Model
             'last_name' => genNameWithInitials($student['f_name']),
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
+            'updated_from' => 'doe',
             'modified' => now()
         ];
 
@@ -217,6 +219,7 @@ class Security_user extends Model
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
+            dd($th);
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);

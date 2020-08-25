@@ -69,6 +69,7 @@ class Institution_student_admission extends Base_Model
                 'education_grade_id' => $admissionInfo['education_grade']->id,
                 'institution_class_id' => (($admissionInfo['instituion_class']  != []) && (count($admissionInfo['instituion_class'])==1)) ? $admissionInfo['instituion_class']['id'] : null,
                 'comment' => 'Imported From Examination Data',
+                'updated_from' => 'doe',
                 'created_user_id' => 1
             ];
             self::create($data);
