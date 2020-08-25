@@ -159,6 +159,7 @@ class Institution_student extends Base_Model
                 'end_date' => $admissionInfo['academic_period']->end_date,
                 'end_year' => $admissionInfo['academic_period']->end_year,
                 'institution_id' => $admissionInfo['instituion']->id,
+                'updated_from' => 'doe',
                 'created' => now(),
                 'created_user_id' => 1
             ]);
@@ -191,7 +192,7 @@ class Institution_student extends Base_Model
                     'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : 0,
                     'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : 0,
                     'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : 0,
-    
+                    'updated_from' => 'doe',
                     'income_at_g5' => $student['a_income'],
                     'modified' => now(),
                     'modified_user_id' => 1
