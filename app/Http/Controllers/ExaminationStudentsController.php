@@ -263,9 +263,9 @@ class ExaminationStudentsController extends Controller
         $highest = [];
         $matchedData = [];
 
-        //search name with first name
-        foreach ($sis_students as $key => $value) {
-            similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
+        foreach ($sis_students as $key => $value){
+             //search name with last name
+            similar_text(get_l_name(strtoupper($student['f_name'])), (get_l_name(strtoupper($value['first_name']))), $percentage);
             $value['rate'] = $percentage;
             if ($value['rate'] == 100) {
                 $matchedData[] = $value;
@@ -273,16 +273,17 @@ class ExaminationStudentsController extends Controller
             }
         }
 
-
-        //search the name with full name
-        // foreach ($matchedData as $key => $value) {
-        //     similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
-        //     $value['rate'] = $percentage;
-        //     if ($value['rate'] == 100) {
-        //         $matchedData[] = $value;
-        //         $highest = $value;
-        //     }
-        // }
+        if(count($matchedData) > 1){
+            //search name with full name
+            foreach ($sis_students as $key => $value) {
+                similar_text((strtoupper($student['f_name'])), (strtoupper($value['first_name'])), $percentage);
+                $value['rate'] = $percentage;
+                if ($value['rate'] == 100) {
+                    $matchedData[] = $value;
+                    $highest = $value;
+                }
+            }
+        }
 
         return $highest;
     }
