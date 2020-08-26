@@ -55,7 +55,7 @@ class Unique_user_id extends Model
     {
        try {
             // regenerate unique id if it's not available
-        $uniqueId =  $this->uniqueUserId::isValidUniqueId($user['openemis_no']) ? $this->uniqueUserId::getUniqueAlphanumeric() : $user['openemis_no'];
+        $uniqueId =  $this->uniqueUserId::isValidUniqueId($user['openemis_no'],9) ? $this->uniqueUserId::getUniqueAlphanumeric() : $user['openemis_no'];
 
         //check if the user's entry exits ?
         $exists = Unique_user_id::where([

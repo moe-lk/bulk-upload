@@ -22,7 +22,7 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_view');
-            $query = DB::table('institutions as ins')
+            $query = DB::table('institution_students as ist')
                 ->select(
                     'ins.id as institution_id',
                     DB::raw('count(ist.id) as total'),
