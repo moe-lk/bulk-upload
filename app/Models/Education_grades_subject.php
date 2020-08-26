@@ -46,5 +46,4 @@ class Education_grades_subject extends Model  {
         return $this->hasMany('App\Models\Institution_subject','education_grade_id','education_grade_id');
     }
 
-
 }
