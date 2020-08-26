@@ -109,7 +109,7 @@ class CloneController extends Controller
            unset($subjects['total_male_students']);
            unset($subjects['total_female_students']);
            unset($subjects['id']);
-           $this->institution_subjects->insert($subjects);
+           $this->institution_subjects->create($subjects);
        }catch (\Exception $e){
             Log::error($e->getMessage(),[$e]);
        }
@@ -216,7 +216,7 @@ class CloneController extends Controller
      */
     public function updateShifts($year,$shift){
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
-        $this->shifts->where('id',$shift['id'])->update(['cloned' => '2020']);
+        $this->shifts->where('id',$shift['id'])->update(['cloned' => $year]);
         $shift['academic_period_id'] = $academicPeriod->id;
         $exist = $this->shifts->shiftExists($shift);
         return $this->shifts->create((array)$shift)->id;
