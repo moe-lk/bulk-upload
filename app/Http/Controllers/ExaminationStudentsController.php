@@ -262,22 +262,37 @@ class ExaminationStudentsController extends Controller
     {
         $highest = [];
         $matchedData = [];
+        $highestDistance = null;
 
         foreach ($sis_students as $key => $value){
-             //search name with last name
+
+             //search name with full name
             similar_text(strtoupper($student['f_name']), (strtoupper($value['first_name'])), $percentage);
             $distance = levenshtein(strtoupper($student['f_name']),strtoupper($value['first_name']));
             $value['rate'] = $percentage;
             switch(true){
                 case $value['rate'] == 100;
-                    $matchedData[] = $value;
                     $highest = $value;
                     break;
-                case  $distance <= 2;
-                    $matchedData[] = $value;
+                case (($distance <= 2) && ($distance > $highestDistance));
                     $highest = $value;
-                    break;
+                    $highestDistance = $distance;
             }  
+        }
+
+        if(empty($highest)){
+            foreach ($sis_students as $key => $value){
+                
+                //search name with last name
+               similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+               $value['rate'] = $percentage;
+               switch(true){
+                   case $value['rate'] == 100;
+                       $matchedData[] = $value;
+                       $highest = $value;
+                       break;
+               }  
+           }
         }
 
         return $highest;
