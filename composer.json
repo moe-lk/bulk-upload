@@ -23,7 +23,7 @@
         "webpatser/laravel-uuid": "^3.0",
         "wyndow/fuzzywuzzy": "^0.6.0",
         "yajra/laravel-datatables-oracle": "^9.4",
-        "staudenmeir/laravel-migration-views": "v1.3"
+        "staudenmeir/laravel-migration-views": "v1.0"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
