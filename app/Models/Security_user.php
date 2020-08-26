@@ -219,7 +219,6 @@ class Security_user extends Model
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
-            dd($th);
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);
