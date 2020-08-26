@@ -11,6 +11,7 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
+    <script src="{{ asset('js/google_analytics.js') }}" defer></script>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -24,6 +25,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 {{--    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>--}}
     <script src = "https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js" defer ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-167196928-2"></script>
+    <script src="{{ asset('js/matomo.js') }}" defer></script>
 </head>
 <body>
     <div id="app">
@@ -36,7 +39,15 @@
                     <a class="navbar-brand" href="{{ url('/create') }}">
                         History
                     </a>
+                    @if(Auth::user()->super_admin)
+                    <a class="navbar-brand" href="{{ url('/uploadcsv') }}">
+                        CSV Upload
+                    </a>
+                    exportexamination
+                    @endif
+                    
                 @endif
+               
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>

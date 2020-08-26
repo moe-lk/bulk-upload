@@ -30,11 +30,11 @@ class EmptyFile extends Mailable
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' =>  env('APP_URL').'bulk-upload/'
+            'link' => \App::environment('local') || \App::environment('stage')   ?  env('APP_URL') : env('APP_URL').'/bulk-upload/'
         ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "No data Found in ". $file['filename']. ' Please re-upload the file with data',
-            'link' =>  env('APP_URL').'bulk-upload/'
+            'link' =>  \App::environment('local') || \App::environment('stage')   ?  env('APP_URL') : env('APP_URL').'/bulk-upload/'
         ];
     }
 

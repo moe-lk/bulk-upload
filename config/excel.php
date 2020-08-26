@@ -194,7 +194,7 @@ return [
 
     'columns' => [
         "remarks",
-        "stdeunt_id",
+        "student_id",
         "full_name" ,
         "gender_mf",
         "date_of_birth_yyyy_mm_dd",
@@ -237,6 +237,7 @@ return [
         "fathers_nationality",
         "fathers_identity_type",
         "fathers_identity_number",
+        "fathers_phone",
         "mothers_full_name",
         "mothers_date_of_birth_yyyy_mm_dd",
         "mothers_address",
@@ -244,6 +245,7 @@ return [
         "mothers_nationality",
         "mothers_identity_type",
         "mothers_identity_number",
+        "mothers_phone",
         "guardians_full_name",
         "name_with_initials",
         "guardians_gender_mf",
@@ -253,5 +255,27 @@ return [
         "guardians_nationality",
         "guardians_identity_type",
         "guardians_identity_number",
+        "guardians_phone"
+    ],
+    'optional_columns' => [
+        "guardians_phone",
+        "fathers_phone",
+        "mothers_phone",
+        "option_1",
+        "option_2",
+        "option_3",
+        "option_4",
+        "option_5",
+        "option_6",
+        "option_7",
+        "option_8",
+        "option_9",
+        "option_10",
+        "option_11",
+        "option_12",
+        "option_13",
+        "option_14",
+        "option_15",
+        "option_16"
     ]
 ];

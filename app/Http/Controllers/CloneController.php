@@ -34,7 +34,6 @@ class CloneController extends Controller
     }
 
 
-
     public function array_walk($shift,$count,$params){
         array_walk($shift,array($this,'process'),$params);
     }
@@ -170,6 +169,7 @@ class CloneController extends Controller
         };
     }
 
+  
     public function insertClassSubjects($subject,$count,$newClassId){
         try{
             $subjectobj['status'] = 1;

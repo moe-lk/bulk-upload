@@ -1,5 +1,11 @@
 <?php
 
+function get_l_name($name){
+    $name = trim($name);
+    $last_name = (strpos($name,' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+    return $last_name;
+}
+
 // Gen name with initials with help of fullname
 function genNameWithInitials($fullname = null){
     $names = explode(' ', $fullname);
@@ -123,7 +129,7 @@ function append_errors_to_excel($error, $count, $reader){
 
         $active_sheet->getStyle($active_cell)
             ->getFill()
-            ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()
             ->setARGB('FF0000');
 
@@ -151,7 +157,7 @@ function colorizeCell($column,$error,$active_sheet){
 
     $active_sheet->getStyle($active_cell)
         ->getFill()
-        ->setFillType(PHPExcel_Style_Fill::FILL_SOLID)
+        ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
         ->getStartColor()
         ->setARGB('FF0000');
 

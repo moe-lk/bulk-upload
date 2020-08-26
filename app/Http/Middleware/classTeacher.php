@@ -15,8 +15,9 @@ class classTeacher
      */
     public function handle($request, Closure $next)
     {
-//        dd($request->user()->permissions);
-        if ($request->user() && (!($request->user()->permissions->isEmpty()))  && $request->user()->permissions[0]->roles &&  $request->user()->permissions[0]->roles->code === 'HOMEROOM_TEACHER') {
+        if($request->user()->super_admin == 1){
+            return $next($request);
+        }elseif ($request->user() && (!($request->user()->permissions->isEmpty()))  && $request->user()->permissions[0]->roles &&  $request->user()->permissions[0]->roles->code === 'HOMEROOM_TEACHER') {
             return $next($request);
         }elseif($request->user() && (!($request->user()->principal->isEmpty()))  && $request->user()->principal[0]->roles &&  $request->user()->principal[0]->roles->code === 'PRINCIPAL'){
             return $next($request);

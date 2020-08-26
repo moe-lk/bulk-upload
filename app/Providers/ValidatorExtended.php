@@ -18,7 +18,8 @@ use App\Models\Institution_class;
 use App\Models\Institution_class_grade;
 use App\Models\Institution_class_student;
 
-class ValidatorExtended extends IlluminateValidator {
+class ValidatorExtended extends IlluminateValidator
+{
 
     private $_custom_messages = array(
         "admission_age" => "The age limit not match with admission age for this class",
@@ -30,14 +31,25 @@ class ValidatorExtended extends IlluminateValidator {
         "bmi" => "The record must have BMI information"
     );
 
-    public function __construct($translator, $data, $rules, $messages = array(),
-            $customAttributes = array()) {
-        parent::__construct($translator, $data, $rules, $messages,
-                $customAttributes);
+    public function __construct(
+        $translator,
+        $data,
+        $rules,
+        $messages = array(),
+        $customAttributes = array()
+    ) {
+        parent::__construct(
+            $translator,
+            $data,
+            $rules,
+            $messages,
+            $customAttributes
+        );
         $this->_set_custom_stuff();
     }
 
-    protected function _set_custom_stuff() {
+    protected function _set_custom_stuff()
+    {
         //setup our custom error messages
         $this->setCustomMessages($this->_custom_messages);
     }
@@ -48,60 +60,87 @@ class ValidatorExtended extends IlluminateValidator {
      * admission age validation
      */
 
-    protected function validateAdmissionAge($attribute, $value, $parameters, $validator) {
+    protected function validateAdmissionAge($attribute, $value, $parameters, $validator)
+    {
         $institutionClass = Institution_class::find($parameters[0]);
         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
-        $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-        $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
-        if (empty($value)) {
-            return false;
-        } elseif ($gradeEntity !== null) {
-            $admissionAge = (($gradeEntity->admission_age)*12)-1;
-            $to = $academicPeriod->start_date;
-            $diff_in_months = $to->diffInMonths($value);
-            $ageOfStudent = $diff_in_months;
-            $enrolmentMaximumAge = $admissionAge + 120;
-            return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
+        if (!empty($institutionClass)) {
+            $gradeEntity = Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+            $academicPeriod = Academic_period::find($institutionClass->academic_period_id);
+            if (empty($value)) {
+                return false;
+            } elseif ($gradeEntity !== null) {
+                $admissionAge = (($gradeEntity->admission_age) * 12) - 1;
+                $to = $academicPeriod->start_date;
+                $diff_in_months = $to->diffInMonths($value);
+                $ageOfStudent = $diff_in_months;
+                $enrolmentMaximumAge = $admissionAge + 120;
+                return ($ageOfStudent <= $enrolmentMaximumAge) && ($ageOfStudent >= $admissionAge);
+            } else {
+                return false;
+            }
         } else {
+            $this->_custom_messages['admission_age'] = 'given' . $attribute . 'Not found';
+            $this->_set_custom_stuff();
             return false;
         }
     }
 
-    protected function validateBmi($attribute, $value, $parameters)
+    protected function validateHW($attribute, $value)
     {
-        $bmiGrades =  [1,4,7,10];
-        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])->first();
-        $educationGrade =  Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
-            if(in_array($institutionGrade->education_grade_id,$bmiGrades)){
-                if(!empty($value)){
-                    if(($attribute == 'bmi_height') || ('bmi_weight')){
-                        $v = Validator::make([$attribute => $value], [
-                            $attribute => 'number|min:50|max:200'
-                            ]);
-                        if($v->fails()) {
-                            $this->_custom_messages['bmi'] =  $attribute.' is not a valid input';
-                            $this->_set_custom_stuff();
-                            return false;
-                        }
-                        return true;
-                    }
-                }else{
-                    $this->_custom_messages['bmi'] =  $attribute.' is required for '. $educationGrade->name;
-                    $this->_set_custom_stuff();
-                    return false;
-                }
-            }else{
-                return true;
+
+        if (is_numeric($value)) {
+            if ($value < 10) {
+                $this->_custom_messages['bmi'] =  $attribute . ' is must greater than 10';
+                $this->_set_custom_stuff();
+                return false;
+            } elseif ($value > 250) {
+                $this->_custom_messages['bmi'] =  $attribute . ' is must smaller than 250';
+                $this->_set_custom_stuff();
+                return false;
             }
+        } else {
+            $this->_custom_messages['bmi'] =  $attribute . ' is must a valid numeric';
+            $this->_set_custom_stuff();
+            return false;
+        }
+        return true;
     }
 
-    protected function validateBirthPlace($attribute, $value, $perameters, $validator) {
+    protected function validateBmi($attribute, $value, $parameters)
+    {
+        $bmiGrades =  ['G1', 'G4', 'G7', 'G10'];
+        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $parameters[0])
+            ->join('education_grades', 'institution_class_grades.education_grade_id', 'education_grades.id')
+            ->first();
+        $educationGrade =  Education_grade::where('id', '=', $institutionGrade->education_grade_id)->first();
+        if (in_array($institutionGrade->code, $bmiGrades)) {
+            if (!empty($value)) {
+                if (($attribute == 'bmi_height') || ('bmi_weight')) {
+                    return $this->validateHW($attribute, $value);
+                }
+            } else {
+                $this->_custom_messages['bmi'] =  $attribute . ' is required for ' . $educationGrade->name;
+                $this->_set_custom_stuff();
+                return false;
+            }
+        } elseif (!empty($value)) {
+            if (($attribute == 'bmi_height') || ('bmi_weight')) {
+                return $this->validateHW($attribute, $value);
+            }
+        } else {
+            return true;
+        }
+    }
+
+    protected function validateBirthPlace($attribute, $value, $perameters, $validator)
+    {
         foreach ($validator->getData() as $data) {
             if ($data['identity_type'] == 'BC' && key_exists('birth_divisional_secretariat', $data)) {
-                $BirthDivision = Area_administrative::where('name', '=',  '%'.$data['birth_divisional_secretariat'].'%')->where('area_administrative_level_id', '=', 5); //
-                if ($BirthDivision->count() > 0 ) {
-                    $BirthArea = Area_administrative::where('name', '=', '%'. $value.'%') //$data['birth_registrar_office_as_in_birth_certificate']
-                                    ->where('parent_id', '=', $BirthDivision->first()->id)->count();
+                $BirthDivision = Area_administrative::where('name', '=',  '%' . $data['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5); //
+                if ($BirthDivision->count() > 0) {
+                    $BirthArea = Area_administrative::where('name', '=', '%' . $value . '%') //$data['birth_registrar_office_as_in_birth_certificate']
+                        ->where('parent_id', '=', $BirthDivision->first()->id)->count();
                     return $BirthArea  > 0;
                 } elseif (key_exists('birth_divisional_secretariat', $data) && (!key_exists('birth_registrar_office_as_in_birth_certificate', $data))) {
                     $this->_custom_messages['birth_place'] = 'birth_registrar_office_as_in_birth_certificate required with BC';
@@ -116,40 +155,42 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function validateIsStudentInClass($attribute, $value, $perameters, $validator) {
+    protected function validateIsStudentInClass($attribute, $value, $perameters, $validator)
+    {
         $student =  Security_user::where('openemis_no', '=', $value);
-        if($student->count() > 0){
+        if ($student->count() > 0) {
             $student = $student->first()->toArray();
-            $check =  Institution_class_student::where('student_id', '=', $student['id'])->where('institution_class_id','=',$perameters[0])->count();
-            if($check == 1){
+            $check =  Institution_class_student::where('student_id', '=', $student['id'])->where('institution_class_id', '=', $perameters[0])->count();
+            if ($check == 1) {
                 return true;
-            }else{
+            } else {
                 return false;
             }
-        }else{
+        } else {
             return false;
         }
-
     }
-    protected function validateNic($attribute, $value, $perameters, $validator){
+    protected function validateNic($attribute, $value, $perameters, $validator)
+    {
         $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
-       if(!$valid){
-             $this->_custom_messages['nic'] = $attribute. ' is not valid,  Please check the NIC number';
-             $this->_set_custom_stuff();
-             return false;
-       }else{
-           return true;
-       }
+        if (!$valid) {
+            $this->_custom_messages['nic'] = $attribute . ' is not valid,  Please check the NIC number';
+            $this->_set_custom_stuff();
+            return false;
+        } else {
+            return true;
+        }
     }
 
-    protected function validateUserUnique($attribute, $value, $perameters, $validator) {
+    protected function validateUserUnique($attribute, $value, $perameters, $validator)
+    {
         foreach ($validator->getData() as $data) {
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if ($identityType !== null && ($value !== null)) {
                 if ($identityType->national_code === 'BC') {
-                    return $this->checkUnique($value, $data,$identityType);
+                    return $this->checkUnique($value, $data, $identityType);
                 } elseif ($identityType->national_code === 'NIC') {
-                    return $this->checkUnique($value, $data,$identityType);
+                    return $this->checkUnique($value, $data, $identityType);
                 }
             } elseif (($value == null) || $value == "") {
                 return true;
@@ -157,12 +198,13 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function validateIsBc($attribute, $value, $perameters, $validator) {
+    protected function validateIsBc($attribute, $value, $perameters, $validator)
+    {
         foreach ($validator->getData() as $data) {
             $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
             if (($identityType !== null) && ($identityType !== "")) {
                 if (($identityType->national_code) === 'BC') {
-                    return  (strlen((string) $data['identity_number']) < 7);
+                    return (strlen((string) $data['identity_number']) < 7);
                 } else {
                     return true;
                 }
@@ -172,7 +214,8 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function checkUnique($value, $data,$identityType) {
+    protected function checkUnique($value, $data, $identityType)
+    {
         $isUnique = Security_user::where('identity_number', '=', $value)->where('identity_type_id', '=', $identityType->id);
         if ($isUnique->count() > 0) {
             $this->_custom_messages['user_unique'] = 'The identity number already in use. User ID is : ' . $isUnique->first()->openemis_no;
@@ -183,7 +226,8 @@ class ValidatorExtended extends IlluminateValidator {
         }
     }
 
-    protected function IsBc($data, $value) {
+    protected function IsBc($data, $value)
+    {
         $identityType = Identity_type::where('national_code', 'like', '%' . $data['identity_type'] . '%')->first();
         if ($identityType !== null) {
             if (($identityType->national_code) === 'BC' && strlen((string) $value) < 8) {
@@ -195,23 +239,4 @@ class ValidatorExtended extends IlluminateValidator {
             return true;
         }
     }
-
-    /**
-     * Register services.
-     *
-     * @return void
-     */
-    public function register() {
-        //
-    }
-
-    /**
-     * Bootstrap services.
-     *
-     * @return void
-     */
-    public function boot() {
-        //
-    }
-
 }

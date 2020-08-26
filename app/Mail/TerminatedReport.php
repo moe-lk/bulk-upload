@@ -27,12 +27,12 @@ class TerminatedReport extends Mailable
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' =>   \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/download/' .$file['filename'] : env('APP_URL').'/bulk-upload/download/' .$file['filename']
         ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "Apologize ,The process of you file has been terminated in the middle,
              We advice you to check the student data and re-upload with only with correct data which are not in the system ",
-            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' =>    \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/download/' .$file['filename'] : env('APP_URL').'/bulk-upload/download/' .$file['filename']
         ];
     }
 

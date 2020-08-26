@@ -57,4 +57,13 @@ class Institution_shift extends Base_Model  {
             ->where('institution_shifts.cloned',$year)
             ->get()->toArray();
     }
+
+    public function getShiftsTodelete(int $year,$academic_period_id){
+        return self::query()
+            ->select('institution_shifts.*')
+            ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
+            ->where('academic_period_id',$academic_period_id)
+            ->where('institution_shifts.cloned',$year)
+            ->get()->toArray();
+    }
 }

@@ -28,11 +28,11 @@ class IncorrectTemplate extends Mailable
         $this->from_name = 'SIS Bulk Uploader';
         $this->with = [
             'name' => $this->user->first_name,
-            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' => \App::environment('local') || \App::environment('stage')  ?  env('APP_URL').'/download/' .$file['filename'] : env('APP_URL').'/bulk-upload/download/' .$file['filename']
         ];
         $this->viewData = [
             'name'=>$this->user->first_name, "body" => "The Template you used for upload having some issues, please reconfirm and re-upload with correct template",
-            'link' =>  env('APP_URL').'/download/' .$file['filename']
+            'link' =>  \App::environment('local') || \App::environment('stage')   ?  env('APP_URL').'/download/' .$file['filename'] : env('APP_URL').'/bulk-upload/download/' .$file['filename']
         ];
     }
 

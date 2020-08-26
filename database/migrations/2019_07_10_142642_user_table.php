@@ -29,7 +29,7 @@ class UserTable extends Migration
     {
         //
         Schema::table('security_users' , function(Blueprint $table){
-            $table->dropRememberToken();
+            // $table->dropRememberToken();
 //            $table->save();
         });
     }

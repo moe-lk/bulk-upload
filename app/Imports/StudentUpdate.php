@@ -2,59 +2,57 @@
 
 namespace App\Imports;
 
+use App\Models\User;
+use function foo\func;
+use App\Models\Nationality;
+use App\Rules\admissionAge;
+use App\Models\User_contact;
+use App\Models\Identity_type;
+use App\Models\Security_user;
+use App\Models\User_identity;
+use App\Models\Import_mapping;
+use App\Models\Security_group;
+use App\Models\User_body_mass;
+use App\Models\Academic_period;
+use App\Models\Student_guardian;
+use App\Models\User_nationality;
+use App\Models\Institution_class;
+use App\Models\User_special_need;
 use App\Mail\StudentCountExceeded;
 use App\Mail\StudentImportSuccess;
+use Illuminate\Support\Facades\DB;
+use App\Models\Area_administrative;
+use App\Models\Institution_student;
+use App\Models\Institution_subject;
+use App\Models\Workflow_transition;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Institution_class_grade;
+use App\Models\Special_need_difficulty;
+use Illuminate\Support\Facades\Request;
+use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
-use App\Models\Institution_student_admission;
-use App\Models\Institution_subject;
-use App\Models\Institution_subject_student;
-use App\Models\User_special_need;
-use App\Models\Security_group;
-use App\Models\Security_user;
-use App\Models\User;
-use App\Models\User_body_mass;
-use App\Models\Institution_student;
-use App\Models\Import_mapping;
-use App\Models\Identity_type;
-use App\Models\Student_guardian;
-use App\Models\Academic_period;
-use App\Models\Institution_class;
-use App\Models\Institution_class_grade;
-use App\Models\Area_administrative;
-use App\Models\Special_need_difficulty;
-use App\Models\Workflow_transition;
-use App\Models\User_nationality;
-use App\Models\User_identity;
-use App\Models\Nationality;
-use App\Rules\admissionAge;
-use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
-use function foo\func;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Request;
-use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithStartRow;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\Importable;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Concerns\WithLimit;
 use Maatwebsite\Excel\Events\BeforeSheet;
-use Maatwebsite\Excel\Jobs\AfterImportJob;
 use Maatwebsite\Excel\Validators\Failure;
-use Webpatser\Uuid\Uuid;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use App\Models\Institution_subject_student;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\WithStartRow;
+use App\Models\Institution_student_admission;
+use Maatwebsite\Excel\Concerns\SkipsFailures;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 
 class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadingRow, WithMultipleSheets, WithEvents, WithMapping, WithLimit, WithBatchInserts, WithValidation , SkipsOnFailure , SkipsOnError{
 
@@ -62,6 +60,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
         RegistersEventListeners,
         SkipsFailures,
         SkipsErrors;
+
 
     public function sheets(): array {
         return [
@@ -75,8 +74,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             BeforeSheet::class => function(BeforeSheet $event) {
                 $this->sheetNames[] = $event->getSheet()->getTitle();
                 $this->worksheet = $event->getSheet();
-
-                $this->validateClass();
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
             },
@@ -133,11 +130,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
-
-
                 $identityNUmber = $row['identity_number'];
-
-
 
                 //create students data
                 \Log::debug('Security_user');
@@ -161,15 +154,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
 
-                if (!empty($row['identity_number']) && $identityType !== null) {
-                    User_identity::create([
-                        'identity_type_id' => $identityType,
-                        'number' => $identityNUmber,
-                        'security_user_id' => $student->student_id,
-                        'created_user_id' => $this->file['security_user_id']
-                    ]);
+                if(!empty($row['admission_no']) && !empty($academicPeriod)){
+                    Institution_student::where('student_id','=',$studentInfo->id)
+                    ->where('institution_id','=', $institution)
+                    ->where('academic_period_id','=',$academicPeriod->id)
+                    ->update(['admission_id'=> $row['admission_no']]);
                 }
-
+                
                 if (!empty($row['special_need'])) {
 
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
@@ -219,7 +210,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['fathers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['fathers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['fathers_identity_type'] . '%')->first();
-                    $openemisFather = $this->getUniqueOpenemisId();;
+                    $openemisFather =  $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = ($identityType !== null) ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -232,29 +223,37 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
                     if ($father === null) {
-
-                        $father = Security_user::create([
-                                    'username' => $openemisFather,
-                                    'openemis_no' => $openemisFather,
-                                    'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
-                                    'last_name' => genNameWithInitials($row['fathers_full_name']),
-                                    'gender_id' => 1,
-                                    'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'],
-                                    'address' => $row['fathers_address'],
-                                    'address_area_id' => $AddressArea->id,
-                                    'nationality_id' => $nationalityId,
-                                    'identity_type_id' => $identityType,
-                                    'identity_number' => $row['fathers_identity_number'],
-                                    'is_guardian' => 1,
-                                    'created_user_id' => $this->file['security_user_id']
-                        ]);
-
+                        $data = [
+                            'username' => str_replace('-','',$openemisFather),
+                            'openemis_no' => $openemisFather,
+                            'first_name' => $row['fathers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
+                            'last_name' => genNameWithInitials($row['fathers_full_name']),
+                            'gender_id' => 1,
+                            'date_of_birth' => $row['fathers_date_of_birth_yyyy_mm_dd'],
+                            'address' => $row['fathers_address'],
+                            'address_area_id' => $AddressArea->id,
+                            'nationality_id' => $nationalityId,
+                            'identity_type_id' => $identityType,
+                            'identity_number' => $row['fathers_identity_number'],
+                            'is_guardian' => 1,
+                            'created_user_id' => $this->file['security_user_id']
+                        ];
+                        $father = Security_user::create($data);
+                             
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $father->id)
                                 ->update(['is_guardian' => 1]);
                         $father['guardian_relation_id'] = 1;
+                        if (array_key_exists('fathers_phone', $row)) {
+                            $father['contact'] = $row['fathers_phone'];
+                            User_contact::createOrUpdate($father,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $father, $this->file['security_user_id']);
                     }
                 }
@@ -263,7 +262,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['mothers_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['mothers_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['mothers_identity_type'] . '%')->first();
-                    $openemisMother = $this->getUniqueOpenemisId();;
+                    $openemisMother = $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -277,7 +276,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($mother === null) {
                         $mother = Security_user::create([
-                                    'username' => $openemisMother,
+                                    'username' => str_replace('-','',$openemisMother),
                                     'openemis_no' => $openemisMother,
                                     'first_name' => $row['mothers_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['mothers_full_name']),
@@ -293,12 +292,19 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $mother['guardian_relation_id'] = 2;
-
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }   
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
                                 ->update(['is_guardian' => 1]);
                         $mother['guardian_relation_id'] = 2;
+                        if (array_key_exists('mothers_phone', $row)) {
+                            $mother['contact'] = $row['mothers_phone'];
+                            User_contact::createOrUpdate($mother,$this->file['security_user_id']);
+                        }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     }
                 }
@@ -309,7 +315,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $AddressArea = Area_administrative::where('name', 'like', '%' . $row['guardians_address_area'] . '%')->first();
                     $nationalityId = Nationality::where('name', 'like', '%' . $row['guardians_nationality'] . '%')->first();
                     $identityType = Identity_type::where('national_code', 'like', '%' . $row['guardians_identity_type'] . '%')->first();
-                    $openemisGuardian = $this->getUniqueOpenemisId();;
+                    $openemisGuardian = $this->uniqueUid::getUniqueAlphanumeric();
 
                     $identityType = $identityType !== null ? $identityType->id : null;
                     $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
@@ -323,7 +329,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if ($guardian === null) {
                         $guardian = Security_user::create([
-                                    'username' => $openemisGuardian,
+                                    'username' => str_replace('-','',$openemisGuardian),
                                     'openemis_no' => $openemisGuardian,
                                     'first_name' => $row['guardians_full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                                     'last_name' => genNameWithInitials($row['guardians_full_name']),
@@ -340,11 +346,19 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ]);
 
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        }  
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
                                 ->update(['is_guardian' => 1]);
                         $guardian['guardian_relation_id'] = 3;
+                        if (array_key_exists('guardians_phone', $row)) {
+                            $guardian['contact'] = $row['guardians_phone'];
+                            User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
+                        } 
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
@@ -418,17 +432,17 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.nationality' => 'nullable',
             '*.identity_type' => 'required_with:identity_number',
 //            '*.identity_number' => 'user_unique:identity_number',
-            '*.academic_period' => 'nullable|exists:academic_periods,name',
+            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
             '*.bmi_weight' => 'required_with:*.bmi_height|nullable|numeric|max:200|min:10',
             '*.bmi_date_yyyy_mm_dd' => 'required_with:*.bmi_height|nullable|date',
             '*.bmi_academic_period' => 'required_with:*.bmi_weight|nullable|exists:academic_periods,name',
-            '*.admission_no' => 'nullable|max:12|min:4',
+            '*.admission_no' => 'nullable|max:12|min:4|regex:/^[A-Za-z0-9\/]+$/',
             '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
-            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',//|exists:special_need_difficulties,name
+            '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
             '*.fathers_full_name' => 'nullable|regex:/^[\pL\s\-]+$/u',
             '*.fathers_date_of_birth_yyyy_mm_dd' => 'nullable|required_with:*.fathers_full_name',
             '*.fathers_address' => 'required_with:*.fathers_full_name',

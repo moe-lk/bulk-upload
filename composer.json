@@ -12,20 +12,22 @@
         "aws/aws-sdk-php": "^3.112",
         "doctrine/dbal": "^2.9",
         "fideloper/proxy": "^4.0",
-        "gossi/php-code-formatter": "dev-master",
+        "fzaninotto/faker": "^1.9",
         "guzzlehttp/guzzle": "^6.4",
         "laracademy/model-generator": "^1.2",
-        "laravel/framework": "5.8.*",
+        "laravel/framework": "5.8.38",
         "laravel/passport": "^7.5",
         "laravel/tinker": "^1.0",
+        "lsflk/unique-uid": "v1.2.2",
         "mohamednizar/excel": "^3.1",
         "webpatser/laravel-uuid": "^3.0",
-        "yajra/laravel-datatables-oracle": "^9.4"
+        "wyndow/fuzzywuzzy": "^0.6.0",
+        "yajra/laravel-datatables-oracle": "^9.4",
+        "staudenmeir/laravel-migration-views": "v1.3"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
         "filp/whoops": "^2.0",
-        "fzaninotto/faker": "^1.4",
         "mockery/mockery": "^1.0",
         "nunomaduro/collision": "^3.0",
         "phpunit/phpunit": "^7.5"
@@ -33,7 +35,11 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "github-oauth": {
+            "github.com": "41148d29c6dfc68853dd304015a3b8371bb09dda"
+        }
+
     },
     "extra": {
         "laravel": {
@@ -46,7 +52,8 @@
         ],
         "psr-4": {
             "App\\": "app/",
-            "App/Models\\": "app/Models"
+            "App/Models\\": "app/Models",
+            "Maatwebsite/Excel\\": "vendor/mohamednizar/excel"
         },
         "classmap": [
             "database/seeds",
@@ -66,6 +73,14 @@
         {
             "type": "vcs",
             "url": "https://github.com/mohamednizar/PhpSpreadsheet.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/mohamednizar/Laravel-Excel.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/moe-lk/laravel-migration-views.git"
         }
     ],
     "minimum-stability": "dev",
@@ -80,6 +95,8 @@
         ],
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
-        ]
+        ],
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
     }
 }
