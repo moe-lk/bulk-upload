@@ -13,10 +13,6 @@ use App\Notifications\ExportReady;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Queue;
-use App\Jobs\NotifyUserCompleteExport;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use App\Models\Institution_class_student;
@@ -135,6 +131,7 @@ class ExaminationStudentsController extends Controller
     public  function doMatch()
     {
         $students = Examination_student::get()->toArray();
+
         //    array_walk($students,array($this,'clone'));
         array_walk($students, array($this, 'clone'));
     }
@@ -264,35 +261,35 @@ class ExaminationStudentsController extends Controller
         $matchedData = [];
         $highestDistance = null;
 
-        foreach ($sis_students as $key => $value){
+        foreach ($sis_students as $key => $value) {
 
-             //search name with full name
+            //search name with full name
             similar_text(strtoupper($student['f_name']), (strtoupper($value['first_name'])), $percentage);
-            $distance = levenshtein(strtoupper($student['f_name']),strtoupper($value['first_name']));
+            $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
             $value['rate'] = $percentage;
-            switch(true){
+            switch (true) {
                 case $value['rate'] == 100;
                     $highest = $value;
                     break;
                 case (($distance <= 2) && ($distance > $highestDistance));
                     $highest = $value;
                     $highestDistance = $distance;
-            }  
+            }
         }
 
-        if(empty($highest)){
-            foreach ($sis_students as $key => $value){
+        if (empty($highest)) {
+            foreach ($sis_students as $key => $value) {
                 
                 //search name with last name
-               similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
-               $value['rate'] = $percentage;
-               switch(true){
-                   case $value['rate'] == 100;
-                       $matchedData[] = $value;
-                       $highest = $value;
-                       break;
-               }  
-           }
+                similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+                $value['rate'] = $percentage;
+                switch (true) {
+                    case $value['rate'] == 100;
+                        $matchedData[] = $value;
+                        $highest = $value;
+                        break;
+                }
+            }
         }
 
         return $highest;
@@ -309,7 +306,6 @@ class ExaminationStudentsController extends Controller
     {
         try {
             $student['nsid'] =  $sis_student['openemis_no'];
-
             // add new NSID to the examinations data set
             $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
             $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
@@ -325,11 +321,10 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        $adminUser = Security_user::where('username','admin')->first();
+        $adminUser = Security_user::where('username', 'admin')->first();
         try {
             (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.csv');
             (new ExportReady($adminUser));
-
         } catch (\Throwable $th) {
             //throw $th;
             dd($th);
@@ -344,7 +339,8 @@ class ExaminationStudentsController extends Controller
         return Response::download($file_path);
     }
 
-    public function downloadProcessedFile(){
+    public function downloadProcessedFile()
+    {
         $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
         return Response::download($file_path);
     }
