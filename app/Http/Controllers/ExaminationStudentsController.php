@@ -243,8 +243,12 @@ class ExaminationStudentsController extends Controller
     {
         $sis_users = $this->student->getMatches($student);
         $studentData = [];
-        if (!is_null($sis_users) && (count($sis_users) > 0)) {
+
+        // if the same gender same DOE has more than one 
+        if (!is_null($sis_users) && (count($sis_users) > 1)) {
             $studentData = $this->searchSimilarName($student, $sis_users);
+        }else{
+            $studentData = $sis_users;
         }
         return $studentData;
     }
