@@ -275,7 +275,7 @@ class ExaminationStudentsController extends Controller
                 case $value['rate'] == 100;
                     $highest = $value;
                     break;
-                case (($distance <= 2) && ($distance > $highestDistance));
+                case (($distance <= 2) && ($distance < $highestDistance));
                     $highest = $value;
                     $highestDistance = $distance;
             }
