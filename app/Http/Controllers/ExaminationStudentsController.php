@@ -204,10 +204,10 @@ class ExaminationStudentsController extends Controller
             // if no matching found
             if (empty($matchedStudent)) {
                 $sis_student = $this->student->insertExaminationStudent($student);
-                $this->updateStudentId($student, $sis_student);
 
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
+                $sis_student['student_id'] =  $student['id'];
 
                 $student = $this->setIsTakingExam($student);
                 if (count($institutionClass) == 1) {
@@ -219,6 +219,7 @@ class ExaminationStudentsController extends Controller
                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_student::createExaminationData($student, $admissionInfo);
                 }
+                $this->updateStudentId($student, $sis_student);
                 // update the matched student's data    
             } else {
                 $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
@@ -262,7 +263,6 @@ class ExaminationStudentsController extends Controller
         $highestDistance = null;
 
         foreach ($sis_students as $key => $value) {
-
             //search name with full name
             similar_text(strtoupper($student['f_name']), (strtoupper($value['first_name'])), $percentage);
             $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
@@ -279,9 +279,9 @@ class ExaminationStudentsController extends Controller
 
         if (empty($highest)) {
             foreach ($sis_students as $key => $value) {
-                
                 //search name with last name
                 similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+                $distance = levenshtein(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])));
                 $value['rate'] = $percentage;
                 switch (true) {
                     case $value['rate'] == 100;
