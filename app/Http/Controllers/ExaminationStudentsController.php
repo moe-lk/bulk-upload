@@ -248,7 +248,7 @@ class ExaminationStudentsController extends Controller
         if (!is_null($sis_users) && (count($sis_users) > 1)) {
             $studentData = $this->searchSimilarName($student, $sis_users);
         }else{
-            $studentData = $sis_users;
+            $studentData = $sis_users[0];
         }
         return $studentData;
     }
