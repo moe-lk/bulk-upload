@@ -265,7 +265,6 @@ class ExaminationStudentsController extends Controller
         $highest = [];
         $matchedData = [];
         $highestDistance = null;
-
         foreach ($sis_students as $key => $value) {
             //search name with full name
             similar_text(strtoupper($student['f_name']), (strtoupper($value['first_name'])), $percentage);
