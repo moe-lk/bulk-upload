@@ -310,6 +310,7 @@ class ExaminationStudentsController extends Controller
         try {
             $student['nsid'] =  $sis_student['openemis_no'];
             // add new NSID to the examinations data set
+            unset($student['id']);
             $this->examination_student->where('st_no' , $student['st_no'])->update($student);
             $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
