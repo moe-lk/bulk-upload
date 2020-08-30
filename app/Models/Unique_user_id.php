@@ -59,7 +59,6 @@ class Unique_user_id extends Model
 
         //check if the user's entry exits ?
         $exists = Unique_user_id::where([
-            'security_user_id' => $user['id'],
             'unique_id' =>  $uniqueId
         ])->exists();
         if (!$exists) {
