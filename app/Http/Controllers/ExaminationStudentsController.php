@@ -136,6 +136,7 @@ class ExaminationStudentsController extends Controller
         ->get()
         ->toArray();
         if(!empty($students)){
+            dd($students[0]);
             $this->output->writeln(count($students). 'students remaining');
             array_walk($students, array($this, 'clone'));
         }else{
@@ -238,6 +239,8 @@ class ExaminationStudentsController extends Controller
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
+        }else{
+            $this->output->writeln('institution not found'. $student['schoolid'].' '. $student['st_no'] . 'not imported');
         }
     }
 
