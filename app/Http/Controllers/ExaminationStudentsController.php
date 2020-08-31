@@ -311,6 +311,7 @@ class ExaminationStudentsController extends Controller
             $student['nsid'] =  $sis_student['openemis_no'];
             // add new NSID to the examinations data set
             unset($student['id']);
+            unset($studentData['taking_g5_exam']);
             $this->examination_student->where('st_no' , $student['st_no'])->update($student);
             $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
