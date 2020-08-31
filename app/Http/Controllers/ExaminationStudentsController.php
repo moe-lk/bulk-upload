@@ -238,6 +238,8 @@ class ExaminationStudentsController extends Controller
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
+        }else{
+            $this->output->writeln('institution not found'. $student['schoolid'].' '. $student['st_no'] . 'not imported');
         }
     }
 
