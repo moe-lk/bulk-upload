@@ -10,6 +10,7 @@ use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
 use App\Notifications\ExportReady;
+use Illuminate\Support\Facades\DB;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
 use Illuminate\Support\Facades\Log;
@@ -130,10 +131,17 @@ class ExaminationStudentsController extends Controller
      */
     public  function doMatch()
     {
-        $students = Examination_student::get()->toArray();
-
+        $students = Examination_student::
+            where('nsid','=','')
+        ->get()
+        ->toArray();
+        if(!empty($students)){
+            array_walk($students, array($this, 'clone'));
+        }else{
+            $this->output->writeln('All are generated');
+            exit;
+        }
         //    array_walk($students,array($this,'clone'));
-        array_walk($students, array($this, 'clone'));
     }
 
     /**
@@ -248,7 +256,7 @@ class ExaminationStudentsController extends Controller
         // if the same gender same DOE has more than one 
         if (!is_null($sis_users) && (count($sis_users) > 1)) {
             $studentData = $this->searchSimilarName($student, $sis_users);
-        }else if (!is_null($sis_users) && (count($sis_users) == 1)){
+        } else if (!is_null($sis_users) && (count($sis_users) == 1)) {
             $studentData = $sis_users[0];
         }
         return $studentData;
@@ -315,7 +323,7 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_g5_exam']);
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
-            $this->examination_student->where('st_no' , $student['st_no'])->update($student);
+            $this->examination_student->where('st_no', $student['st_no'])->update($student);
             $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
             Log::error($th);
