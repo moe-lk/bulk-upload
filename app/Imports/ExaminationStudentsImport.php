@@ -100,7 +100,8 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
     public function rules(): array
     {
         return [
-            'b_date' => 'date|required'
+            'b_date' => 'date|required',
+            'schoolid' => 'exists:institutions,code'
         ];
     }
 }
