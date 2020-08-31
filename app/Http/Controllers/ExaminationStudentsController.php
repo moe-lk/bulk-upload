@@ -9,6 +9,7 @@ use App\Models\Security_user;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
+use App\Models\Institution_shift;
 use App\Notifications\ExportReady;
 use Illuminate\Support\Facades\DB;
 use App\Models\Examination_student;
@@ -239,7 +240,31 @@ class ExaminationStudentsController extends Controller
                 $this->updateStudentId($student, $studentData);
             }
         }else{
-            $this->output->writeln('institution not found'. $student['schoolid'].' '. $student['st_no'] . 'not imported');
+            $sis_student = $this->student->insertExaminationStudent($student);
+            $institionId = Institution::insert(['name'=> $student['schoolid'],'code' => $student['schoolid']]);
+            $institution = Institution::where('code', '=', $student['schoolid'])->first();
+            $shift = [
+                'start_time' => '07:30:00',
+                'end_time' => '13:30:00',
+                'academic_period_id' => 1,
+                'institution_id' => $institution['id'],
+                'location_institution_id' => $institution['id'],
+                'shift_option_id' => 1,
+                'cloned' => '2019'
+            ];
+            $shift = Institution_shift::create($shift);
+            $this->cloneConfig = new CloneController();
+            $previousAcademicPeriod = $this->academic_period->getAcademicPeriod(2019);
+            $academicPeriod = $this->academic_period->getAcademicPeriod(2019);
+    
+            $params = [
+                'year' => 2019,
+                'academic_period' => $academicPeriod,
+                'previous_academic_period' => $previousAcademicPeriod
+            ];
+
+            $this->cloneConfig->process($shift, 1 , $params);
+            $this->clone($student);
         }
     }
 
