@@ -136,7 +136,6 @@ class ExaminationStudentsController extends Controller
         ->get()
         ->toArray();
         if(!empty($students)){
-            dd($students[0]);
             $this->output->writeln(count($students). 'students remaining');
             array_walk($students, array($this, 'clone'));
         }else{
