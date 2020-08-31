@@ -247,8 +247,8 @@ class ExaminationStudentsController extends Controller
         // if the same gender same DOE has more than one 
         if (!is_null($sis_users) && (count($sis_users) > 1)) {
             $studentData = $this->searchSimilarName($student, $sis_users);
-        }else{
-            $studentData = $sis_users;
+        }else if (!is_null($sis_users) && (count($sis_users) == 1)){
+            $studentData = $sis_users[0];
         }
         return $studentData;
     }
@@ -310,7 +310,8 @@ class ExaminationStudentsController extends Controller
         try {
             $student['nsid'] =  $sis_student['openemis_no'];
             // add new NSID to the examinations data set
-            $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
+            unset($student['id']);
+            $this->examination_student->where('st_no' , $student['st_no'])->update($student);
             $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
             Log::error($th);

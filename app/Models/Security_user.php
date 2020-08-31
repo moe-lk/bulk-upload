@@ -215,11 +215,12 @@ class Security_user extends Model
         ];
 
         try {
-            self::where(['id' => $sis_student['student_id']])->update($studentData);
+            self::where( 'id'  , $sis_student['student_id'])->update($studentData);
+            $studentData['id'] = $sis_student['student_id'];
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
-            Log::error($th->getMessage());
+            Log::error($th);
             // in case of duplication of the Unique ID this will recursive.
             $this->updateExaminationStudent($student, $sis_student);
         }
