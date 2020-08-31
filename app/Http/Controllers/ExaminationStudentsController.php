@@ -132,10 +132,11 @@ class ExaminationStudentsController extends Controller
     public  function doMatch()
     {
         $students = Examination_student::
-            where('nsid','=','')
+            whereNull('nsid')
         ->get()
         ->toArray();
         if(!empty($students)){
+            $this->output->writeln(count($students). 'students remaining');
             array_walk($students, array($this, 'clone'));
         }else{
             $this->output->writeln('All are generated');
