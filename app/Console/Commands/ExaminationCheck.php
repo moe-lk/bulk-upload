@@ -53,7 +53,7 @@ class ExaminationCheck extends Command
     }
 
     public function deleteDuplication($array){
-        foreach($array as $students){
+        foreach($array as $key => $students){
             $count =  Examination_student::where('nsid',$students['nsid'])->count();
             if($count > 1){
                  Examination_student::where('st_no',$students['st_no'])->update(['nsid'=>'']);
