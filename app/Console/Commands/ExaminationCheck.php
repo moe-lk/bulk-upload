@@ -47,6 +47,8 @@ class ExaminationCheck extends Command
         $this->output->writeln(count($students) . 'entries found');
         array_walk($students, array($this, 'process'));
         $this->output->writeln('All are cleaned');
+        $count = DB::table('examination_students')->count(DB::raw('DISTINCT nsid'));
+        $this->output->writeln($count .'unique NSIDs');
     }
 
     public function process($array)
