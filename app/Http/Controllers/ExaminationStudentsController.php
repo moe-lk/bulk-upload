@@ -160,6 +160,11 @@ class ExaminationStudentsController extends Controller
                 array_walk($students, array($this, 'clone'));
                 $this->output->writeln('All are generated');
                 break;
+            case 'count':
+                $count = Examination_student::select('nsid')
+                ->groupeBy('nsid')
+                ->count();
+                $this->output->writeln('Total Unique nsid are: ' .$count);
             default:
                 $students = Examination_student::offset($offset)
                     ->limit($limit)
