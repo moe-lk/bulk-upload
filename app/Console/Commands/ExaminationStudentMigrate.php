@@ -13,7 +13,7 @@ class ExaminationStudentMigrate extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:migrate {year} {grade} {offset} {limit}';
+    protected $signature = 'examination:migrate {year} {grade} {offset} {limit} {mode}';
 
     /**
      * This will migrate set of examination student's from DoE to SIS.
@@ -42,7 +42,7 @@ class ExaminationStudentMigrate extends Command
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
         $this->examinationController = new ExaminationStudentsController($this->argument('year'),$this->argument('grade'));
-        $this->examinationController->doMatch($this->argument('offset'),$this->argument('limit'));
+        $this->examinationController->doMatch($this->argument('offset'),$this->argument('limit'), $this->argument(('mode')));
         $this->examinationController->export();
         $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
