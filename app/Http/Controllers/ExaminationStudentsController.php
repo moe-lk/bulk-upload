@@ -132,6 +132,9 @@ class ExaminationStudentsController extends Controller
      */
     public  function doMatch($offset, $limit)
     {
+        $count = Examination_student::whereNull('nsid')
+        ->orWhere('nsid', '=', '')
+        ->count();
         $students = Examination_student::whereNull('nsid')
             ->orWhere('nsid', '=', '')
             ->offset($offset)
@@ -139,7 +142,7 @@ class ExaminationStudentsController extends Controller
             ->get()
             ->toArray();
         if (!empty($students)) {
-            $this->output->writeln(count($students) . 'students remaining');
+            $this->output->writeln(count($students) . 'students remaining out of' . $count);
             array_walk($students, array($this, 'clone'));
         } else {
             $this->output->writeln('All are generated');
