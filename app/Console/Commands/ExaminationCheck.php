@@ -40,6 +40,8 @@ class ExaminationCheck extends Command
      */
     public function handle()
     {
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->start_time = microtime(TRUE);
         $students = Examination_student::whereNotNull('nsid')
             ->orWhere('nsid', '!=', '')
             ->get()->toArray();
@@ -48,7 +50,14 @@ class ExaminationCheck extends Command
         array_walk($students, array($this, 'process'));
         $this->output->writeln('All are cleaned');
         $count = DB::table('examination_students')->count(DB::raw('DISTINCT nsid'));
-        $this->output->writeln($count .'unique NSIDs');
+        $this->output->writeln($count .'unique NSIs');
+        $this->end_time = microtime(TRUE);
+
+
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+
     }
 
     public function process($array)
