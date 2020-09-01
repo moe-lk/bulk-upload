@@ -52,6 +52,7 @@ class ExaminationCheck extends Command
     public function process($array)
     {
         array_walk($array, array($this, 'deleteDuplication'));
+        $this->output->writeln('10000 batch cleaned');
     }
 
     public function deleteDuplication($students)
@@ -60,9 +61,6 @@ class ExaminationCheck extends Command
         if ($count > 1) {
             Examination_student::where('st_no', $students['st_no'])->update(['nsid' => '']);
             $this->output->writeln($students['st_no'] . 'removed');
-        } else {
-            
         }
-        $this->output->writeln('10000 batch cleaned');
     }
 }
