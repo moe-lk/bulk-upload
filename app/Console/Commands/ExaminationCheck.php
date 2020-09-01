@@ -40,18 +40,27 @@ class ExaminationCheck extends Command
      */
     public function handle()
     {
-       $students = DB::table('examination_students as es')
-       ->select(DB::raw('count(*) as total'),'e2.*')
-       ->join('examination_students as e2','es.nsid','e2.nsid')
-       ->having('total','>',1)
-       ->groupBy('e2.st_no')
-       ->orderBy('e2.st_no')
-        ->get();
-        $this->output->writeln(count($students).'entries found');
+        $students = Examination_student::whereNotNull('nsid')
+            ->orWhere('nsid', '!=', '')
+            ->get()->toArray();
+        $students = array_chunk($students, 10000);
+        $this->output->writeln(count($students) . 'entries found');
+        array_walk($students, array($this, 'process'));
+        $this->output->writeln('All are cleaned');
+    }
 
-        foreach($students as $student){
-            Examination_student::where('st_no',$student->st_no)->update(['nsid'=>'']);
-            $this->output->writeln($student->st_no.'removed');
+    public function process($array)
+    {
+        array_walk($array, array($this, 'deleteDuplication'));
+        $this->output->writeln(count($array).'entries cleaned');
+    }
+
+    public function deleteDuplication($students)
+    {
+        $count =  Examination_student::where('nsid', $students['nsid'])->count();
+        if ($count > 1) {
+            Examination_student::where('st_no', $students['st_no'])->update(['nsid' => '']);
+            $this->output->writeln($students['st_no'] . 'removed');
         }
     }
 }
