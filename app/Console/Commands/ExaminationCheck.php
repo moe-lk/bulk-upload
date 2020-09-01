@@ -40,27 +40,27 @@ class ExaminationCheck extends Command
      */
     public function handle()
     {
-       $students = Examination_student::whereNotNull('nsid')
-       ->orWhere('nsid','!=','')
-       ->get()->toArray();
-       $students = array_chunk($students,10000);
-       $this->output->writeln(count($students).'entries found');
-       array_walk($students,array($this,'process'));
+        $students = Examination_student::whereNotNull('nsid')
+            ->orWhere('nsid', '!=', '')
+            ->get()->toArray();
+        $students = array_chunk($students, 10000);
+        $this->output->writeln(count($students) . 'entries found');
+        array_walk($students, array($this, 'process'));
     }
 
-    public function process($array){
-        array_walk($array,array($this,'deleteDuplication'));
+    public function process($array)
+    {
+        array_walk($array, array($this, 'deleteDuplication'));
     }
 
-    public function deleteDuplication($array){
-        foreach($array as $key => $students){
-            $count =  Examination_student::where('nsid',$students['nsid'])->count();
-            if($count > 1){
-                 Examination_student::where('st_no',$students['st_no'])->update(['nsid'=>'']);
-                 $this->output->writeln($students['st_no'].'removed');
-            }else{
-                $this->output->writeln($students['st_no'].'not removed');
-            }
-         }
+    public function deleteDuplication($students)
+    {
+        $count =  Examination_student::where('nsid', $students['nsid'])->count();
+        if ($count > 1) {
+            Examination_student::where('st_no', $students['st_no'])->update(['nsid' => '']);
+            $this->output->writeln($students['st_no'] . 'removed');
+        } else {
+            $this->output->writeln($students['st_no'] . 'not removed');
+        }
     }
 }
