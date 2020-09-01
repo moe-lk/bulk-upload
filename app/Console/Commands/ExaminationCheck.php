@@ -52,7 +52,7 @@ class ExaminationCheck extends Command
     public function process($array)
     {
         array_walk($array, array($this, 'deleteDuplication'));
-        $this->output->writeln('10000 batch cleaned');
+        $this->output->writeln(count($array).'entries cleaned');
     }
 
     public function deleteDuplication($students)
