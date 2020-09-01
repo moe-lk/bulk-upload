@@ -331,7 +331,7 @@ class ExaminationStudentsController extends Controller
                 similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
                 $value['rate'] = $percentage;
                 switch (true) {
-                    case $value['rate'] == 100;
+                    case ($value['rate'] == 100 && $value['updated_from'] = 'sis');
                         $highest = $value;
                         break;
                 }
