@@ -60,7 +60,8 @@ class ExaminationCheck extends Command
             Examination_student::where('st_no', $students['st_no'])->update(['nsid' => '']);
             $this->output->writeln($students['st_no'] . 'removed');
         } else {
-            $this->output->writeln($students['st_no'] . 'not removed');
+            
         }
+        $this->output->writeln('10000 batch cleaned');
     }
 }
