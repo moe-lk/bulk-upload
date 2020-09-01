@@ -50,7 +50,7 @@ class ExaminationCheck extends Command
         array_walk($students, array($this, 'process'));
         $this->output->writeln('All are cleaned');
         $count = DB::table('examination_students')->count(DB::raw('DISTINCT nsid'));
-        $this->output->writeln($count .'unique NSIs');
+        $this->output->writeln($count .' unique NSIs');
         $this->end_time = microtime(TRUE);
 
 
@@ -63,6 +63,8 @@ class ExaminationCheck extends Command
     public function process($array)
     {
         array_walk($array, array($this, 'deleteDuplication'));
+        $this->end_time = microtime(TRUE);
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
         $this->output->writeln(count($array).'entries cleaned');
     }
 
