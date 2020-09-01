@@ -153,6 +153,24 @@ class Security_user extends Model
             ->get()->toArray();
     }
 
+     /**
+     * First level search for students
+     *
+     * @param array $student
+     * @return array
+     */
+    public function getStudentCount($student)
+    {
+        return $this->where([
+            'gender_id' => $student['gender'] + 1, // DoE id differs form MoE id
+            'date_of_birth' => $student['b_date'],
+            'institutions.code' => $student['schoolid']
+        ])
+            ->join('institution_students', 'security_users.id', 'institution_students.student_id')
+            ->join('institutions', 'institution_students.institution_id', 'institutions.id')
+            ->count();
+    }
+
     /**
      * insert student data from examination
      * @input array
@@ -226,7 +244,6 @@ class Security_user extends Model
             $sis_student['openemis_no'] = $this->uniqueUId::getUniqueAlphanumeric();
             $this->updateExaminationStudent($student, $sis_student);
         }
-        return $studentData;
     }
 
 }

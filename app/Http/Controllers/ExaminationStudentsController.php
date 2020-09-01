@@ -130,25 +130,37 @@ class ExaminationStudentsController extends Controller
      *
      * @return void
      */
-    public  function doMatch($offset, $limit)
+    public  function doMatch($offset, $limit, $mode)
     {
-        $count = Examination_student::whereNull('nsid')
-        ->orWhere('nsid', '=', '')
-        ->count();
-        $students = Examination_student::whereNull('nsid')
-            ->orWhere('nsid', '=', '')
-            ->offset($offset)
-            ->limit($limit)
-            ->get()
-            ->toArray();
+        $students = [];
+        switch ($mode) {
+            case 'duplicate':
+                $students =  DB::table('examination_students as es')
+                    ->select(DB::raw('count(*) as total'), 'e2.*')
+                    ->join('examination_students as e2', 'es.nsid', 'e2.nsid', 'e2.f_name')
+                    ->having('total', '>', 1)
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->groupBy('e2.nsid')
+                    ->orderBy('e2.nsid')
+                    ->get()->toArray();
+                break;
+
+            default:
+                $students = Examination_student::whereNull('nsid')
+                    ->orWhere('nsid', '=', '')
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->get()->toArray();
+                break;
+        }
+
         if (!empty($students)) {
-            $this->output->writeln(count($students) . 'students remaining out of' . $count);
+            $this->output->writeln(count($students) . 'students remaining');
             array_walk($students, array($this, 'clone'));
         } else {
             $this->output->writeln('All are generated');
-            // exit;
         }
-        //    array_walk($students,array($this,'clone'));
     }
 
     /**
@@ -191,6 +203,7 @@ class ExaminationStudentsController extends Controller
      */
     public function clone($student)
     {
+        $student = (array)json_decode(json_encode($student));
         //get student matching with same dob and gender
         $matchedStudent = $this->getMatchingStudents($student);
 
@@ -247,31 +260,6 @@ class ExaminationStudentsController extends Controller
         } else {
 
             $this->output->writeln('Student ' . $student['st_no'] . ' not imorted' . $student['f_name']);
-            // $sis_student = $this->student->insertExaminationStudent($student);
-            // $institionId = Institution::insert(['name' => $student['schoolid'], 'code' => $student['schoolid']]);
-            // $institution = Institution::where('code', '=', $student['schoolid'])->first();
-            // $shift = [
-            //     'start_time' => '07:30:00',
-            //     'end_time' => '13:30:00',
-            //     'academic_period_id' => 1,
-            //     'institution_id' => $institution['id'],
-            //     'location_institution_id' => $institution['id'],
-            //     'shift_option_id' => 1,
-            //     'cloned' => '2019'
-            // ];
-            // $shift = Institution_shift::create($shift);
-            // $this->cloneConfig = new CloneController();
-            // $previousAcademicPeriod = $this->academic_period->getAcademicPeriod(2019);
-            // $academicPeriod = $this->academic_period->getAcademicPeriod(2019);
-
-            // $params = [
-            //     'year' => 2019,
-            //     'academic_period' => $academicPeriod,
-            //     'previous_academic_period' => $previousAcademicPeriod
-            // ];
-
-            // $this->cloneConfig->process($shift, 1, $params);
-            // $this->clone($student);
         }
     }
 
@@ -285,15 +273,13 @@ class ExaminationStudentsController extends Controller
      */
     public function getMatchingStudents($student)
     {
-        $sis_users = $this->student->getMatches($student);
-        $studentData = [];
+        $sis_student = $this->student->getMatches($student);
+        $count = $this->student->getStudentCount($student);
 
+        $studentData = [];
+        $sis_users  = json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        if (!is_null($sis_users) && (count($sis_users) > 1)) {
-            $studentData = $this->searchSimilarName($student, $sis_users);
-        } else if (!is_null($sis_users) && (count($sis_users) == 1)) {
-            $studentData = $sis_users[0];
-        }
+        $studentData = $this->searchSimilarName($student, $sis_users);
         return $studentData;
     }
 
@@ -307,32 +293,28 @@ class ExaminationStudentsController extends Controller
     public function searchSimilarName($student, $sis_students)
     {
         $highest = [];
-        $matchedData = [];
-        $highestDistance = null;
+        $minDistance = 0;
         foreach ($sis_students as $key => $value) {
-            //search name with full name
-            similar_text(strtoupper($student['f_name']), (strtoupper($value['first_name'])), $percentage);
+            similar_text(strtoupper($value['first_name']), (strtoupper($student['f_name'])), $percentage);
             $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
             $value['rate'] = $percentage;
             switch (true) {
                 case $value['rate'] == 100;
                     $highest = $value;
                     break;
-                case (($distance <= 2) && ($distance < $highestDistance));
+                case (($distance <= 2) && ($distance < $minDistance));
                     $highest = $value;
-                    $highestDistance = $distance;
+                    $minDistance = $distance;
             }
         }
 
         if (empty($highest)) {
             foreach ($sis_students as $key => $value) {
                 //search name with last name
-                similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
-                $distance = levenshtein(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])));
+                similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
                 $value['rate'] = $percentage;
                 switch (true) {
                     case $value['rate'] == 100;
-                        $matchedData[] = $value;
                         $highest = $value;
                         break;
                 }
@@ -359,7 +341,8 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
-            $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
+            unset($student['st_no']);
+            $this->output->writeln('Updated ' . $sis_student['st_no'] . ' to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
             Log::error($th);
         }
