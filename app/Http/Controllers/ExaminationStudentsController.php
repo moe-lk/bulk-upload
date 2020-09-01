@@ -162,7 +162,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'count':
                 $count = Examination_student::select('nsid')
-                ->where('nsid','!=','')
+                ->where('nsid','!=',)
                 ->groupeBy('nsid')
                 ->count();
                 $all = Examination_student::select('nsid')
