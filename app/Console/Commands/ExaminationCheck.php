@@ -46,6 +46,7 @@ class ExaminationCheck extends Command
         $students = array_chunk($students, 10000);
         $this->output->writeln(count($students) . 'entries found');
         array_walk($students, array($this, 'process'));
+        $this->output->writeln('All are cleaned');
     }
 
     public function process($array)
