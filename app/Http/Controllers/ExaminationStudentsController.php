@@ -137,29 +137,37 @@ class ExaminationStudentsController extends Controller
             case 'duplicate':
                 $students =  DB::table('examination_students as es')
                     ->select(DB::raw('count(*) as total'), 'e2.*')
-                    ->join('examination_students as e2', 'es.nsid', 'e2.nsid', 'e2.f_name')
+                    ->join('examination_students as e2', 'es.nsid','e2.nsid')
                     ->having('total', '>', 1)
+                    ->groupBy('e2.st_no')
+                    ->orderBy('e2.st_no')
                     ->offset($offset)
                     ->limit($limit)
-                    ->groupBy('e2.nsid')
-                    ->orderBy('e2.nsid')
                     ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining duplicate');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
                 break;
-
-            default:
+            case 'empty';
                 $students = Examination_student::whereNull('nsid')
                     ->orWhere('nsid', '=', '')
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining empty');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
                 break;
-        }
-
-        if (!empty($students)) {
-            $this->output->writeln(count($students) . 'students remaining');
-            array_walk($students, array($this, 'clone'));
-        } else {
-            $this->output->writeln('All are generated');
+            default:
+                $students = Examination_student::offset($offset)
+                    ->limit($limit)
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining empty');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
         }
     }
 
@@ -205,6 +213,7 @@ class ExaminationStudentsController extends Controller
     {
         $student = (array)json_decode(json_encode($student));
         //get student matching with same dob and gender
+
         $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
@@ -277,7 +286,7 @@ class ExaminationStudentsController extends Controller
         $count = $this->student->getStudentCount($student);
 
         $studentData = [];
-        $sis_users  = json_decode(json_encode($sis_student), true);
+        $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
         $studentData = $this->searchSimilarName($student, $sis_users);
         return $studentData;
@@ -320,7 +329,6 @@ class ExaminationStudentsController extends Controller
                 }
             }
         }
-
         return $highest;
     }
 
@@ -340,10 +348,13 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_g5_exam']);
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
+            unset($student['total']);
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
             unset($student['st_no']);
-            $this->output->writeln('Updated ' . $sis_student['st_no'] . ' to NSID' . $sis_student['openemis_no']);
+            $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
+            dd($th);
+            $this->output->writeln('error');
             Log::error($th);
         }
     }

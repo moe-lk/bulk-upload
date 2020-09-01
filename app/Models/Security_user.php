@@ -143,11 +143,10 @@ class Security_user extends Model
      */
     public function getMatches($student)
     {
-        return $this->where([
-            'gender_id' => $student['gender'] + 1, // DoE id differs form MoE id
-            'date_of_birth' => $student['b_date'],
-            'institutions.code' => $student['schoolid']
-        ])
+        return $this
+        ->where('gender_id',$student['gender'] + 1)
+        ->where('institutions.code',$student['schoolid'])
+        ->where('date_of_birth',$student['b_date'])
             ->join('institution_students', 'security_users.id', 'institution_students.student_id')
             ->join('institutions', 'institution_students.institution_id', 'institutions.id')
             ->get()->toArray();
@@ -161,11 +160,10 @@ class Security_user extends Model
      */
     public function getStudentCount($student)
     {
-        return $this->where([
-            'gender_id' => $student['gender'] + 1, // DoE id differs form MoE id
-            'date_of_birth' => $student['b_date'],
-            'institutions.code' => $student['schoolid']
-        ])
+        return $this
+        ->where('gender_id',$student['gender'] + 1)
+        ->where('institutions.code',$student['schoolid'])
+        ->where('date_of_birth',$student['b_date'])
             ->join('institution_students', 'security_users.id', 'institution_students.student_id')
             ->join('institutions', 'institution_students.institution_id', 'institutions.id')
             ->count();
@@ -239,7 +237,6 @@ class Security_user extends Model
             return $studentData;
         } catch (\Exception $th) {
             Log::error($th);
-            $this->uniqe = false;
             // in case of duplication of the Unique ID this will recursive.
             $sis_student['openemis_no'] = $this->uniqueUId::getUniqueAlphanumeric();
             $this->updateExaminationStudent($student, $sis_student);
