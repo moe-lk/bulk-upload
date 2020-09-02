@@ -44,8 +44,6 @@ class ExaminationCheck extends Command
         $count = DB::table('examination_students')->select('nsid')->distinct()->count();
         $studentsIdsWithDuplication =   DB::table('examination_students as es')
         ->select(DB::raw('count(*) as total'),'es.*')
-        ->whereNotNull('es.nsid')
-        ->orWhereNot('es.nsid','<>','')
         ->having('total','>',1)
         ->groupBy('es.nsid')
         ->orderBy('es.nsid')
