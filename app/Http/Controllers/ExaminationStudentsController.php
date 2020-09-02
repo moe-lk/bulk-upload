@@ -151,7 +151,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'empty';
                 $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid', '=', '')
+                    ->orWhere('nsid','')
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
@@ -296,7 +296,11 @@ class ExaminationStudentsController extends Controller
         $studentData = [];
         $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        $studentData = $this->searchSimilarName($student, $sis_users);
+        if($count > 1){
+            $studentData = $this->searchSimilarName($student, $sis_users,false);
+        }else{
+            $studentData = $this->searchSimilarName($student, $sis_users);
+        }   
         return $studentData;
     }
 
@@ -307,10 +311,12 @@ class ExaminationStudentsController extends Controller
      * @param array $sis_students
      * @return array
      */
-    public function searchSimilarName($student, $sis_students)
+    public function searchSimilarName($student, $sis_students,$surname_search = true)
     {
         $highest = [];
         $minDistance = 0;
+        $matches = [];
+        $data = [];
         foreach ($sis_students as $key => $value) {
             similar_text(strtoupper($value['first_name']), (strtoupper($student['f_name'])), $percentage);
             $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
@@ -325,18 +331,22 @@ class ExaminationStudentsController extends Controller
             }
         }
 
-        if (empty($highest)) {
-            foreach ($sis_students as $key => $value) {
-                //search name with last name
-                similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
-                $value['rate'] = $percentage;
-                switch (true) {
-                    case $value['rate'] == 100;
-                        $highest = $value;
-                        break;
+        if($surname_search){
+            if (empty($highest)) {
+                foreach ($sis_students as $key => $value) {
+                    //search name with last name
+                    similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
+                    $value['rate'] = $percentage;
+                    switch (true) {
+                        case ($value['rate'] == 100);
+                            $highest = $value;
+                            $matches[] = $value;
+                            break;
+                    }
                 }
             }
         }
+
         return $highest;
     }
 

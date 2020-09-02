@@ -40,24 +40,20 @@ class ExaminationCheck extends Command
      */
     public function handle()
     {
-        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
         $this->start_time = microtime(TRUE);
-        $students = Examination_student::whereNotNull('nsid')
-            ->orWhere('nsid', '!=', '')
-            ->get()->toArray();
-        $students = array_chunk($students, 10000);
-        $this->output->writeln(count($students) . 'entries found');
-        array_walk($students, array($this, 'process'));
-        $this->output->writeln('All are cleaned');
-        $count = DB::table('examination_students')->count(DB::raw('DISTINCT nsid'));
-        $this->output->writeln($count .' unique NSIs');
-        $this->end_time = microtime(TRUE);
-
-
-        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
-        $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-
+        $count = DB::table('examination_students')->select('nsid')->distinct()->count();
+        $studentsIdsWithDuplication =   DB::table('examination_students as es')
+        ->select(DB::raw('count(*) as total'),'es.*')
+        ->whereNotNull('es.nsid')
+        ->orWhereNot('es.nsid','<>','')
+        ->having('total','>',1)
+        ->groupBy('es.nsid')
+        ->orderBy('es.nsid')
+        ->chunk(10000,function($Students){
+            foreach ($Students as $Student) {
+                Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
+            }
+        }); 
     }
 
     public function process($array)
@@ -72,8 +68,8 @@ class ExaminationCheck extends Command
     {
         $count =  Examination_student::where('nsid', $students['nsid'])->count();
         if ($count > 1) {
-            Examination_student::where('st_no', $students['st_no'])->update(['nsid' => '']);
-            $this->output->writeln($students['st_no'] . 'removed');
+            $count = Examination_student::where('nsid', $students['nsid'])->update(['nsid' => '']);
+            $this->output->writeln($students['nsid'] .'same ID' . $count . ' records removed');
         }
     }
 }
