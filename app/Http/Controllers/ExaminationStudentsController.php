@@ -151,7 +151,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'empty';
                 $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid', '=', '')
+                    ->orWhere('nsid','')
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
@@ -341,7 +341,6 @@ class ExaminationStudentsController extends Controller
                 }
             }
         }
-        
         if(count($matches) > 1){
             $this->searchSimilarName($student,$sis_students,false);
         }else{
