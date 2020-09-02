@@ -50,7 +50,7 @@ class ExaminationCheck extends Command
         ->chunk($this->argument('limit'),function($Students){
             foreach ($Students as $Student) {
                 $count = Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
-                $this->output->writeln($Student->nsid['nsid'] .'same ID' . $count . ' records removed');
+                $this->output->writeln($Student->nsid .'same ID' . $count . ' records removed');
             }
         }); 
     }
