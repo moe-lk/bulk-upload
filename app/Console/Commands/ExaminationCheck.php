@@ -48,9 +48,10 @@ class ExaminationCheck extends Command
         ->having('total','>',1)
         ->groupBy('es.nsid')
         ->orderBy('es.nsid')
-        ->chunk(100,function($Students){
+        ->chunk(10000,function($Students){
             foreach ($Students as $Student) {
-                Examination_student::where('st_no',$Student->st_no)->update(['nsid'=>'']);
+                $this->output->writeln($Student->nsid,'Deleted 100 starting with' .$Students->st_no);
+                // Examination_student::where('st_no',$Student->st_no)->update(['nsid'=>'']);
             }
             $this->end_time = microtime(TRUE);    
             $this->output->writeln('Deleted 100 starting with' .$Students[0]->st_no);
