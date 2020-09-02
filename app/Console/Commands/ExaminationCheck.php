@@ -41,17 +41,19 @@ class ExaminationCheck extends Command
     public function handle()
     {
         $this->start_time = microtime(TRUE);
+        $count = DB::table('examination_students')->select('nsid')->distinct()->count();
+        dd($count);
         $studentsIdsWithDuplication =   DB::table('examination_students as es')
         ->select(DB::raw('count(*) as total'),'es.*')
         ->whereNotNull('es.nsid')
-        ->orWhereNotNull('es.nsid','!=','')
+        ->orWhereNot('es.nsid','<>','')
         ->having('total','>',1)
         ->groupBy('es.nsid')
         ->orderBy('es.nsid')
         ->chunk(10000,function($Students){
             foreach ($Students as $Student) {
                 $this->output->writeln($Student->nsid,'Deleted 100 starting with' .$Students->st_no);
-                // Examination_student::where('st_no',$Student->st_no)->update(['nsid'=>'']);
+                Examination_student::where('st_no',$Student->st_no)->update(['nsid'=>'']);
             }
             $this->end_time = microtime(TRUE);    
             $this->output->writeln('Deleted 100 starting with' .$Students[0]->st_no);

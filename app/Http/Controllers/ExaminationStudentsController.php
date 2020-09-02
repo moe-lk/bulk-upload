@@ -296,7 +296,11 @@ class ExaminationStudentsController extends Controller
         $studentData = [];
         $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        $studentData = $this->searchSimilarName($student, $sis_users);
+        if($count > 1){
+            $studentData = $this->searchSimilarName($student, $sis_users,false);
+        }else{
+            $studentData = $this->searchSimilarName($student, $sis_users);
+        }   
         return $studentData;
     }
 
@@ -334,19 +338,16 @@ class ExaminationStudentsController extends Controller
                     similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
                     $value['rate'] = $percentage;
                     switch (true) {
-                        case ($value['rate'] == 100 && $value['updated_from'] = 'sis');
+                        case ($value['rate'] == 100);
                             $highest = $value;
                             $matches[] = $value;
+                            break;
                     }
                 }
             }
         }
-        if(count($matches) > 1){
-            $this->searchSimilarName($student,$sis_students,false);
-        }else{
-            $data = $highest;
-        }
-        return $data;
+
+        return $highest;
     }
 
     /**
