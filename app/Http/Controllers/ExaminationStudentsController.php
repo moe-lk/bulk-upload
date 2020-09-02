@@ -161,9 +161,7 @@ class ExaminationStudentsController extends Controller
                 $this->output->writeln('All are generated');
                 break;
             case 'count':
-                $count = Examination_student::select('nsid')
-                ->whereNotNull('nsid')
-                ->distinct('nsid')
+                $count = Examination_student::distinct('nsid')
                 ->count();
                 $all = Examination_student::select('nsid')
                     ->count();
