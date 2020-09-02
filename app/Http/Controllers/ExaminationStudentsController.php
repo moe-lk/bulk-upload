@@ -307,10 +307,12 @@ class ExaminationStudentsController extends Controller
      * @param array $sis_students
      * @return array
      */
-    public function searchSimilarName($student, $sis_students)
+    public function searchSimilarName($student, $sis_students,$surname_search = true)
     {
         $highest = [];
         $minDistance = 0;
+        $matches = [];
+        $data = [];
         foreach ($sis_students as $key => $value) {
             similar_text(strtoupper($value['first_name']), (strtoupper($student['f_name'])), $percentage);
             $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
@@ -325,19 +327,27 @@ class ExaminationStudentsController extends Controller
             }
         }
 
-        if (empty($highest)) {
-            foreach ($sis_students as $key => $value) {
-                //search name with last name
-                similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
-                $value['rate'] = $percentage;
-                switch (true) {
-                    case ($value['rate'] == 100 && $value['updated_from'] = 'sis');
-                        $highest = $value;
-                        break;
+        if($surname_search){
+            if (empty($highest)) {
+                foreach ($sis_students as $key => $value) {
+                    //search name with last name
+                    similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
+                    $value['rate'] = $percentage;
+                    switch (true) {
+                        case ($value['rate'] == 100 && $value['updated_from'] = 'sis');
+                            $highest = $value;
+                            $matches[] = $value;
+                    }
                 }
             }
         }
-        return $highest;
+        
+        if(count($matches) > 1){
+            $this->searchSimilarName($student,$sis_students,false);
+        }else{
+            $data = $highest;
+        }
+        return $data;
     }
 
     /**
