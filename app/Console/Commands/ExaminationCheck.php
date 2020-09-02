@@ -45,13 +45,15 @@ class ExaminationCheck extends Command
         $studentsIdsWithDuplication =   DB::table('examination_students as es')
         ->select(DB::raw('count(*) as total'),'es.*')
         ->whereNotNull('es.nsid')
-        ->whereRaw('es.nsid != ""')
         ->having('total','>',1)
         ->groupBy('es.nsid')
         ->orderBy('es.nsid')
         ->chunk($this->argument('limit'),function($Students){
             foreach ($Students as $Student) {
-                $count = Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
+                $count = Examination_student::where('nsid',$Student->nsid)->count();
+                if($count> 1){
+                    Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
+                }
                 $this->output->writeln($Student->nsid .'same ID' . $count . ' records removed');
             }
         }); 
