@@ -53,7 +53,7 @@ class ExaminationCheck extends Command
                 Examination_student::where('st_no',$Student->st_no)->update(['nsid'=>'']);
             }
             $this->end_time = microtime(TRUE);    
-            $this->output->writeln('Deleted 100 starting with' .$Students[0]->id);
+            $this->output->writeln('Deleted 100 starting with' .$Students[0]->st_no);
             $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
         });
         // $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
