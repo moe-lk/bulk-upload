@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\Examination_student;
+use App\Http\Controllers\ExaminationStudentsController;
 
 class ExaminationCheck extends Command
 {
@@ -13,7 +14,7 @@ class ExaminationCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:removedDuplicated {limit}';
+    protected $signature = 'examination:removedDuplicated {year} {grade} {limit}';
 
     /**
      * The console command description.
@@ -42,6 +43,7 @@ class ExaminationCheck extends Command
     {
         $this->start_time = microtime(TRUE);
         $count = DB::table('examination_students')->select('nsid')->distinct()->count();
+        $this->examinationController = new ExaminationStudentsController($this->argument('year'), $this->argument('grade'));
         $studentsIdsWithDuplication =   DB::table('examination_students as es')
         ->select(DB::raw('count(*) as total'),'es.*')
         ->whereNotNull('es.nsid')
@@ -53,6 +55,7 @@ class ExaminationCheck extends Command
                 $count = Examination_student::where('nsid',$Student->nsid)->count();
                 if($count> 1){
                     Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
+                    array_walk($students, array($this->examinationController, 'clone'));
                 }
                 $this->output->writeln($Student->nsid .'same ID' . $count . ' records removed');
             }
