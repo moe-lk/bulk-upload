@@ -151,7 +151,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'empty';
                 $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid','')
+                    ->orWhere('nsid','<>','')
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
@@ -203,9 +203,9 @@ class ExaminationStudentsController extends Controller
             case 'G11':
                 $students['taking_ol_exam'] = true;
                 break;
-            case preg_match('13', $this->education_grade->code):
-                $students['taking_al_exam'] = true;
-                break;
+            // case preg_match('13', $this->education_grade->code):
+            //     $students['taking_al_exam'] = true;
+            //     break;
         }
         return $students;
     }
