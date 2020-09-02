@@ -55,10 +55,11 @@ class ExaminationCheck extends Command
                 $count = Examination_student::where('nsid',$Student->nsid)->count();
                 if($count> 1){
                     Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
+                    $students = (array) json_decode(json_encode($Students), true);
                     array_walk($students, array($this->examinationController, 'clone'));
                 }
                 $this->output->writeln($Student->nsid .'same ID' . $count . ' records removed');
             }
-        }); 
+        });  
     }
 }
