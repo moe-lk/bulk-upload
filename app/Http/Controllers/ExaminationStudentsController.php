@@ -291,13 +291,22 @@ class ExaminationStudentsController extends Controller
      */
     public function getMatchingStudents($student)
     {
+        /**
+         *     ->where('gender_id',$student['gender'] + 1)
+        ->where('institutions.code',$student['schoolid'])
+        ->where('date_of_birth',$student['b_date'])
+         */
         $sis_student = $this->student->getMatches($student);
+        $doe_students =  Examination_student::where('gender',$student['gender'])
+            ->where('b_date',$student['b_date'])
+            ->where('schoolid',$student['schoolid'])
+            ->count();
         $count = $this->student->getStudentCount($student);
 
         $studentData = [];
         $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        if($count > 1){
+        if($doe_students > 1){
             $studentData = $this->searchSimilarName($student, $sis_users,false);
         }else{
             $studentData = $this->searchSimilarName($student, $sis_users);
@@ -346,6 +355,10 @@ class ExaminationStudentsController extends Controller
                     }
                 }
             }
+        }
+
+        if(count($matches)>1){
+            $highest =  $this->searchSimilarName($student, $sis_students,false);
         }
 
         return $highest;
