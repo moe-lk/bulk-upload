@@ -13,7 +13,7 @@ class ExaminationCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:removedDuplicated';
+    protected $signature = 'examination:removedDuplicated {limit}';
 
     /**
      * The console command description.
@@ -49,7 +49,7 @@ class ExaminationCheck extends Command
         ->having('total','>',1)
         ->groupBy('es.nsid')
         ->orderBy('es.nsid')
-        ->chunk(10000,function($Students){
+        ->chunk($this->argument('limit'),function($Students){
             foreach ($Students as $Student) {
                 Examination_student::where('nsid',$Student->nsid)->update(['nsid'=>'']);
             }
