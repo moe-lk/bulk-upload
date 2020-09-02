@@ -163,7 +163,7 @@ class ExaminationStudentsController extends Controller
             case 'count':
                 $count = Examination_student::select('nsid')
                 ->whereNotNull('nsid')
-                ->groupeBy('nsid')
+                ->groupBy('nsid')
                 ->count();
                 $all = Examination_student::select('nsid')
                     ->count();
