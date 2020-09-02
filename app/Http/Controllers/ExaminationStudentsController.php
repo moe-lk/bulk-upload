@@ -304,7 +304,7 @@ class ExaminationStudentsController extends Controller
         $studentData = [];
         $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        if($doe_students > 1){
+        if(($doe_students > 1) || ($count > 1)){
             $studentData = $this->searchSimilarName($student, $sis_users,false);
         }else{
             $studentData = $this->searchSimilarName($student, $sis_users);
