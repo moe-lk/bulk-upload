@@ -387,7 +387,7 @@ class ExaminationStudentsController extends Controller
     {
         $adminUser = Security_user::where('username', 'admin')->first();
         try {
-            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.csv');
+            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.'.time().'.csv');
             (new ExportReady($adminUser));
         } catch (\Throwable $th) {
             //throw $th;
