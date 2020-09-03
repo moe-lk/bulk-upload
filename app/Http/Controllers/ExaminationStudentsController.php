@@ -290,9 +290,6 @@ class ExaminationStudentsController extends Controller
     public function getMatchingStudents($student)
     {
         /**
-         *     ->where('gender_id',$student['gender'] + 1)
-        ->where('institutions.code',$student['schoolid'])
-        ->where('date_of_birth',$student['b_date'])
          */
         $sis_student = $this->student->getMatches($student);
         $doe_students =  Examination_student::where('gender',$student['gender'])

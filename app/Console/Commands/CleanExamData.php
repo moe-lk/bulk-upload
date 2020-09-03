@@ -45,7 +45,7 @@ class CleanExamData extends Command
     public function handle()
     {
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        DB::table('institution_student as is')
+        DB::table('institution_students as is')
             ->join('security_users as su', 'su.id', 'is.student_id')
             ->where('is.updated_from', 'doe')
             ->groupBy('is.student_id')
