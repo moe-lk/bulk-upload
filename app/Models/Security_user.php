@@ -20,6 +20,8 @@ class Security_user extends Model
 
     public $timestamps = true;
 
+    protected $softDelete = true;
+
     protected $table = 'security_users';
 
     protected $appends = [

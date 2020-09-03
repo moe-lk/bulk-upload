@@ -45,6 +45,7 @@ class CleanExamData extends Command
     public function handle()
     {
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $output->writeln('###########################################------Start cleanning exam records------###########################################');
         DB::table('institution_students as is')
             ->join('security_users as su', 'su.id', 'is.student_id')
             ->where('is.updated_from', 'doe')
@@ -52,7 +53,6 @@ class CleanExamData extends Command
             ->groupBy('is.student_id')
             ->orderBy('is.student_id')
             ->chunk($this->argument('limit'), function ($Students) use ($output) {
-                $output->writeln('###########################################------Start cleanning exam records------###########################################');
                 foreach ($Students as $Student) {
                     $exist = Examination_student::where('nsid', $Student->openemis_no)->exist();
                     if (!$exist) {
@@ -64,5 +64,6 @@ class CleanExamData extends Command
                     }
                 }
             });
+            $output->writeln('###########################################------Finished cleaning exam records------###########################################');    
     }
 }

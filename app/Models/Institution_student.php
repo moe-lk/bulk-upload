@@ -22,6 +22,8 @@ class Institution_student extends Base_Model
      */
     protected $table = 'institution_students';
 
+    protected $softDelete = true;
+
 
     /**
      * @var bool

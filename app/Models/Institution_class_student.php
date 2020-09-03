@@ -17,6 +17,8 @@ class Institution_class_student extends Model
      */
     protected $table = 'institution_class_students';
 
+    protected $softDelete = true;
+
     /**
      * Attributes that should be mass-assignable.
      *
