@@ -18,7 +18,7 @@ class CleanExamData extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:clean';
+    protected $signature = 'examination:clean {limit}';
 
     /**
      * The console command description.
