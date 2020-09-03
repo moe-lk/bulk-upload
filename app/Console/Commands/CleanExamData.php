@@ -47,11 +47,12 @@ class CleanExamData extends Command
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         DB::table('institution_students as is')
             ->join('security_users as su', 'su.id', 'is.student_id')
-            ->where('is.updated_from', 'doe')
-            ->orWhere('su.updated_from','doe')
+            ->where('is.updated_from', 'sis')
+            ->orWhere('su.updated_from','sis')
             ->groupBy('is.student_id')
             ->orderBy('is.student_id')
             ->chunk($this->argument('limit'), function ($Students) use ($output) {
+                dd(count($Students));
                 $output->writeln('###########################################------Start cleanning exam records------###########################################');
                 foreach ($Students as $Student) {
                     $exist = Examination_student::where('nsid', $Student->openemis_no)->exist();
