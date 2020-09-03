@@ -41,6 +41,7 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
     */
     public function query()
     {
-        return Examination_student::query();
+        return Examination_student::query()->whereNotNull('nsid')
+        ->distinct('nsid');
     }
 }
