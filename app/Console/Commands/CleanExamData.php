@@ -35,8 +35,6 @@ class CleanExamData extends Command
     public function __construct()
     {
         parent::__construct();
-
-
     }
 
     /**
@@ -46,19 +44,22 @@ class CleanExamData extends Command
      */
     public function handle()
     {
-           DB::table('institution_student as is')
-           ->join('security_users as su','su.id','is.student_id')
-           ->where('updated_from','doe')
-            ->chunk($this->argument('limit'),function($Students){
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        DB::table('institution_student as is')
+            ->join('security_users as su', 'su.id', 'is.student_id')
+            ->where('is.updated_from', 'doe')
+            ->chunk($this->argument('limit'), function ($Students) use ($output) {
+                $output->writeln('###########################################------Start cleanning exam records------###########################################');
                 foreach ($Students as $Student) {
-                    $exist = Examination_student::where('nsid',$Student->openemis_no)->exist();
-                    if(!$exist){
-                        Institution_student::where('student_id',$Student->student_id)->delete();
-                        Institution_class_student::where('student_id',$Student->student_id)->delete();
-                        Institution_student_admission::where('student_id',$Student->student_id)->delete();
-                        Security_user::where('id',$Student->student_id)->delete();
+                    $exist = Examination_student::where('nsid', $Student->openemis_no)->exist();
+                    if (!$exist) {
+                        Institution_student::where('student_id', $Student->student_id)->delete();
+                        Institution_class_student::where('student_id', $Student->student_id)->delete();
+                        Institution_student_admission::where('student_id', $Student->student_id)->delete();
+                        Security_user::where('id', $Student->student_id)->delete();
+                        $output->writeln($Student->openemis_no.' Delete from SIS');
                     }
                 }
-            });  
+            });
     }
 }
