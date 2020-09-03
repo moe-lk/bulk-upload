@@ -48,6 +48,7 @@ class CleanExamData extends Command
         DB::table('institution_student as is')
             ->join('security_users as su', 'su.id', 'is.student_id')
             ->where('is.updated_from', 'doe')
+            ->groupBy('is.student_id')
             ->chunk($this->argument('limit'), function ($Students) use ($output) {
                 $output->writeln('###########################################------Start cleanning exam records------###########################################');
                 foreach ($Students as $Student) {
