@@ -6,16 +6,21 @@ use Webpatser\Uuid\Uuid;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Institution_class_student extends Model
 {
 
+    use SoftDeletes;
+    
     /**
      * The database table used by the model.
      *
      * @var string
      */
     protected $table = 'institution_class_students';
+
+    protected $softDelete = true;
 
     /**
      * Attributes that should be mass-assignable.
