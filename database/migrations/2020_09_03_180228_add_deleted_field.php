@@ -15,19 +15,19 @@ class AddDeletedField extends Migration
     {
         
         Schema::table('institution_students', function (Blueprint $table) {
-           $table->timestamp('deleted')->nullable(); 
+           $table->softDeletes();
         });
         Schema::table('security_users', function (Blueprint $table) {
-            $table->timestamp('deleted')->nullable(); 
+            $table->softDeletes();
          });
          Schema::table('institution_student_admission', function (Blueprint $table) {
-            $table->timestamp('deleted')->nullable(); 
+            $table->softDeletes();
          });
          Schema::table('institution_class_students', function (Blueprint $table) {
-            $table->timestamp('deleted')->nullable(); 
+            $table->softDeletes();
          });
          Schema::table('institution_subject_students', function (Blueprint $table) {
-            $table->timestamp('deleted')->nullable(); 
+            $table->softDeletes();
          });
     }
 
@@ -39,19 +39,19 @@ class AddDeletedField extends Migration
     public function down()
     {
         Schema::table('institution_students', function (Blueprint $table) {
-            $table->dropColumn('deleted'); 
+            $table->dropSoftDeletes(); 
          });
          Schema::table('security_users', function (Blueprint $table) {
-             $table->dropColumn('deleted'); 
+            $table->dropSoftDeletes(); 
           });
           Schema::table('institution_student_admission', function (Blueprint $table) {
-             $table->dropColumn('deleted'); 
+            $table->dropSoftDeletes(); 
           });
           Schema::table('institution_class_students', function (Blueprint $table) {
-             $table->dropColumn('deleted'); 
+            $table->dropSoftDeletes(); 
           });
           Schema::table('institution_subject_students', function (Blueprint $table) {
-             $table->dropColumn('deleted'); 
+            $table->dropSoftDeletes(); 
           });
     }
 }

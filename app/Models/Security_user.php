@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Lsf\UniqueUid\UniqueUid;
 use App\Models\Unique_user_id;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Security_user extends Model
 {
+
+    use SoftDeletes;
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';

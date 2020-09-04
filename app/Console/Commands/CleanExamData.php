@@ -54,7 +54,7 @@ class CleanExamData extends Command
             ->orderBy('is.student_id')
             ->chunk($this->argument('limit'), function ($Students) use ($output) {
                 foreach ($Students as $Student) {
-                    $exist = Examination_student::where('nsid', $Student->openemis_no)->exist();
+                    $exist = Examination_student::where('nsid', $Student->openemis_no)->exists();
                     if (!$exist) {
                         Institution_student::where('student_id', $Student->student_id)->delete();
                         Institution_class_student::where('student_id', $Student->student_id)->delete();

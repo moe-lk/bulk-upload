@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Institution_student_admission extends Base_Model
 {
 
+    use SoftDeletes;
+    
     public const CREATED_AT = 'created';
 
     public const UPDATED_AT = 'modified';
