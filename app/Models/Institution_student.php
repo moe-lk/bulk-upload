@@ -6,11 +6,13 @@ use Webpatser\Uuid\Uuid;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 
 class Institution_student extends Base_Model
 {
 
+    use SoftDeletes;
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
@@ -21,6 +23,8 @@ class Institution_student extends Base_Model
      * @var string
      */
     protected $table = 'institution_students';
+
+    protected $softDelete = true;
 
 
     /**

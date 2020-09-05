@@ -114,12 +114,14 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
-                $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+                $genderId  = null;
                 switch ($row['gender_mf']) {
                     case 'M':
+                        $genderId = $row['gender_mf'] = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
+                        $genderId =  $row['gender_mf'] = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
