@@ -47,7 +47,7 @@ class nsidFormatCheck extends Command
         ->orderBy('nsid')
         ->chunk($this->argument('limit'),function($Students){
             foreach ($Students as $ExamStudent) {
-                $nsid = substr($ExamStudent->nsid,0,-1);
+                $nsid = rtrim($ExamStudent->nsid,'-');
                 Security_user::where('openemis_no',$ExamStudent->nsid)->update(['openemis_no'=> $nsid]);
                 Examination_student::where('st_no',$ExamStudent->st_no)->update(['nsid'=> $nsid]);
                 $this->output->writeln($ExamStudent->nsid .'same ID');
