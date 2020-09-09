@@ -420,7 +420,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
                             User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
-                        }    
+                        }
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
@@ -429,7 +429,7 @@ class UsersImport extends Import Implements ToModel, WithStartRow, WithHeadingRo
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
                             User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
-                        }  
+                        }
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
