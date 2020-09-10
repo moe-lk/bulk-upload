@@ -72,7 +72,6 @@ class Unique_user_id extends Model
        } catch (\Exception $th) {
            $user['openemis_no'] = $this->uniqueUserId::getUniqueAlphanumeric();
            $this->updateOrInsertRecord($user);
-           Log::error($th->getMessage());
        }
     }
 }

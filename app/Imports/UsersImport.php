@@ -114,12 +114,14 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
-                $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+                $genderId  = null;
                 switch ($row['gender_mf']) {
                     case 'M':
+                        $genderId = $row['gender_mf'] = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
+                        $genderId =  $row['gender_mf'] = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
@@ -158,14 +160,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-
-
-                //            User_nationality::create([
-                //                'nationality_id' => $nationalityId,
-                //                'security_user_id' => $student->id,
-                //                'preferred' => 1,
-                //                'created_user_id' => $this->file['security_user_id']
-                //            ]);
 
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];

@@ -40,6 +40,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Validators\Failure;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\BeforeImport;
 use App\Models\Institution_subject_student;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -106,14 +107,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
                 $genderId = null;
-                if($row['gender_mf'] !== null){
-                    $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
-                }
                 switch ($row['gender_mf']) {
                     case 'M':
+                        $row['gender_mf'] = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
+                        $row['gender_mf'] = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
