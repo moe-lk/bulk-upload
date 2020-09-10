@@ -161,14 +161,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 ]);
 
 
-
-                //            User_nationality::create([
-                //                'nationality_id' => $nationalityId,
-                //                'security_user_id' => $student->id,
-                //                'preferred' => 1,
-                //                'created_user_id' => $this->file['security_user_id']
-                //            ]);
-
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                 Institution_student_admission::create([
