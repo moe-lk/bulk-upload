@@ -16,7 +16,7 @@ class StudentsIdGen extends Command
      *
      * @var string
      */
-    protected $signature = 'students:idgen {chunk}';
+    protected $signature = 'students:idgen {chunk} {max}';
 
     /**
      * The console command description.
@@ -37,7 +37,7 @@ class StudentsIdGen extends Command
         $this->students = new Security_user();
         $this->uniqueUId = new UniqueUid();
         $this->child_pids = array();
-        $this->max  = 30;
+        $this->max  = 0;
         parent::__construct();
     }
 
@@ -48,7 +48,8 @@ class StudentsIdGen extends Command
      */
     public function handle()
     {
-        $this->start_time = microtime(TRUE);
+        $this->max = $this->argument('max');
+        $this->start_time_all = microtime(TRUE);
         $students = $this->students->query()
             ->where('is_student', 1)
             ->limit(500000)
@@ -58,7 +59,7 @@ class StudentsIdGen extends Command
         array_walk($students, array($this, 'process'));
         $this->end_time = microtime(TRUE);
         $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time_all) . ' seconds to complete');
         $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
         exit();
     }
@@ -70,19 +71,24 @@ class StudentsIdGen extends Command
 
         if (count($this->child_pids) >= $this->max) {
             $pid = pcntl_waitpid(-1, $pid);
+            $this->output->writeln('Processing PID:' . $pid.'put for waiting');
             unset($this->child_pids[$pid]);
-        }
-        $pid = pcntl_fork();
-        if ($pid) {
-            if ($pid < 0) {
-                exit("Error forking...\n");
-            } else {
-                $this->child_pids[] = $pid;
-                $this->executeProcess($students);
+        }else{
+            $pid = pcntl_fork();
+            if ($pid) {
+                if ($pid ==  -1) {
+                    die('Coundt fork:'.$pid);
+                } elseif(($pid > 0)) {
+                    $this->child_pids[] = $pid;
+                    $this->output->writeln('Processing PID:' . $pid);
+                    $this->output->writeln('Total child processes' . count($this->child_pids));
+                    $this->start_time = microtime(TRUE);
+                    $this->executeProcess($students);
+                    exit(0);
+                }
             }
-        } else {
-            exit('Exiting');
         }
+       
         foreach ($this->child_pids as $pid) {
             pcntl_waitpid($pid, $status);
             unset($this->child_pids[$pid]);
@@ -92,8 +98,7 @@ class StudentsIdGen extends Command
     public function executeProcess($students)
     {
         $this->end_time = microtime(TRUE);
-        $this->output->writeln('----------------------------------------------------------------------:' . count($this->child_pids));
-        $this->output->writeln('The thread took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->output->writeln('The thread took ' . ($this->end_time - $this->start_time) . ' seconds to complete - '.time());
         array_walk($students, array($this, 'updateNewUUID'));
     }
 
