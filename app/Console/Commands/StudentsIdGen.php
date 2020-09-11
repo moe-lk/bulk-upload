@@ -36,6 +36,8 @@ class StudentsIdGen extends Command
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $this->students = new Security_user();
         $this->uniqueUId = new UniqueUid();
+        $this->child_pids = array();
+        $this->max  = 30;
         parent::__construct();
     }
 
@@ -49,12 +51,10 @@ class StudentsIdGen extends Command
         $this->start_time = microtime(TRUE);
         $students = $this->students->query()
             ->where('is_student', 1)
+            ->limit(500000)
             ->get()->toArray();
-        $students = array_chunk($students,$this->argument('chunk'));    
-        // $this->output->writeln('no of students' . count($students));
-        // $this->output->writeln('Update started');
-        while(pcntl_waitpid(0, $status) != -1);
-        $this->output->writeln('Total students'. count($students));
+        $students = array_chunk($students, $this->argument('chunk'));
+        $this->output->writeln('Total students' . count($students));
         array_walk($students, array($this, 'process'));
         $this->end_time = microtime(TRUE);
         $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
@@ -65,24 +65,38 @@ class StudentsIdGen extends Command
 
 
 
-    public function process($students){
+    public function process($students)
+    {
+
+        if (count($this->child_pids) >= $this->max) {
+            $pid = pcntl_waitpid(-1, $pid);
+            unset($this->child_pids[$pid]);
+        }
         $pid = pcntl_fork();
-        if ($pid == -1) {
-            exit("Error forking...\n");
-          }
-          else if ($pid == 0) {
-            $this->executeProcess($students);
-            exit();
-          }
+        if ($pid) {
+            if ($pid < 0) {
+                exit("Error forking...\n");
+            } else {
+                $this->child_pids[] = $pid;
+                $this->executeProcess($students);
+            }
+        } else {
+            exit('Exiting');
+        }
+        foreach ($this->child_pids as $pid) {
+            pcntl_waitpid($pid, $status);
+            unset($this->child_pids[$pid]);
+        }
     }
 
-    public function executeProcess($students){
+    public function executeProcess($students)
+    {
         $this->end_time = microtime(TRUE);
-        $this->output->writeln('----------------------------------------------------------------------');
+        $this->output->writeln('----------------------------------------------------------------------:' . count($this->child_pids));
         $this->output->writeln('The thread took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
         array_walk($students, array($this, 'updateNewUUID'));
     }
-    
+
 
     /**
      * over right the students id with uuid
@@ -94,23 +108,22 @@ class StudentsIdGen extends Command
         $this->uniqueUserId = new Unique_user_id();
         if (!$this->uniqueUId::isValidUniqueId($student['openemis_no'])) {
             try {
-               
+
                 $newId = $this->uniqueUId::getUniqueAlphanumeric();
                 $student['openemis_no'] = $newId;
                 $student =  $this->uniqueUserId->updateOrInsertRecord($student);
                 $this->output->writeln('New NSID generated for :' . $student['id']);
                 Security_user::query()->where('id', $student['id'])
                     ->update(['openemis_no' => $newId, 'username' => str_replace('-', '', $newId)]);
-                
             } catch (\Exception $e) {
             }
-        }else{
-           try{
-            // $this->output->writeln('Updating student:' . $student['id']);
-            $this->uniqueUserId->updateOrInsertRecord($student);
-           }catch(\Exception $e){
-               dd($e);
-           }
+        } else {
+            try {
+                // $this->output->writeln('Updating student:' . $student['id']);
+                $this->uniqueUserId->updateOrInsertRecord($student);
+            } catch (\Exception $e) {
+                dd($e);
+            }
         }
     }
 }
