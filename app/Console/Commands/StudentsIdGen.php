@@ -36,7 +36,6 @@ class StudentsIdGen extends Command
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $this->students = new Security_user();
         $this->uniqueUId = new UniqueUid();
-        $this->child_pids = array();
         $this->max  = 0;
         $this->child = 0;
         parent::__construct();
@@ -69,7 +68,7 @@ class StudentsIdGen extends Command
             if ($pid === -1) {
                 die('could not fork');
             } else if ($pid === 0) {
-                $this->output->writeln('started processes' . count($children));
+                $this->output->writeln('started processes: ' . count($children));
                 // We are the child process. Pass a chunk of items to process.
                 array_walk($items, array($this, 'process'));
                 exit(0);
@@ -78,7 +77,6 @@ class StudentsIdGen extends Command
                 $children[] = $pid;
             }
         }
-
         // Wait for children to finish.
         foreach ($children as $pid) {
             // We are still the parent.
