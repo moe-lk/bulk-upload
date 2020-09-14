@@ -184,3 +184,11 @@ function isEmptyRow($row) {
     }
     return true;
 }
+
+function sig_handler($signo){
+    global $child;
+    switch($signo){
+        case 'SIFCLD':
+    }
+
+}
