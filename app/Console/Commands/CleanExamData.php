@@ -63,17 +63,15 @@ class CleanExamData extends Command
             ->toArray();
             
         }
-        $this->output->writeln('###########################################------Start cleanning exam records------###########################################');
-        
-            
+
+        $this->output->writeln('###########################################------Start cleanning exam records------###########################################');    
         if(count($students) > 0){
             $this->output->writeln('Total students to clean: '.  count($students));
             $students = array_chunk($students, $this->argument('chunk'));
             $this->processParallel($students, $this->argument('max'));
         }else{
             $this->output->writeln('nothing to process, all are cleaned');
-        }
-        
+        }   
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
     }
 
