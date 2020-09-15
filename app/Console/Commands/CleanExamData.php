@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
+use Lsf\UniqueUid\UniqueUid;
+use App\Models\Security_user;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use App\Models\Examination_student;
-use App\Models\Institution_class_student;
 use App\Models\Institution_student;
-use App\Models\Institution_student_admission;
-use App\Models\Security_user;
 use Illuminate\Support\Facades\Artisan;
+use App\Models\Institution_class_student;
+use App\Models\Institution_student_admission;
 
 class CleanExamData extends Command
 {
@@ -62,6 +63,12 @@ class CleanExamData extends Command
             ->get()
             ->toArray();
             
+        }elseif('all'){
+            $students = DB::table('examination_students')
+            ->where('nsid','<>','')
+            ->whereNotNull('nsid')
+            ->get()
+            ->toArray();
         }
 
         $this->output->writeln('###########################################------Start cleanning exam records------###########################################');    
@@ -107,7 +114,7 @@ class CleanExamData extends Command
         $type = $this->argument('type');
        if($type == 'duplication'){
         array_walk($students,array($this,'cleanData'));
-       }elseif($type == 'invalid'){
+       }elseif($type == 'invalid' || 'all'){
         array_walk($students,array($this,'cleanInvalidData'));
        }
     }
@@ -129,11 +136,18 @@ class CleanExamData extends Command
     public function cleanInvalidData($Student)
     {
         $exist = Examination_student::where('nsid','=',  $Student->nsid)->count();
-        if ($exist) {
-            $nsid = ltrim(rtrim($Student->nsid,'-'),'-');
-            Security_user::where('openemis_no','=',  $Student->nsid)->update(['openemis_no' => $nsid]);
-            Examination_student::where('nsid','=',  $Student->nsid)->update(['nsid' => $nsid]);
-            $this->output->writeln($Student->nsid.': rewrited into from SIS:'.$nsid);
+        
+        $this->uniqueUId = new UniqueUid();
+
+        if(!$this->uniqueUId::isValidUniqueId($Student->nsid)){
+            $this->output->writeln($Student->nsid.': is not valid');
         }
+        
+        // if ($exist) {
+        //     $nsid = ltrim(rtrim($Student->nsid,'-'),'-');
+        //     Security_user::where('openemis_no','=',  $Student->nsid)->update(['openemis_no' => $nsid]);
+        //     Examination_student::where('nsid','=',  $Student->nsid)->update(['nsid' => $nsid]);
+        //     $this->output->writeln($Student->nsid.': rewrited into from SIS:'.$nsid);
+        // }
     }
 }
