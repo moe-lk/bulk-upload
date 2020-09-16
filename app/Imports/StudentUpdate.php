@@ -79,16 +79,16 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
             },
-            BeforeImport::class => function (BeforeImport $event) {
-                $event->getReader()->getDelegate()->setActiveSheetIndex(2);
-                $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('B'));
-                if ($this->highestRow < 3) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'remark', [0 => 'No enough rows!'], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                }
-            }
+//            BeforeImport::class => function (BeforeImport $event) {
+//                $event->getReader()->getDelegate()->setActiveSheetIndex(1);
+//                $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('B'));
+//                if ($this->highestRow < 3) {
+//                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
+//                    $failure = new Failure(3, 'remark', [0 => 'No enough rows!'], [null]);
+//                    $failures = [0 => $failure];
+//                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
+//                }
+//            }
         ];
     }
 
@@ -247,7 +247,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             'created_user_id' => $this->file['security_user_id']
                         ];
                         $father = Security_user::create($data);
-                             
+
                         $father['guardian_relation_id'] = 1;
                         if (array_key_exists('fathers_phone', $row)) {
                             $father['contact'] = $row['fathers_phone'];
@@ -303,7 +303,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         if (array_key_exists('mothers_phone', $row)) {
                             $mother['contact'] = $row['mothers_phone'];
                             User_contact::createOrUpdate($mother,$this->file['security_user_id']);
-                        }   
+                        }
                         Student_guardian::createStudentGuardian($student, $mother, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $mother->id)
@@ -357,7 +357,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
                             User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
-                        }  
+                        }
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     } else {
                         Security_user::where('id', '=', $guardian->id)
@@ -366,7 +366,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         if (array_key_exists('guardians_phone', $row)) {
                             $guardian['contact'] = $row['guardians_phone'];
                             User_contact::createOrUpdate($guardian,$this->file['security_user_id']);
-                        } 
+                        }
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }

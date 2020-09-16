@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Institution_grade;
+use App\Models\Security_user;
 use Illuminate\Console\Command;
 
-class CallPromotionCommand extends Command
+class UpdateEmail extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'promote:run {year}';
+    protected $signature = 'update:email {username} {email}';
 
     /**
      * The console command description.
@@ -29,7 +29,6 @@ class CallPromotionCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->instituion_grade = new Institution_grade();
     }
 
     /**
@@ -39,12 +38,7 @@ class CallPromotionCommand extends Command
      */
     public function handle()
     {
-        $year = $this->argument('year');
-        $institutions = $this->instituion_grade->getInstitutionGradeList($year);
-        array_walk($institutions,array($this,'callPromotion'),$year);
-    }
-
-    protected function callPromotion($institution,$count,$year){
-        $this->call('promote:students',['year' => $year,'institution' => $institution['code']]);
+        Security_user::where(['username'=>$this->argument('username')])
+        ->update(['email' => $this->argument('email')]);
     }
 }

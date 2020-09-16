@@ -11,8 +11,6 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Institution_class;
-use App\Jobs\ProcessImportFiles;
-use Illuminate\View\View;
 
 
 class FileController extends Controller
@@ -111,7 +109,7 @@ class FileController extends Controller
 
     public function downloadTemplate(){
         $filename = 'censusNo_className_sis_students_bulk_upload';
-        $version = '2007_V1.7_20200510.xlsx';
+        $version = '2007_V2.0_20200610.xlsx';
         $file_path = storage_path() .'/app/public/'. $filename.'_'.$version;;
         if (file_exists($file_path))
         {
@@ -121,7 +119,7 @@ class FileController extends Controller
         }
         else
         {
-            return View::make('errors.404');
+            return response()->view('errors.404');
         }
     }
 

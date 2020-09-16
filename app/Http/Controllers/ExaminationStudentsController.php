@@ -9,15 +9,18 @@ use App\Models\Security_user;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
+use App\Models\Institution_shift;
+use App\Notifications\ExportReady;
+use Illuminate\Support\Facades\DB;
 use App\Models\Examination_student;
 use App\Models\Institution_student;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
 use App\Models\Institution_class_student;
 use App\Exports\ExaminationStudentsExport;
 use App\Imports\ExaminationStudentsImport;
 use App\Models\Institution_student_admission;
-use Illuminate\Support\Facades\Log;
 
 class ExaminationStudentsController extends Controller
 {
@@ -90,7 +93,36 @@ class ExaminationStudentsController extends Controller
         $excelFile = "/examination/exams_students.csv";
 
         $import = new ExaminationStudentsImport();
-        $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+        try {
+            $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
+            if ($import->failures()->count() > 0) {
+                $errors = $import->failures();
+                $columns =  [
+                    'remarks',
+                    'st_no',
+                    'stu_no',
+                    "f_name",
+                    "medium",
+                    "gender",
+                    "b_date",
+                    "a_income",
+                    "schoolid",
+                    "spl_need",
+                    "pvt_address",
+                    "disability_type",
+                    "disability",
+                    "sp_center"
+                ];
+
+                $file = 'examination/errors.csv';
+                Storage::put($file, implode(',', $columns));
+
+                foreach ($errors as $error) {
+                    Storage::append($file, implode(':', $error->errors()) . ',' . implode(',', $error->values()));
+                }
+            }
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+        }
     }
 
     /**
@@ -98,11 +130,52 @@ class ExaminationStudentsController extends Controller
      *
      * @return void
      */
-    public  function doMatch()
+    public  function doMatch($offset, $limit, $mode)
     {
-        $students = Examination_student::get()->toArray();
-        //    array_walk($students,array($this,'clone'));
-        array_walk($students, array($this, 'clone'));
+        $students = [];
+        switch ($mode) {
+            case 'duplicate':
+                $students =  DB::table('examination_students as es')
+                    ->select(DB::raw('count(*) as total'), 'e2.*')
+                    ->join('examination_students as e2', 'es.nsid','e2.nsid')
+                    ->having('total', '>', 1)
+                    ->groupBy('e2.st_no')
+                    ->orderBy('e2.st_no')
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining duplicate');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
+                break;
+            case 'empty';
+                $students = Examination_student::whereNull('nsid')
+                    ->orWhere('nsid','<>','')
+                    ->offset($offset)
+                    ->limit($limit)
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining empty');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
+                break;
+            case 'count':
+                $count = Examination_student::distinct('nsid')
+                ->count();
+                $all = Examination_student::select('nsid')
+                    ->count();
+                $this->output->writeln( $all. 'Total Unique nsid are: ' .$count);
+                break;
+            default:
+                $students = Examination_student::offset($offset)
+                    ->limit($limit)
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining empty');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
+        }
     }
 
     /**
@@ -129,9 +202,9 @@ class ExaminationStudentsController extends Controller
             case 'G11':
                 $students['taking_ol_exam'] = true;
                 break;
-            case preg_match('13', $this->education_grade->code):
-                $students['taking_al_exam'] = true;
-                break;
+            // case preg_match('13', $this->education_grade->code):
+            //     $students['taking_al_exam'] = true;
+            //     break;
         }
         return $students;
     }
@@ -145,7 +218,9 @@ class ExaminationStudentsController extends Controller
      */
     public function clone($student)
     {
+        $student = (array)json_decode(json_encode($student));
         //get student matching with same dob and gender
+
         $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
@@ -173,10 +248,10 @@ class ExaminationStudentsController extends Controller
             // if no matching found
             if (empty($matchedStudent)) {
                 $sis_student = $this->student->insertExaminationStudent($student);
-                $this->updateStudentId($student, $sis_student);
 
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
+                $sis_student['student_id'] =  $student['id'];
 
                 $student = $this->setIsTakingExam($student);
                 if (count($institutionClass) == 1) {
@@ -188,14 +263,19 @@ class ExaminationStudentsController extends Controller
                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_student::createExaminationData($student, $admissionInfo);
                 }
+                $this->updateStudentId($student, $sis_student);
                 // update the matched student's data    
             } else {
+                $student = $this->setIsTakingExam($student);
                 $studentData = $this->student->updateExaminationStudent($student, $matchedStudent);
                 $matchedStudent = array_merge((array) $student, $matchedStudent);
-                $studentData = array_merge((array) $matchedStudent, $matchedStudent);
+                $studentData = array_merge((array) $matchedStudent, $studentData);
                 Institution_student::updateExaminationData($studentData, $admissionInfo);
                 $this->updateStudentId($student, $studentData);
             }
+        } else {
+
+            $this->output->writeln('Student ' . $student['st_no'] . ' not imorted' . $student['f_name']);
         }
     }
 
@@ -209,11 +289,23 @@ class ExaminationStudentsController extends Controller
      */
     public function getMatchingStudents($student)
     {
-        $sis_users = $this->student->getMatches($student);
+        /**
+         */
+        $sis_student = $this->student->getMatches($student);
+        $doe_students =  Examination_student::where('gender',$student['gender'])
+            ->where('b_date',$student['b_date'])
+            ->where('schoolid',$student['schoolid'])
+            ->count();
+        $count = $this->student->getStudentCount($student);
+
         $studentData = [];
-        if (!is_null($sis_users) && (count($sis_users) > 0)) {
+        $sis_users  = (array) json_decode(json_encode($sis_student), true);
+        // if the same gender same DOE has more than one 
+        if(($doe_students > 1) || ($count > 1)){
+            $studentData = $this->searchSimilarName($student, $sis_users,false);
+        }else{
             $studentData = $this->searchSimilarName($student, $sis_users);
-        }
+        }   
         return $studentData;
     }
 
@@ -224,42 +316,46 @@ class ExaminationStudentsController extends Controller
      * @param array $sis_students
      * @return array
      */
-    public function searchSimilarName($student, $sis_students)
+    public function searchSimilarName($student, $sis_students,$surname_search = true)
     {
         $highest = [];
-        $previousValue = null;
-        $matchedData = [];
-
-        // search for matching name with last name
+        $minDistance = 0;
+        $matches = [];
+        $data = [];
         foreach ($sis_students as $key => $value) {
-            similar_text(get_l_name(strtoupper($student['f_name'])), get_l_name(strtoupper($value['first_name'])), $percentage);
+            similar_text(strtoupper($value['first_name']), (strtoupper($student['f_name'])), $percentage);
+            $distance = levenshtein(strtoupper($student['f_name']), strtoupper($value['first_name']));
             $value['rate'] = $percentage;
-
-            if ($value['rate'] == 100) {
-                $matchedData[] = $value;
-            }
-
-            if (($previousValue)) {
-                $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
-            } else {
-                $highest = $value;
-            }
-            $previousValue = $value;
-        }
-
-        //If the not matched 100% try to get most highest value with full name
-        if (($highest['rate']  < 100) || (count($matchedData) > 1)) {
-            foreach ($sis_students as $key => $value) {
-                similar_text(strtoupper($student['f_name']), strtoupper($value['first_name']), $percentage);
-                $value['rate'] = $percentage;
-                if (($previousValue)) {
-                    $highest =  ($percentage > $previousValue['rate']) ? $value : $value;
-                } else {
+            switch (true) {
+                case $value['rate'] == 100;
                     $highest = $value;
-                }
-                $previousValue = $value;
+                    break;
+                case (($distance <= 2) && ($distance < $minDistance));
+                    $highest = $value;
+                    $minDistance = $distance;
             }
         }
+
+        if($surname_search){
+            if (empty($highest)) {
+                foreach ($sis_students as $key => $value) {
+                    //search name with last name
+                    similar_text(strtoupper(get_l_name($student['f_name'])), strtoupper(get_l_name($value['first_name'])), $percentage);
+                    $value['rate'] = $percentage;
+                    switch (true) {
+                        case ($value['rate'] == 100);
+                            $highest = $value;
+                            $matches[] = $value;
+                            break;
+                    }
+                }
+            }
+        }
+
+        if(count($matches)>1){
+            $highest =  $this->searchSimilarName($student, $sis_students,false);
+        }
+
         return $highest;
     }
 
@@ -274,11 +370,18 @@ class ExaminationStudentsController extends Controller
     {
         try {
             $student['nsid'] =  $sis_student['openemis_no'];
-
             // add new NSID to the examinations data set
-            $this->examination_student->where(['st_no' => $student['st_no']])->update($student);
-            $this->output->writeln('Updated ' . $sis_student['student_id'] . ' to NSID' . $sis_student['openemis_no']);
+            unset($student['id']);
+            unset($student['taking_g5_exam']);
+            unset($student['taking_al_exam']);
+            unset($student['taking_ol_exam']);
+            unset($student['total']);
+            $this->examination_student->where('st_no', $student['st_no'])->update($student);
+            unset($student['st_no']);
+            $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
+            dd($th);
+            $this->output->writeln('error');
             Log::error($th);
         }
     }
@@ -290,6 +393,27 @@ class ExaminationStudentsController extends Controller
      */
     public function export()
     {
-        return Excel::download(new ExaminationStudentsExport, 'Students_data_with_nsid.csv');
+        $adminUser = Security_user::where('username', 'admin')->first();
+        try {
+            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.'.time().'.csv');
+            (new ExportReady($adminUser));
+        } catch (\Throwable $th) {
+            //throw $th;
+            dd($th);
+        }
+        return back()->withSuccess('Export started!');
+    }
+
+    public function downloadErrors()
+    {
+
+        $file_path = storage_path() . '/app/examination/errors.csv';
+        return Response::download($file_path);
+    }
+
+    public function downloadProcessedFile()
+    {
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
+        return Response::download($file_path);
     }
 }

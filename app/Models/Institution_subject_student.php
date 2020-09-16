@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use function foo\func;
-use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Institution_subject_student extends Model  {
 
 
+    use SoftDeletes;
+    
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
 
@@ -18,6 +21,8 @@ class Institution_subject_student extends Model  {
      * @var string
      */
     protected $table = 'institution_subject_students';
+
+    protected $softDelete = true;
 
     /**
      * Attributes that should be mass-assignable.
@@ -54,12 +59,6 @@ class Institution_subject_student extends Model  {
         self::creating(function ($model) {
             $model->id = (string) Uuid::generate(4);
         });
-
-//        self::inserti(function (array $array){
-//            foreach ($array as $item) {
-//                $item->id = (string) Uuid::generate(4);
-//           }
-//        });
 
     }
 

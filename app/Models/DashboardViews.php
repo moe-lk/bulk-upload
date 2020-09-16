@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Staudenmeir\LaravelMigrationViews\Facades\Schema;
+use Illuminate\Support\Facades\Schema as DbSchema;
 
 class DashboardViews extends Model
 {
@@ -21,16 +23,18 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
-                    'ist.institution_id',
-                    DB::raw('count(*) as total'),
+                    'ins.id as institution_id',
+                    DB::raw('count(ist.id) as total'),
                     DB::raw("SUM(CASE WHEN security_users.gender_id = 1  THEN 1 ELSE 0 END) AS male"),
                     DB::raw("SUM(CASE WHEN security_users.gender_id = 2  THEN 1 ELSE 0 END) AS female")
                 )
-                ->join('security_users', 'security_users.id', 'ist.student_id')
-                ->groupBy('ist.institution_id');
+                ->leftJoin('institution_students as ist', 'ins.id', 'ist.institution_id')
+                ->leftJoin('security_users', 'security_users.id', 'ist.student_id')
+                ->groupBy('ins.id');
             Schema::createOrReplaceView('students_count_view', $query);
+            DbSchema::dropIfExists('students_count_view_table');
+            DB::statement('CREATE TABLE students_count_view_table AS  (select * from students_count_view)');
             $output->writeln('creat : students_count_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
@@ -48,7 +52,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
             $query = DB::table('security_users as stu')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),
@@ -157,6 +160,11 @@ class DashboardViews extends Model
                 ->groupBy("i.id");
             Schema::dropIfExists("students_list_view");
             Schema::createOrReplaceView('students_list_view', $query);
+            $exist = Schema::hasTable('students_list_view_table');
+            Schema::dropIfExists('students_list_view_table');
+            DB::statement('CREATE TABLE students_list_view_table  select * from students_list_view;');
+            DB::statement('CREATE INDEX user_institution ON students_list_view_table (institution_id);');
+            $output->writeln('created : students_list_view_table');
             $output->writeln('created : students_list_view');
         } catch (\Throwable $th) {
             $output->writeln($th->getMessage());
@@ -296,7 +304,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_by_grade_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "ist.institution_id",
                     DB::raw("(count(CASE WHEN eg.code = 'G1' THEN ist.student_id END)) as `G-1`"),
@@ -315,6 +322,7 @@ class DashboardViews extends Model
                 )
                 ->join('education_grades as eg', 'eg.id', 'ist.education_grade_id')
                 ->groupBy('ist.institution_id');
+            
             Schema::dropIfExists("students_count_by_grade_view");
             Schema::createOrReplaceView('students_count_by_grade_view', $query);
             $output->writeln('created : students_count_by_grade_view');
@@ -334,7 +342,6 @@ class DashboardViews extends Model
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_count_by_bmi_view');
             $query = DB::table('institution_students as ist')
-                ->distinct(['ist.institution_id,ist.student_id,ist.academic_period_id'])
                 ->select(
                     "ist.institution_id",
                     DB::raw("count(CASE WHEN ubm.body_mass_index <  13 THEN ubm.body_mass_index END) as `Underweight`"),

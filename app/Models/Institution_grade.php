@@ -142,7 +142,8 @@ class Institution_grade extends Base_Model
                 $join->on('institutions.id','=','institution_grades.institution_id');
             })
             ->orderBy('institution_id')
-            ->get()->first();
+            ->get()
+            ->toArray();
     }
 
 }
