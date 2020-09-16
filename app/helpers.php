@@ -192,3 +192,30 @@ function sig_handler($signo){
     }
 
 }
+function processParallel($func ,array $arr, $procs = 4,$params =[])
+    {
+        // Break array up into $procs chunks.
+        $chunks   = array_chunk($arr, ceil((count($arr) / $procs)));
+        $pid      = -1;
+        $children = array();
+        foreach ($chunks as $items) {
+            $pid = pcntl_fork();
+            if ($pid === -1) {
+                die('could not fork');
+            } else if ($pid === 0) {
+                // We are the child process. Pass a chunk of items to process.
+                echo('['.getmypid().']This Process executed at'.date("F d, Y h:i:s A")."\n") ;
+                array_walk($items, $func,$params);
+                exit(0);
+            } else {
+                // We are the parent.
+                echo('['.getmypid().']This Process executed at'.date("F d, Y h:i:s A")."\n") ;
+                $children[] = $pid;
+            }
+        }
+        // Wait for children to finish.
+        foreach ($children as $pid) {
+            // We are still the parent.
+            pcntl_waitpid($pid, $status);
+        }
+    }

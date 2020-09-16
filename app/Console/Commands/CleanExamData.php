@@ -75,39 +75,12 @@ class CleanExamData extends Command
         if(count($students) > 0){
             $this->output->writeln('Total students to clean: '.  count($students));
             $students = array_chunk($students, $this->argument('chunk'));
-            $this->processParallel($students, $this->argument('max'));
+            $function = array($this, 'process');
+            processParallel($function,$students, $this->argument('max'));
         }else{
             $this->output->writeln('nothing to process, all are cleaned');
         }   
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
-    }
-
-
-    public function processParallel(array $arr, $procs = 4)
-    {
-        // Break array up into $procs chunks.
-        $chunks   = array_chunk($arr, ceil((count($arr) / $procs)));
-        $pid      = -1;
-        $children = array();
-        foreach ($chunks as $items) {
-            $pid = pcntl_fork();
-            if ($pid === -1) {
-                die('could not fork');
-            } else if ($pid === 0) {
-                $this->output->writeln('started processes: ' . count($children));
-                // We are the child process. Pass a chunk of items to process.
-                array_walk($items, array($this, 'process'));
-                exit(0);
-            } else {
-                // We are the parent.
-                $children[] = $pid;
-            }
-        }
-        // Wait for children to finish.
-        foreach ($children as $pid) {
-            // We are still the parent.
-            pcntl_waitpid($pid, $status);
-        }
     }
 
     public function process($students){
@@ -129,25 +102,18 @@ class CleanExamData extends Command
             Institution_class_student::where('student_id', $Student->student_id)->delete();
             Institution_student_admission::where('student_id', $Student->student_id)->delete();
             Security_user::where('id', $Student->student_id)->delete();
-            $this->output->writeln($Student->openemis_no.': deleted from SIS:'.$Student->institution_id);
         }
     }
 
     public function cleanInvalidData($Student)
     {
-        $exist = Examination_student::where('nsid','=',  $Student->nsid)->count();
+        $Student = (array) $Student;
+        $exist = Examination_student::where('nsid',$Student['nsid'])->count();
         
         $this->uniqueUId = new UniqueUid();
 
-        if(!$this->uniqueUId::isValidUniqueId($Student->nsid)){
-            $this->output->writeln($Student->nsid.': is not valid');
+        $nsid = ltrim(rtrim($Student['nsid'],'-'),'-');
+        if(!$this->uniqueUId::isValidUniqueId('DBY-898-3J2')){
         }
-        
-        // if ($exist) {
-        //     $nsid = ltrim(rtrim($Student->nsid,'-'),'-');
-        //     Security_user::where('openemis_no','=',  $Student->nsid)->update(['openemis_no' => $nsid]);
-        //     Examination_student::where('nsid','=',  $Student->nsid)->update(['nsid' => $nsid]);
-        //     $this->output->writeln($Student->nsid.': rewrited into from SIS:'.$nsid);
-        // }
     }
 }

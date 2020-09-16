@@ -60,6 +60,7 @@ class CloneController extends Controller
     }
 
     public function process($shift,$count,$params){
+        echo('['.getmypid().']This Process executed at'.date("F d, Y h:i:s A")."\n") ;
         $year = $params['year'];
         $academicPeriod = $params['academic_period'];
         $previousAcademicPeriod = $params['previous_academic_period'];
