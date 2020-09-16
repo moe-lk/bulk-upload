@@ -14,7 +14,7 @@ class CloneConfigData extends Command
      *
      * @var string
      */
-    protected $signature = 'clone:config {year}';
+    protected $signature = 'clone:config {year} {max}';
 
     /**
      * The console command description.
@@ -59,7 +59,9 @@ class CloneConfigData extends Command
             'previous_academic_period' => $previousAcademicPeriod
         ];
         // dd($shift);
-        array_walk($shift, array($this->clone, 'process'), $params);
+        $function = array($this->clone, 'process');
+        // array_walk($shift,$function,$params);
+        processParallel($function,$shift, $this->argument('max'),$params);
         $this->end_time = microtime(TRUE);
 
 
