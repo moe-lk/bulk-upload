@@ -77,16 +77,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $this->worksheet = $event->getSheet();
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
-            },
-            BeforeImport::class => function (BeforeImport $event) {
-                $event->getReader()->getDelegate()->setActiveSheetIndex(2);
-                $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('B'));
-                if ($this->highestRow < 3) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'remark', [0 => 'No enough rows!'], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                }
             }
         ];
     }
@@ -100,7 +90,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
             if (!array_filter($row)) {
-                return nulll;
+                return null;
             }
 
             if (!empty($institutionClass)) {
@@ -376,22 +366,12 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     array_walk($allSubjects,array($this,'insertSubject'));
-                    // Institution_subject_student::insert((array) $allSubjects);
-//                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
+                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
                 unset($allSubjects);
 
                 $totalStudents = Institution_class_student::getStudentsCount($this->file['institution_class_id']);
-
-                if ($totalStudents['total'] > $institutionClass->no_of_students) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is ' . $institutionClass->no_of_students], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                    Log::info('email-sent', [$this->file]);
-                }
-
 
                 Institution_class::where('id', '=', $institutionClass->id)
                         ->update([
@@ -411,12 +391,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
         return Institution_subject_student::where('student_id', '=', $student->student_id)
                         ->where('institution_class_id', '=', $student->institution_class_id)->get()->toArray();
     }
-
-    protected function insertSubject($subject){
-        if(!Institution_subject_student::isDuplicated($subject))
-                Institution_subject_student::updateOrInsert($subject);
-    }
-
 
 
     public function rules(): array {
