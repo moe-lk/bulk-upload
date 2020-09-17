@@ -373,15 +373,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $totalStudents = Institution_class_student::getStudentsCount($this->file['institution_class_id']);
 
-                if ($totalStudents['total'] > $institutionClass->no_of_students) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is ' . $institutionClass->no_of_students], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                    Log::info('email-sent', [$this->file]);
-                }
-
-
                 Institution_class::where('id', '=', $institutionClass->id)
                         ->update([
                             'total_male_students' => $totalStudents['total_male_students'],
