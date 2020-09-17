@@ -291,8 +291,8 @@ class Import
 
     protected function updateSubjectCount($subject)
     {
-        $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
-        Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
+        $totalStudents = Institution_subject_student::getStudentsCount($subject);
+        Institution_subject::where(['id' => $subject])
             ->update([
                 'total_male_students' => $totalStudents['total_male_students'],
                 'total_female_students' => $totalStudents['total_female_students']
@@ -325,5 +325,6 @@ class Import
         if (!Institution_subject_student::isDuplicated($subject)) {
             Institution_subject_student::updateOrInsert($subject);
         }
+        array_walk($subject, array($this, 'updateSubjectCount'));
     }
 }
