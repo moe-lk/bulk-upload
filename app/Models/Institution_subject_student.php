@@ -83,7 +83,7 @@ class Institution_subject_student extends Model  {
         return $this->belongsTo('App\Models\Security_user','student_id');
     }
     
-    public static function getStudentsCount(){
+    public static function getStudentsCount($institution_subject_id){
          $total_male_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 1);
                     }])->whereHas('student', function ($query) {
