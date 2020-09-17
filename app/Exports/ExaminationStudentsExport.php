@@ -8,8 +8,9 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Carbon\Carbon;
 
-class ExaminationStudentsExport implements FromQuery , WithHeadings  
+class ExaminationStudentsExport implements FromQuery , WithHeadings 
 {
 
     use Exportable;
@@ -42,6 +43,7 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
     public function query()
     {
         return Examination_student::query()->whereNotNull('nsid')
-        ->distinct('nsid');
+        ->distinct('nsid')
+        ->whereDate('updated_at','>=',Carbon::now()->toDateTimeString());
     }
 }
