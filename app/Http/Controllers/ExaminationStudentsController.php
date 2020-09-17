@@ -385,6 +385,7 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
             unset($student['total']);
+            $students['updated_at'] =  now();
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
             unset($student['st_no']);
             $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);
