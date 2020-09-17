@@ -42,6 +42,7 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
     public function query()
     {
         return Examination_student::query()->whereNotNull('nsid')
-        ->distinct('nsid');
+        ->distinct('nsid')
+        ->whereDate('updated_at', '2020-09-17');
     }
 }
