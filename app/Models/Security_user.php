@@ -198,9 +198,9 @@ class Security_user extends Model
             'created_user_id' => 1
         ];
         try {
-            $this->uniqueUserId->updateOrInsertRecord($studentData);
             $id = $this->insertGetId($studentData);
             $studentData['id'] = $id;
+            $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
             Log::error($th->getMessage());
@@ -237,9 +237,9 @@ class Security_user extends Model
         ];
 
         try {
-            $this->uniqueUserId->updateOrInsertRecord($studentData);
             self::where( 'id'  , $sis_student['student_id'])->update($studentData);
             $studentData['id'] = $sis_student['student_id'];
+            $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
             Log::error($th);

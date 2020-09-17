@@ -160,6 +160,15 @@ class ExaminationStudentsController extends Controller
                 array_walk($students, array($this, 'clone'));
                 $this->output->writeln('All are generated');
                 break;
+            case 'invalid';
+                $students = Examination_student::
+                    whereRaw('CHAR_LENGTH(nsid) > 11')
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining with wrong NSID');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
+                break;
             case 'count':
                 $count = Examination_student::distinct('nsid')
                 ->count();
