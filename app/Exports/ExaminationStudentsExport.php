@@ -44,6 +44,6 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
     {
         return Examination_student::query()->whereNotNull('nsid')
         ->distinct('nsid')
-        ->whereDate('updated_at','>=',Carbon::now()->toDateTimeString());
+        ->whereDate('updated_at','>=',Carbon::today());
     }
 }
