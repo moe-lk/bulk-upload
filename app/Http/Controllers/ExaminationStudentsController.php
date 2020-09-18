@@ -233,7 +233,7 @@ class ExaminationStudentsController extends Controller
         $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
-        $institution = Institution::where('code', '=', $student['schoolid'])->first();
+        $institution = Institution::where('code', '=', (int)$student['schoolid'])->first();
 
         if (!is_null($institution)) {
 
