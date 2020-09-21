@@ -54,16 +54,18 @@ class CleanExamData extends Command
             ->get()
             ->toArray();
         }elseif($type == 'duplicate'){
-            $students = DB::table('institution_students as is')
-            ->join('security_users as su', 'su.id', 'is.student_id')
-            ->where('is.updated_from', 'doe')
-            ->orWhere('su.updated_from', 'doe')
-            ->groupBy('is.student_id')
-            ->orderBy('is.student_id')
+            $students = DB::table('security_users')
+            ->where('updated_from', 'doe')
             ->get()
             ->toArray();
             
-        }elseif('all'){
+        }elseif($type == 'all'){
+            $students = DB::table('examination_students')
+            ->where('nsid','<>','')
+            ->whereNotNull('nsid')
+            ->get()
+            ->toArray();
+        }elseif($type == 'lock'){
             $students = DB::table('examination_students')
             ->where('nsid','<>','')
             ->whereNotNull('nsid')
@@ -76,32 +78,44 @@ class CleanExamData extends Command
             $this->output->writeln('Total students to clean: '.  count($students));
             $students = array_chunk($students, $this->argument('chunk'));
             $function = array($this, 'process');
-            processParallel($function,$students, $this->argument('max'));
+            processParallel($function,$students, $this->argument('max'),$type);
         }else{
             $this->output->writeln('nothing to process, all are cleaned');
         }   
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
     }
 
-    public function process($students){
-        $type = $this->argument('type');
-       if($type == 'duplication'){
+    public function process($students,$count,$type){
+       if($type === 'duplicate'){
         array_walk($students,array($this,'cleanData'));
-       }elseif($type == 'invalid' || 'all'){
-        array_walk($students,array($this,'cleanInvalidData'));
+       }elseif($type === 'lock'){
+        array_walk($students,array($this,'lockData'));
        }
+    }
+
+    public function lockData($Student){
+        $Student = json_decode(json_encode($Student),true);
+        $student = Security_user::where('openemis_no',(string)$Student['nsid'])->first();
+        if(!empty($student)){
+            Institution_student::where('student_id', $student->id)->update(['updated_from' => 'doe']);
+            Security_user::where('id', $student->id)->update(['updated_from' => 'doe']);
+            $this->output->writeln('Locked:'. (string)$Student['nsid'] .':' . $student['openemis_no']);
+        }
     }
 
 
     public function cleanData($Student)
     {
-        $exist = Examination_student::where('nsid','=',  $Student->openemis_no)->count();
-
+        $exist = Examination_student::where('nsid','=',  (string)$Student->openemis_no)->count();
         if (!$exist) {
-            Institution_student::where('student_id', $Student->student_id)->delete();
-            Institution_class_student::where('student_id', $Student->student_id)->delete();
-            Institution_student_admission::where('student_id', $Student->student_id)->delete();
-            Security_user::where('id', $Student->student_id)->delete();
+            Institution_student::where('student_id', $Student->id)->delete();
+            Institution_class_student::where('student_id', $Student->id)->delete();
+            Institution_student_admission::where('student_id', $Student->id)->delete();
+            Security_user::where('id', $Student->id)->delete();
+            $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
+        }else{
+            Institution_student::where('student_id', $Student->id)->update(['updated_from' => 'doe']);
+            Security_user::where('id', $Student->id)->update(['updated_from' => 'doe']);
         }
     }
 
