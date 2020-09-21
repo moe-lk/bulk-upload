@@ -116,14 +116,16 @@ class CleanExamData extends Command
             
             Institution_student::where('student_id', $Student->id)->update(['updated_from' => 'doe']);
             Security_user::where('id', $Student->id)->update(['updated_from' => 'doe']);
-            if(!is_null($Student->deleted_at)){
-                try{
-                    Institution_student::withTrashed()->where('student_id',$Student->id)->restore();
-                    Security_user::withTrashed()->find($Student->id)->restore();
-                    $this->output->writeln('restored:'.  (string)$Student->openemis_no);
-                }catch(\Exception $e){
-                }    
-            }
+            // if(!is_null($Student->deleted_at)){
+            //     try{
+            //         Institution_student::withTrashed()->where('student_id',$Student->id)->restore();
+            //         Institution_class_student::withTrashed()->where('student_id',$Student->id)->restore();
+            //         Institution_student_admission::withTrashed()->where('student_id',$Student->id)->restore();
+            //         Security_user::withTrashed()->find($Student->id)->restore();
+            //         $this->output->writeln('restored:'.  (string)$Student->openemis_no);
+            //     }catch(\Exception $e){
+            //     }    
+            // }
         }
     }
 
