@@ -88,10 +88,10 @@ class CleanExamData extends Command
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
     }
 
-    public function process($students,$type){
-       if($type == 'duplication'){
+    public function process($students,$count,$type){
+       if($type === 'duplication'){
         array_walk($students,array($this,'cleanData'));
-       }elseif($type == 'lock'){
+       }elseif($type === 'lock'){
         array_walk($students,array($this,'lockData'));
        }
     }
