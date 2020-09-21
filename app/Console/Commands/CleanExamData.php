@@ -92,15 +92,15 @@ class CleanExamData extends Command
 
     public function cleanData($Student)
     {
-        $exist = Examination_student::where('nsid','=',  $Student->openemis_no)->count();
+        $exist = Examination_student::where('nsid','=',  (string)$Student->openemis_no)->count();
         if (!$exist) {
             Institution_student::where('student_id', $Student->student_id)->delete();
             Institution_class_student::where('student_id', $Student->student_id)->delete();
             Institution_student_admission::where('student_id', $Student->student_id)->delete();
             Security_user::where('id', $Student->student_id)->delete();
-            $this->output->writeln('cleaned:'. $Student->openemis_no);
+            $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
         }else{
-            $this->output->writeln('not-removed:'. $Student->openemis_no);
+            $this->output->writeln('not-removed:'.  (string)$Student->openemis_no);
         }
     }
 
