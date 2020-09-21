@@ -67,7 +67,6 @@ class CleanExamData extends Command
             ->toArray();
         }elseif($type == 'lock'){
             $students = DB::table('examination_students')
-            ->where('nsid','<>','')
             ->whereNotNull('nsid')
             ->get()
             ->toArray();
@@ -114,8 +113,17 @@ class CleanExamData extends Command
             Security_user::where('id', $Student->id)->delete();
             $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
         }else{
+            
             Institution_student::where('student_id', $Student->id)->update(['updated_from' => 'doe']);
             Security_user::where('id', $Student->id)->update(['updated_from' => 'doe']);
+            if(!is_null($Student->deleted_at)){
+                try{
+                    Institution_student::withTrashed()->where('student_id',$Student->id)->restore();
+                    Security_user::withTrashed()->find($Student->id)->restore();
+                    $this->output->writeln('restored:'.  (string)$Student->openemis_no);
+                }catch(\Exception $e){
+                }    
+            }
         }
     }
 
