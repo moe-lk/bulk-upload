@@ -58,12 +58,17 @@ class CleanExamData extends Command
             ->join('security_users as su', 'su.id', 'is.student_id')
             ->where('is.updated_from', 'doe')
             ->orWhere('su.updated_from', 'doe')
-            ->groupBy('is.student_id')
             ->orderBy('is.student_id')
             ->get()
             ->toArray();
             
         }elseif($type == 'all'){
+            $students = DB::table('examination_students')
+            ->where('nsid','<>','')
+            ->whereNotNull('nsid')
+            ->get()
+            ->toArray();
+        }elseif($type == 'lock'){
             $students = DB::table('examination_students')
             ->where('nsid','<>','')
             ->whereNotNull('nsid')
@@ -86,7 +91,15 @@ class CleanExamData extends Command
     public function process($students,$type){
        if($type == 'duplication'){
         array_walk($students,array($this,'cleanData'));
+       }elseif($type == 'lock'){
+        array_walk($students,array($this,'lockData'));
        }
+    }
+
+    public function lockData($Student){
+        $student = Security_user::where('openemis_id',$Student['nsid'])->first();
+        Institution_student::where('student_id', $student->id)->update(['updated_from' => 'doe']);
+        Security_user::where('id', $student->studentid_id)->update(['updated_from' => 'doe']);
     }
 
 
@@ -100,7 +113,9 @@ class CleanExamData extends Command
             Security_user::where('id', $Student->student_id)->delete();
             $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
         }else{
-            $this->output->writeln('not-removed:'.  (string)$Student->openemis_no);
+            Institution_student::where('student_id', $Student->student_id)->update(['updated_from' => 'doe']);
+            Security_user::where('id', $Student->student_id)->update(['updated_from' => 'doe']);
+            $this->output->writeln('locked-student:'.  (string)$Student->openemis_no);
         }
     }
 
