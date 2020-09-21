@@ -54,11 +54,8 @@ class CleanExamData extends Command
             ->get()
             ->toArray();
         }elseif($type == 'duplicate'){
-            $students = DB::table('institution_students as is')
-            ->join('security_users as su', 'su.id', 'is.student_id')
-            ->where('is.updated_from', 'doe')
-            ->orWhere('su.updated_from', 'doe')
-            ->orderBy('is.student_id')
+            $students = DB::table('security_users')
+            ->where('updated_from', 'doe')
             ->get()
             ->toArray();
             
@@ -89,7 +86,7 @@ class CleanExamData extends Command
     }
 
     public function process($students,$count,$type){
-       if($type === 'duplication'){
+       if($type === 'duplicate'){
         array_walk($students,array($this,'cleanData'));
        }elseif($type === 'lock'){
         array_walk($students,array($this,'lockData'));
@@ -111,15 +108,14 @@ class CleanExamData extends Command
     {
         $exist = Examination_student::where('nsid','=',  (string)$Student->openemis_no)->count();
         if (!$exist) {
-            Institution_student::where('student_id', $Student->student_id)->delete();
-            Institution_class_student::where('student_id', $Student->student_id)->delete();
-            Institution_student_admission::where('student_id', $Student->student_id)->delete();
-            Security_user::where('id', $Student->student_id)->delete();
+            Institution_student::where('student_id', $Student->id)->delete();
+            Institution_class_student::where('student_id', $Student->id)->delete();
+            Institution_student_admission::where('student_id', $Student->id)->delete();
+            Security_user::where('id', $Student->id)->delete();
             $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
         }else{
-            Institution_student::where('student_id', $Student->student_id)->update(['updated_from' => 'doe']);
-            Security_user::where('id', $Student->student_id)->update(['updated_from' => 'doe']);
-            $this->output->writeln('locked-student:'.  (string)$Student->openemis_no);
+            Institution_student::where('student_id', $Student->id)->update(['updated_from' => 'doe']);
+            Security_user::where('id', $Student->id)->update(['updated_from' => 'doe']);
         }
     }
 
