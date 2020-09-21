@@ -63,7 +63,7 @@ class CleanExamData extends Command
             ->get()
             ->toArray();
             
-        }elseif('all'){
+        }elseif($type == 'all'){
             $students = DB::table('examination_students')
             ->where('nsid','<>','')
             ->whereNotNull('nsid')
@@ -76,32 +76,31 @@ class CleanExamData extends Command
             $this->output->writeln('Total students to clean: '.  count($students));
             $students = array_chunk($students, $this->argument('chunk'));
             $function = array($this, 'process');
-            processParallel($function,$students, $this->argument('max'));
+            processParallel($function,$students, $this->argument('max'),$type);
         }else{
             $this->output->writeln('nothing to process, all are cleaned');
         }   
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
     }
 
-    public function process($students){
-        $type = $this->argument('type');
+    public function process($students,$type){
        if($type == 'duplication'){
         array_walk($students,array($this,'cleanData'));
-       }elseif($type == 'invalid' || 'all'){
-        array_walk($students,array($this,'cleanInvalidData'));
        }
     }
 
 
     public function cleanData($Student)
     {
-        $exist = Examination_student::where('nsid','=',  $Student->openemis_no)->count();
-
+        $exist = Examination_student::where('nsid','=',  (string)$Student->openemis_no)->count();
         if (!$exist) {
             Institution_student::where('student_id', $Student->student_id)->delete();
             Institution_class_student::where('student_id', $Student->student_id)->delete();
             Institution_student_admission::where('student_id', $Student->student_id)->delete();
             Security_user::where('id', $Student->student_id)->delete();
+            $this->output->writeln('cleaned:'.  (string)$Student->openemis_no);
+        }else{
+            $this->output->writeln('not-removed:'.  (string)$Student->openemis_no);
         }
     }
 
