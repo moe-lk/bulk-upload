@@ -88,18 +88,22 @@ class CleanExamData extends Command
         $this->output->writeln('###########################################------Finished cleaning exam records------###########################################');
     }
 
-    public function process($students,$type){
-       if($type == 'duplication'){
+    public function process($students,$count,$type){
+       if($type === 'duplication'){
         array_walk($students,array($this,'cleanData'));
-       }elseif($type == 'lock'){
+       }elseif($type === 'lock'){
         array_walk($students,array($this,'lockData'));
        }
     }
 
     public function lockData($Student){
-        $student = Security_user::where('openemis_id',$Student['nsid'])->first();
-        Institution_student::where('student_id', $student->id)->update(['updated_from' => 'doe']);
-        Security_user::where('id', $student->studentid_id)->update(['updated_from' => 'doe']);
+        $Student = json_decode(json_encode($Student),true);
+        $student = Security_user::where('openemis_no',(string)$Student['nsid'])->first();
+        if(!empty($student)){
+            Institution_student::where('student_id', $student->id)->update(['updated_from' => 'doe']);
+            Security_user::where('id', $student->id)->update(['updated_from' => 'doe']);
+            $this->output->writeln('Locked:'. (string)$Student['nsid'] .':' . $student['openemis_no']);
+        }
     }
 
 
