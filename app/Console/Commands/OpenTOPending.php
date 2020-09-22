@@ -19,7 +19,7 @@ class OpenTOPending extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Update open status to pending for approval';
 
     /**
      * Create a new command instance.
@@ -38,8 +38,8 @@ class OpenTOPending extends Command
      */
     public function handle()
     {
-        Institution_student_admission::where('student_status_id',121)->update([
-            'student_status_id' => 122
+        Institution_student_admission::where('status_id',121)->update([
+            'status_id' => 122
         ]);
     }
     
