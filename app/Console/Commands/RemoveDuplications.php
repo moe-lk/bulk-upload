@@ -59,7 +59,7 @@ class RemoveDuplications extends Command
             dd($th);
         }
     }
-
+  
     public function process($Student){
         Institution_student::where('institution_students.id','>',$Student->id)
         ->where('institution_students.student_id',$Student->student_id)
