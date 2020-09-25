@@ -44,8 +44,8 @@ class RemoveDuplications extends Command
             $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $this->output->writeln('############### Starting delete Duplication ################');
             $duplicatedStudents = Institution_student::select(DB::raw('count(*) as total'),'student_id','id','academic_period_id','education_grade_id')
-            ->having('total','>',0)
             ->groupBy('student_id')
+            ->having('total','>',1)
             ->orderBy('student_id')
             ->get()
             ->toArray();
@@ -61,10 +61,10 @@ class RemoveDuplications extends Command
     }
 
     public function process($Student){
-        Institution_student::where('institution_students.id','>',$Student->id)
-        ->where('institution_students.student_id',$Student->student_id)
-        ->where('institution_students.academic_period_id',$Student->academic_period_id)
-        ->where('institution_students.education_grade_id',$Student->education_grade_id)
+        Institution_student::where('institution_students.id','>',$Student['id'])
+        ->where('institution_students.student_id',$Student['student_id'])
+        ->where('institution_students.academic_period_id',$Student['academic_period_id'])
+        ->where('institution_students.education_grade_id',$Student['education_grade_id'])
         ->delete();
         $this->end_time = microtime(TRUE);    
         $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
