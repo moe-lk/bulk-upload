@@ -196,6 +196,7 @@ return [
         "remarks",
         "student_id",
         "full_name" ,
+        "preferred_name",
         "gender_mf",
         "date_of_birth_yyyy_mm_dd",
         "address",
