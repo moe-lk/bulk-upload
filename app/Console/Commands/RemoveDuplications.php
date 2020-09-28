@@ -49,7 +49,6 @@ class RemoveDuplications extends Command
             ->orderBy('student_id')
             ->get()
             ->toArray();
-
             if(count($duplicatedStudents)>0){
                 processParallel(array($this,'process'),$duplicatedStudents,10);
             }else{

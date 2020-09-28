@@ -149,6 +149,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     'openemis_no' => $openemisStudent,
                     'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                     'last_name' => genNameWithInitials($row['full_name']),
+                    'preferred_name' => $row['preferred_name'] ,
                     'gender_id' => $genderId,
                     'date_of_birth' => $date,
                     'address' => $row['address'],
@@ -459,7 +460,8 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
     {
 
         return [
-            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u|max:100',
+            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u|max:256',
+            '*.preferred_name' => 'required|regex:/^[\pL\s\-]+$/u|max:90',
             '*.gender_mf' => 'required|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|required|admission_age:' . $this->file['institution_class_id'],
             '*.address' => 'nullable',
