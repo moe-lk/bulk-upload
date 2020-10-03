@@ -160,6 +160,15 @@ class ExaminationStudentsController extends Controller
                 array_walk($students, array($this, 'clone'));
                 $this->output->writeln('All are generated');
                 break;
+            case 'invalid';
+                $students = Examination_student::
+                    whereRaw('CHAR_LENGTH(nsid) > 11')
+                    ->get()->toArray();
+                $students = (array) json_decode(json_encode($students));
+                $this->output->writeln(count($students) . 'students remaining with wrong NSID');
+                array_walk($students, array($this, 'clone'));
+                $this->output->writeln('All are generated');
+                break;
             case 'count':
                 $count = Examination_student::distinct('nsid')
                 ->count();
@@ -224,7 +233,7 @@ class ExaminationStudentsController extends Controller
         $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
-        $institution = Institution::where('code', '=', $student['schoolid'])->first();
+        $institution = Institution::where('code', '=', (int)$student['schoolid'])->first();
 
         if (!is_null($institution)) {
 
@@ -376,6 +385,7 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
             unset($student['total']);
+            $students['updated_at'] =  now();
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
             unset($student['st_no']);
             $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);

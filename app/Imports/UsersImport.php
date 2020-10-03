@@ -161,14 +161,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 ]);
 
 
-
-                //            User_nationality::create([
-                //                'nationality_id' => $nationalityId,
-                //                'security_user_id' => $student->id,
-                //                'preferred' => 1,
-                //                'created_user_id' => $this->file['security_user_id']
-                //            ]);
-
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
                 Institution_student_admission::create([
@@ -425,6 +417,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $optionalSubjects = Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+              
 
                 if (!empty($allSubjects)) {
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
@@ -432,6 +425,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     array_walk($allSubjects, array($this, 'insertSubject'));
+                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
                 unset($allSubjects);
