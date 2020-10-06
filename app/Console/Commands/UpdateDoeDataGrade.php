@@ -40,7 +40,7 @@ class UpdateDoeDataGrade extends Command
     public function handle()
     {
         Institution_student::where('updated_from', 'doe')
-            ->whereNot('education_grade_id', 4)
+            ->where('education_grade_id','<>', 4)
             ->update(['education_grade_id' => 4]);
     }
 }
