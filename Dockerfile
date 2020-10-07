@@ -1,4 +1,4 @@
-FROM moelk/laravel:latest
+FROM moelk/laravel
 
 # Install cron
 USER bitnami
