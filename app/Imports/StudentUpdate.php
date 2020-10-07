@@ -100,10 +100,12 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 switch ($row['gender_mf']) {
                     case 'M':
                         $row['gender_mf'] = 1;
+                        $genderId = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
                         $row['gender_mf'] = 2;
+                        $genderId = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
