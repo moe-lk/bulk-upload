@@ -100,10 +100,12 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 switch ($row['gender_mf']) {
                     case 'M':
                         $row['gender_mf'] = 1;
+                        $genderId = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
                         $row['gender_mf'] = 2;
+                        $genderId = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
@@ -111,7 +113,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
-                $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
+                $academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
 
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
@@ -130,6 +132,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ->update([
                             'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
+                            'preferred_name' => $row['preferred_name'] ,
                             'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
                             'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
                             'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
@@ -397,7 +400,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
         return [
             '*.student_id' => 'required|exists:security_users,openemis_no|is_student_in_class:'.$this->file['institution_class_id'],
-            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:100',
+            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:256',
+            '*.preferred_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:90',
             '*.gender_mf' => 'nullable|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|nullable',
             '*.address' => 'nullable',
@@ -405,8 +409,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
             '*.identity_type' => 'required_with:identity_number',
-//            '*.identity_number' => 'user_unique:identity_number',
-            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
+            '*.identity_number' => 'nullable|regex:/^[0-9]+$/|min:4|max:12',
+            '*.academic_period' => 'required_with:admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',

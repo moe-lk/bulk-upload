@@ -43,28 +43,17 @@ class RemoveDuplications extends Command
             $this->start_time = microtime(TRUE);
             $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $this->output->writeln('############### Starting delete Duplication ################');
-            $studentsIdsWithDuplication =   DB::table('institution_students as ins')
+            $duplicatedStudents =   DB::table('institution_students as ins')
             ->select(DB::raw('count(*) as total'),'student_id','id','academic_period_id','education_grade_id')
             ->having('total','>',1)
-            ->groupBy('ins.student_id')
-            ->orderBy('ins.student_id')
-            ->chunk(100,function($Students){
-                foreach ($Students as $Student) {
-                    Institution_student::where('institution_students.id','>',$Student->id)
-                    ->where('institution_students.student_id',$Student->student_id)
-                    ->where('institution_students.academic_period_id',$Student->academic_period_id)
-                    ->where('institution_students.education_grade_id',$Student->education_grade_id)
-                    ->delete();
-                }
-                $this->end_time = microtime(TRUE);    
-                $this->output->writeln('Deleted 100 starting with' .$Students[0]->id);
-                $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
-            });
-            $this->end_time = microtime(TRUE);
-            $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-            $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
-            $this->output->writeln('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
-          
+            ->orderBy('student_id')
+            ->get()
+            ->toArray();
+            if(count($duplicatedStudents)>0){
+                processParallel(array($this,'process'),$duplicatedStudents,10);
+            }else{
+                $this->output->writeln('Nothing to Process, all are clean');
+            }
         } catch (\Throwable $th) {
             dd($th);
         }
