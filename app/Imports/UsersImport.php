@@ -467,7 +467,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
 
         return [
             '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u|max:256',
-            '*.preferred_name' => 'required|regex:/^[\pL\s\-]+$/u|max:90',
+            '*.preferred_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:90',
             '*.gender_mf' => 'required|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|required|admission_age:' . $this->file['institution_class_id'],
             '*.address' => 'nullable',
