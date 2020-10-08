@@ -259,6 +259,7 @@ return [
         "guardians_phone"
     ],
     'optional_columns' => [
+        "preferred_name",
         "guardians_phone",
         "fathers_phone",
         "mothers_phone",

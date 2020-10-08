@@ -146,12 +146,16 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
 
                 $openemisStudent = $this->uniqueUid::getUniqueAlphanumeric();
                 \Log::debug('Security_user');
+                $preferred_name = null;
+                    if (array_key_exists('preferred_name', $row)) {
+                    $preferred_name = $row['preferred_name'];
+                }
                 $student =  Security_user::create([
                     'username' => str_replace('-', '', $openemisStudent),
                     'openemis_no' => $openemisStudent,
                     'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                     'last_name' => genNameWithInitials($row['full_name']),
-                    'preferred_name' => $row['preferred_name'] ,
+                    'preferred_name' => $preferred_name,
                     'gender_id' => $genderId,
                     'date_of_birth' => $date,
                     'address' => $row['address'],
