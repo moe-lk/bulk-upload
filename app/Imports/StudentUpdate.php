@@ -127,12 +127,17 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 //create students data
                 \Log::debug('Security_user');
 
+                $preferred_name = null;
+                if (array_key_exists('preferred_name', $row)) {
+                    $preferred_name = $row['preferred_name'];
+                }
+
                 $studentInfo = Security_user::where('openemis_no', '=', $row['student_id'])->first();
                 Security_user::where('openemis_no', $studentInfo['openemis_no'])
                         ->update([
                             'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
-                            'preferred_name' => $row['preferred_name'] ,
+                            'preferred_name' => $preferred_name,
                             'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
                             'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
                             'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
