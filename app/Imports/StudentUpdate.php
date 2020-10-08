@@ -128,7 +128,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 \Log::debug('Security_user');
 
                 $preferred_name = null;
-                    if (array_key_exists('preferred_name', $row)) {
+                if (array_key_exists('preferred_name', $row)) {
                     $preferred_name = $row['preferred_name'];
                 }
 
