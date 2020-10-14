@@ -40,9 +40,7 @@ class UpdateClassEntriyWithZeroId extends Command
      */
     public function handle()
     {
-        $classes = Institution_class::select('id')->get()->toArray();
-        $students = Institution_class_student::whereNotIn('institution_class_id',$classes)
-        ->orWhere('institution_class_id',0)->get()->toArray();
+        $students = Institution_class_student::where('institution_class_id',0)->get()->toArray();
         if(count($students)>0){
             processParallel(array($this,'process'),$students,15);
         }else{
