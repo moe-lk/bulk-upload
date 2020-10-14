@@ -24,13 +24,14 @@ class DashboardViews extends Model
             $output->writeln('creating : students_count_view');
             $query = DB::table('institution_students as ist')
                 ->select(
-                    'ist.institution_id',
-                    DB::raw('count(*) as total'),
+                    'ins.id as institution_id',
+                    DB::raw('count(ist.id) as total'),
                     DB::raw("SUM(CASE WHEN security_users.gender_id = 1  THEN 1 ELSE 0 END) AS male"),
                     DB::raw("SUM(CASE WHEN security_users.gender_id = 2  THEN 1 ELSE 0 END) AS female")
                 )
-                ->join('security_users', 'security_users.id', 'ist.student_id')
-                ->groupBy('ist.institution_id');
+                ->leftJoin('institution_students as ist', 'ins.id', 'ist.institution_id')
+                ->leftJoin('security_users', 'security_users.id', 'ist.student_id')
+                ->groupBy('ins.id');
             Schema::createOrReplaceView('students_count_view', $query);
             DbSchema::dropIfExists('students_count_view_table');
             DB::statement('CREATE TABLE students_count_view_table AS  (select * from students_count_view)');
@@ -50,7 +51,7 @@ class DashboardViews extends Model
         try {
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('creating : students_list_view');
-            $query = DB::table('institution_students as ist')
+            $query = DB::table('security_users as stu')
                 ->select(
                     "i.id as institution_id",
                     DB::raw("eg.name as `Grade`"),

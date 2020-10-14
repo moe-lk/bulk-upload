@@ -196,6 +196,7 @@ return [
         "remarks",
         "student_id",
         "full_name" ,
+        "preferred_name",
         "gender_mf",
         "date_of_birth_yyyy_mm_dd",
         "address",
@@ -258,6 +259,7 @@ return [
         "guardians_phone"
     ],
     'optional_columns' => [
+        "preferred_name",
         "guardians_phone",
         "fathers_phone",
         "mothers_phone",
