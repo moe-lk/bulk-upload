@@ -475,7 +475,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:*.identity_number',
-            '*.identity_number' => 'required_with:*.identity_type|regex:/^[0-9]+$/|min:4|max:12',
+            '*.identity_number' => 'required_with:*.identity_type|regex:/^[0-9]{4,12}+$/',
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
