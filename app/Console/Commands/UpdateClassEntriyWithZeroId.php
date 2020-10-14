@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Institution_class;
 use Illuminate\Support\Facades\DB;
+use App\Models\Institution_class_grade;
 use App\Models\Institution_class_student;
 
 class UpdateClassEntriyWithZeroId extends Command
@@ -49,15 +50,14 @@ class UpdateClassEntriyWithZeroId extends Command
     }
 
     public function process($student){
-        $institutionClass = Institution_class::where(
-            [
-                'institution_id' => $student['institution_id'],
-                'academic_period_id' => $student['academic_period_id'],
-                'education_grade_id' => $student['education_grade_id']
-            ]
-            )->first();
+        $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'],$student['institution_id']);
+        
+        if(count($institutionClass) == 1){
             Institution_class_student::where('student_id',$student['student_id'])
-            ->update(['institution_class_id' => $institutionClass->id,'education_grade_id' => 4]);    
-        echo "updated:" .$student['student_id'];    
+            ->update(['institution_class_id' => $institutionClass->id,'education_grade_id' => $student['education_grade_id']]);    
+        echo "updated:" .$student['student_id']; 
+        }else{
+            Institution_class_student::where('student_id',$student['student_id'])->delete();
+        }
     }
 }
