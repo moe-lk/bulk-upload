@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Institution_class;
+use Illuminate\Support\Facades\DB;
 use App\Models\Institution_class_student;
 
 class UpdateClassEntriyWithZeroId extends Command
@@ -40,7 +41,10 @@ class UpdateClassEntriyWithZeroId extends Command
     public function handle()
     {
        
-        $students =  Institution_class_student::where('institution_class_id',0)->get()->toArray();
+        $students =  
+        $classes =Institution_class::select('id')->get()->toArray();
+        Institution_class_student::whereNotIn('institution_class_id',$classes)
+        ->orWhere('institution_class_id',0)->get()->toArray();
         if(count($students)>0){
             processParallel(array($this,'process'),$students,15);
         }else{
@@ -53,7 +57,7 @@ class UpdateClassEntriyWithZeroId extends Command
             [
                 'institution_id' => $student['institution_id'],
                 'academic_period_id' => $student['academic_period_id'],
-                'education_grade_id' => 4
+                'education_grade_id' => $student['education_grade_id']
             ]
             )->first();
             Institution_class_student::where('student_id',$student['student_id'])
