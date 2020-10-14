@@ -40,6 +40,7 @@ use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Validators\Failure;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\BeforeImport;
 use App\Models\Institution_subject_student;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -76,16 +77,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $this->worksheet = $event->getSheet();
                 $worksheet = $event->getSheet();
                 $this->highestRow = $worksheet->getHighestDataRow('B');
-            },
-            BeforeImport::class => function (BeforeImport $event) {
-                $event->getReader()->getDelegate()->setActiveSheetIndex(2);
-                $this->highestRow = ($event->getReader()->getDelegate()->getActiveSheet()->getHighestDataRow('B'));
-                if ($this->highestRow < 3) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'remark', [0 => 'No enough rows!'], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                }
             }
         ];
     }
@@ -99,21 +90,22 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
             if (!array_filter($row)) {
-                return nulll;
+                return null;
             }
 
             if (!empty($institutionClass)) {
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
                 $genderId = null;
-                if($row['gender_mf'] !== null){
-                    $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
-                }
                 switch ($row['gender_mf']) {
                     case 'M':
+                        $row['gender_mf'] = 1;
+                        $genderId = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
+                        $row['gender_mf'] = 2;
+                        $genderId = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
@@ -121,7 +113,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
-                $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
+                $academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
 
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
@@ -135,11 +127,17 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 //create students data
                 \Log::debug('Security_user');
 
+                $preferred_name = null;
+                if (array_key_exists('preferred_name', $row)) {
+                    $preferred_name = $row['preferred_name'];
+                }
+
                 $studentInfo = Security_user::where('openemis_no', '=', $row['student_id'])->first();
                 Security_user::where('openemis_no', $studentInfo['openemis_no'])
                         ->update([
                             'first_name' => $row['full_name'] ? $row['full_name'] : $studentInfo['first_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                             'last_name' => $row['full_name'] ? genNameWithInitials($row['full_name']) : genNameWithInitials($studentInfo['first_name']),
+                            'preferred_name' => $preferred_name,
                             'gender_id' => $genderId ? $genderId : $studentInfo['gender_id'],
                             'date_of_birth' => $date ? $date : $studentInfo['date_of_birth'],
                             'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
@@ -376,22 +374,12 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     array_walk($allSubjects,array($this,'insertSubject'));
-                    // Institution_subject_student::insert((array) $allSubjects);
-//                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
+                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
                 unset($allSubjects);
 
                 $totalStudents = Institution_class_student::getStudentsCount($this->file['institution_class_id']);
-
-                if ($totalStudents['total'] > $institutionClass->no_of_students) {
-                    $error = \Illuminate\Validation\ValidationException::withMessages([]);
-                    $failure = new Failure(3, 'rows', [3 => 'Class student count exceeded! Max number of students is ' . $institutionClass->no_of_students], [null]);
-                    $failures = [0 => $failure];
-                    throw new \Maatwebsite\Excel\Validators\ValidationException($error, $failures);
-                    Log::info('email-sent', [$this->file]);
-                }
-
 
                 Institution_class::where('id', '=', $institutionClass->id)
                         ->update([
@@ -412,18 +400,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         ->where('institution_class_id', '=', $student->institution_class_id)->get()->toArray();
     }
 
-    protected function insertSubject($subject){
-        if(!Institution_subject_student::isDuplicated($subject))
-                Institution_subject_student::updateOrInsert($subject);
-    }
-
-
 
     public function rules(): array {
 
         return [
             '*.student_id' => 'required|exists:security_users,openemis_no|is_student_in_class:'.$this->file['institution_class_id'],
-            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:100',
+            '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:256',
+            '*.preferred_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:90',
             '*.gender_mf' => 'nullable|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|nullable',
             '*.address' => 'nullable',
@@ -431,8 +414,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
             '*.identity_type' => 'required_with:identity_number',
-//            '*.identity_number' => 'user_unique:identity_number',
-            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
+            '*.identity_number' => 'nullable|regex:/^[0-9]+$/|min:4|max:12',
+            '*.academic_period' => 'required_with:admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',

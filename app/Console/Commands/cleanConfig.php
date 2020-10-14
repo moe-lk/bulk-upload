@@ -14,7 +14,7 @@ class cleanConfig extends Command
      *
      * @var string
      */
-    protected $signature = 'clone:clean {year}';
+    protected $signature = 'clean:clone {year}';
 
     /**
      * The console command description.

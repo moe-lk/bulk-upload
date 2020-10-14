@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Lsf\UniqueUid\UniqueUid;
 use App\Models\Unique_user_id;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Security_user extends Model
 {
+
+    use SoftDeletes;
 
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
@@ -19,6 +22,8 @@ class Security_user extends Model
      */
 
     public $timestamps = true;
+
+    protected $softDelete = true;
 
     protected $table = 'security_users';
 
@@ -143,14 +148,30 @@ class Security_user extends Model
      */
     public function getMatches($student)
     {
-        return $this->where([
-            'gender_id' => $student['gender'] + 1, // DoE id differs form MoE id
-            'date_of_birth' => $student['b_date'],
-            'institutions.code' => $student['schoolid']
-        ])
+        return $this
+        ->where('gender_id',$student['gender'] + 1)
+        ->where('institutions.code',$student['schoolid'])
+        ->where('date_of_birth',$student['b_date'])
             ->join('institution_students', 'security_users.id', 'institution_students.student_id')
             ->join('institutions', 'institution_students.institution_id', 'institutions.id')
             ->get()->toArray();
+    }
+
+     /**
+     * First level search for students
+     *
+     * @param array $student
+     * @return array
+     */
+    public function getStudentCount($student)
+    {
+        return $this
+        ->where('gender_id',$student['gender'] + 1)
+        ->where('institutions.code',$student['schoolid'])
+        ->where('date_of_birth',$student['b_date'])
+            ->join('institution_students', 'security_users.id', 'institution_students.student_id')
+            ->join('institutions', 'institution_students.institution_id', 'institutions.id')
+            ->count();
     }
 
     /**
@@ -172,6 +193,7 @@ class Security_user extends Model
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
             'is_student' => 1,
+            'updated_from' => 'doe',
             'created' => now(),
             'created_user_id' => 1
         ];
@@ -183,7 +205,8 @@ class Security_user extends Model
         } catch (\Exception $th) {
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
-            $this->insertExaminationStudent($student);
+            $sis_student['openemis_no'] = $this->uniqueUId::getUniqueAlphanumeric();
+            $this->insertExaminationStudent($student, $sis_student);
         }
         return $studentData;
     }
@@ -200,7 +223,7 @@ class Security_user extends Model
         $this->uniqueUserId = new Unique_user_id();
         $this->uniqueUId = new UniqueUid();
         // regenerate unique id if it's not available
-        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no'])) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
+        $uniqueId = ($this->uniqueUId::isValidUniqueId($sis_student['openemis_no'],9)) ?  $sis_student['openemis_no'] : $this->uniqueUId::getUniqueAlphanumeric();
 
         $studentData = [
             'username' => str_replace('-', '', $uniqueId),
@@ -209,19 +232,21 @@ class Security_user extends Model
             'last_name' => genNameWithInitials($student['f_name']),
             'date_of_birth' => $student['b_date'],
             'address' => $student['pvt_address'],
+            'updated_from' => 'doe',
             'modified' => now()
         ];
 
         try {
-            self::where(['id' => $sis_student['student_id']])->update($studentData);
+            self::where( 'id'  , $sis_student['student_id'])->update($studentData);
+            $studentData['id'] = $sis_student['student_id'];
             $this->uniqueUserId->updateOrInsertRecord($studentData);
             return $studentData;
         } catch (\Exception $th) {
-            Log::error($th->getMessage());
+            Log::error($th);
             // in case of duplication of the Unique ID this will recursive.
+            $sis_student['openemis_no'] = $this->uniqueUId::getUniqueAlphanumeric();
             $this->updateExaminationStudent($student, $sis_student);
         }
-        return $studentData;
     }
 
 }

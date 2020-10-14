@@ -114,12 +114,16 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $mandatorySubject = Institution_class_subject::getMandetorySubjects($this->file['institution_class_id']);
                 // dd($mandatorySubject);
                 $subjects = getMatchingKeys($row);
-                $genderId = $row['gender_mf'] == 'M' ? 1 : 2;
+                $genderId  = null;
                 switch ($row['gender_mf']) {
                     case 'M':
+                        $genderId = $row['gender_mf'] = 1;
+                        $genderId = 1;
                         $this->maleStudentsCount += 1;
                         break;
                     case 'F':
+                        $genderId =  $row['gender_mf'] = 2;
+                        $genderId = 2;
                         $this->femaleStudentsCount += 1;
                         break;
                 }
@@ -142,11 +146,16 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
 
                 $openemisStudent = $this->uniqueUid::getUniqueAlphanumeric();
                 \Log::debug('Security_user');
+                $preferred_name = null;
+                    if (array_key_exists('preferred_name', $row)) {
+                    $preferred_name = $row['preferred_name'];
+                }
                 $student =  Security_user::create([
                     'username' => str_replace('-', '', $openemisStudent),
                     'openemis_no' => $openemisStudent,
                     'first_name' => $row['full_name'], // here we save full name in the column of first name. re reduce breaks of the system.
                     'last_name' => genNameWithInitials($row['full_name']),
+                    'preferred_name' => $preferred_name,
                     'gender_id' => $genderId,
                     'date_of_birth' => $date,
                     'address' => $row['address'],
@@ -158,14 +167,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     'created_user_id' => $this->file['security_user_id']
                 ]);
 
-
-
-                //            User_nationality::create([
-                //                'nationality_id' => $nationalityId,
-                //                'security_user_id' => $student->id,
-                //                'preferred' => 1,
-                //                'created_user_id' => $this->file['security_user_id']
-                //            ]);
 
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
@@ -423,6 +424,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $optionalSubjects = Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
                 $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+              
 
                 if (!empty($allSubjects)) {
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
@@ -430,6 +432,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     array_walk($allSubjects, array($this, 'insertSubject'));
+                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
                 }
 
                 unset($allSubjects);
@@ -463,7 +466,8 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
     {
 
         return [
-            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u|max:100',
+            '*.full_name' => 'required|regex:/^[\pL\s\-]+$/u|max:256',
+            '*.preferred_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:90',
             '*.gender_mf' => 'required|in:M,F',
             '*.date_of_birth_yyyy_mm_dd' => 'date|required|admission_age:' . $this->file['institution_class_id'],
             '*.address' => 'nullable',
@@ -471,7 +475,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
             '*.identity_type' => 'required_with:identity_number',
-            //            '*.identity_number' => 'user_unique:identity_number',
+            '*.identity_number' => 'required_with:identity_type|regex:/^[0-9]+$/|min:4|max:12',
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',

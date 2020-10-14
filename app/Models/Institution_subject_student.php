@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use function foo\func;
-use Illuminate\Database\Eloquent\Model;
 use Webpatser\Uuid\Uuid;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Institution_subject_student extends Model  {
 
 
+    use SoftDeletes;
+    
     public const CREATED_AT = 'created';
     public const UPDATED_AT = 'modified';
 
@@ -18,6 +21,8 @@ class Institution_subject_student extends Model  {
      * @var string
      */
     protected $table = 'institution_subject_students';
+
+    protected $softDelete = true;
 
     /**
      * Attributes that should be mass-assignable.
@@ -55,12 +60,6 @@ class Institution_subject_student extends Model  {
             $model->id = (string) Uuid::generate(4);
         });
 
-//        self::inserti(function (array $array){
-//            foreach ($array as $item) {
-//                $item->id = (string) Uuid::generate(4);
-//           }
-//        });
-
     }
 
     /**
@@ -84,7 +83,7 @@ class Institution_subject_student extends Model  {
         return $this->belongsTo('App\Models\Security_user','student_id');
     }
     
-    public static function getStudentsCount(){
+    public static function getStudentsCount($institution_subject_id){
          $total_male_students = self::with(['student' => function($query) {
                         $query->where('student.gender_id', '=', 1);
                     }])->whereHas('student', function ($query) {
