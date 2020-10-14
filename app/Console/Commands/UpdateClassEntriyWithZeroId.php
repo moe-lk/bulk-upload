@@ -20,7 +20,7 @@ class UpdateClassEntriyWithZeroId extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'update student class reference';
 
     /**
      * Create a new command instance.
