@@ -55,7 +55,7 @@ class UpdateClassEntriyWithZeroId extends Command
         
         if(count($institutionClass) == 1){
             Institution_class_student::where('student_id',$student['student_id'])
-            ->update(['institution_class_id' => $institutionClass->id,'education_grade_id' => $student['education_grade_id']]);    
+            ->update(['institution_class_id' => $institutionClass[0]['id'],'education_grade_id' => $student['education_grade_id']]);    
         echo "updated:" .$student['student_id']; 
         }else{
             Institution_class_student::where('student_id',$student['student_id'])->delete();
