@@ -69,13 +69,16 @@ class UpdateClassEntriyWithZeroId extends Command
             $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'],$student['institution_id']);
 
             if(count($institutionClass) == 1){
-                $date = new Carbon($student['start_date']);
+                $start_date = new Carbon($student['start_date']);
+                $end_date = new Carbon($student['end_date']);
                 Institution_student_admission::create(
                     [
                         'student_id'=>$student['student_id'],
                         'institution_class_id'=>  $institutionClass[0]['id'],
                         'start_date' => $student['start_date'],
-                        'start_year' => $date->format('Y'),
+                        'start_year' => $start_date->format('Y'),
+                        'end_date' => $student['start_date'],
+                        'end_year' => $end_date->format('Y'),
                         'education_grade_id' => $student['education_grade_id'],
                         'institution_id' => $student['institution_id'],
                         'status_id' => 124,
