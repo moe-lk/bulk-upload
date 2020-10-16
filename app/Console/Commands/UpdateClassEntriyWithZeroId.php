@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Institution_student;
 use App\Models\Institution_class_student;
 use App\Models\Institution_student_admission;
+use Carbon\Carbon;
 
 class UpdateClassEntriyWithZeroId extends Command
 {
@@ -68,10 +69,13 @@ class UpdateClassEntriyWithZeroId extends Command
             $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'],$student['institution_id']);
 
             if(count($institutionClass) == 1){
+                $date = new Carbon($student['start_date']);
                 Institution_student_admission::create(
                     [
                         'student_id'=>$student['student_id'],
                         'institution_class_id'=>  $institutionClass[0]['id'],
+                        'start_date' => $student['start_date'],
+                        'start_year' => $date->format('Y'),
                         'education_grade_id' => $student['education_grade_id'],
                         'institution_id' => $student['institution_id'],
                         'status_id' => 124,
