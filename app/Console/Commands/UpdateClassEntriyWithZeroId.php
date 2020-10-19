@@ -48,7 +48,7 @@ class UpdateClassEntriyWithZeroId extends Command
         $students = Institution_student::withTrashed()->where('updated_from','doe')
         ->get()->toArray();
         if(count($students)>0){
-            processParallel(array($this,'process'),$students,15);
+            processParallel(array($this,'process'),$students,5);
         }else{
             echo "all are updated \r\n";
         }
