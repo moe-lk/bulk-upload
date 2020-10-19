@@ -55,14 +55,15 @@ class UpdateClassEntriyWithZeroId extends Command
     }
 
     public function process($student){
-        $wrongStudentsClass = Institution_class_student::withTrashed()->where('institution_id','!=',$student['institution_id'])
+        $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get->toArray();
+        $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id',$institution_class)
         ->where('student_id',$student['student_id'])
         ->get()->toArray();
         
         if(count($wrongStudentsClass)>0){
             
-            Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
-            Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
+            Institution_class_student::where('student_id',$student['student_id'])->delete();
+            Institution_student_admission::where('student_id',$student['student_id'])->delete();
             
             echo "deleted wrong class reference:" .$student['student_id']; 
 
