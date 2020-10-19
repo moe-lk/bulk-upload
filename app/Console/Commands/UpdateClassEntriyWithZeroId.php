@@ -55,7 +55,7 @@ class UpdateClassEntriyWithZeroId extends Command
     }
 
     public function process($student){
-        $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get->toArray();
+        $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get()->toArray();
         $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id',$institution_class)
         ->where('student_id',$student['student_id'])
         ->get()->toArray();
