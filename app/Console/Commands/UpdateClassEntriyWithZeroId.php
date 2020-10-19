@@ -61,8 +61,8 @@ class UpdateClassEntriyWithZeroId extends Command
         
         if(count($wrongStudentsClass)>0){
             
-            Institution_class_student::where('student_id',$student['student_id'])->delete();
-            Institution_student_admission::where('student_id',$student['student_id'])->delete();
+            Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
+            Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
             
             echo "deleted wrong class reference:" .$student['student_id']; 
 
