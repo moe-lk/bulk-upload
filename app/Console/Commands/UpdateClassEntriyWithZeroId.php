@@ -55,7 +55,7 @@ class UpdateClassEntriyWithZeroId extends Command
     }
 
     public function process($student){
-        $wrongStudentsClass = Institution_class_student::withTrashed()->where('institution_id','<>',$student['institution_id'])
+        $wrongStudentsClass = Institution_class_student::withTrashed()->where('institution_id','!=',$student['institution_id'])
         ->where('student_id',$student['student_id'])
         ->get()->toArray();
         
@@ -98,6 +98,8 @@ class UpdateClassEntriyWithZeroId extends Command
                     ]);
                 echo "updated:" .$student['student_id']; 
             }
+        }else{
+            
         }
     }
 }
