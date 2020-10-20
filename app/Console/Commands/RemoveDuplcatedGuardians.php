@@ -43,7 +43,7 @@ class RemoveDuplcatedGuardians extends Command
             $this->start_time = microtime(TRUE);
             $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $this->output->writeln('############### Starting delete Duplication ################');
-            $duplicatedStudents = Student_guardian::select(DB::raw('count(*) as total'),'student_id','guardian_id')
+            $duplicatedStudents = Student_guardian::select(DB::raw('count(*) as total'),'id','student_id','guardian_id')
             ->groupBy('student_id')
             ->groupBy('guardian_id')
             ->having('total','>',1)
@@ -52,6 +52,8 @@ class RemoveDuplcatedGuardians extends Command
             ->toArray();
             if(count($duplicatedStudents)>0){
                 processParallel(array($this,'process'),$duplicatedStudents,10);
+                $this->end_time  = microtime(TRUE);
+                $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
             }else{
                 $this->output->writeln('Nothing to Process, all are clean');
             }
@@ -60,11 +62,12 @@ class RemoveDuplcatedGuardians extends Command
     }
 
     public function process($Student){
+
         Student_guardian::where('student_guardians.id','>',$Student['id'])
         ->where('student_guardians.student_id',$Student['student_id'])
         ->where('student_guardians.guardian_id',$Student['guardian_id'])
         ->delete();
-        $this->end_time = microtime(TRUE);    
-        $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
+        $this->end_time = microtime(TRUE); 
+        $this->output->writeln('Removed duplicated guardian  of student: ' . $Student['guardian_id']);   
     }
 }
