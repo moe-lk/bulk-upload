@@ -63,11 +63,15 @@ class RemoveDuplcatedGuardians extends Command
 
     public function process($Student){
 
-        Student_guardian::where('student_guardians.id','>',$Student['id'])
-        ->where('student_guardians.student_id',$Student['student_id'])
-        ->where('student_guardians.guardian_id',$Student['guardian_id'])
-        ->delete();
-        $this->end_time = microtime(TRUE); 
-        $this->output->writeln('Removed duplicated guardian  of student: ' . $Student['guardian_id']);   
+       try{
+            Student_guardian::where('student_guardians.id','>',$Student['id'])
+            ->where('student_guardians.student_id',$Student['student_id'])
+            ->where('student_guardians.guardian_id',$Student['guardian_id'])
+            ->delete();
+            $this->end_time = microtime(TRUE); 
+            $this->output->writeln('Removed duplicated guardian  of student: ' . $Student['guardian_id']);   
+       }catch(\Exception $e){
+           dd($e);
+       }
     }
 }
