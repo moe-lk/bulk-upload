@@ -58,14 +58,16 @@ class UpdateClassEntriyWithZeroId extends Command
     public function process($student){
         $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get()->toArray();
         $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id',$institution_class)
+        ->orWhere('institution_class_id',0)
         ->where('student_id',$student['student_id'])
         ->get()->toArray();
         
         if(count($wrongStudentsClass)>0){
-            
             Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
             Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
             Institution_student::where('student_id',$student['student_id'])->forceDelete();
+
+            array_walk($wrongStudentsClass,array($this,'updateClassCount'));
             
             echo "deleted wrong class reference:" .$student['student_id']; 
 
@@ -90,7 +92,7 @@ class UpdateClassEntriyWithZeroId extends Command
                         'updated_from' => $student['updated_from']
                     ]
                 );
-                Institution_class_student::create([
+                $institutionClassStudent = [
                     'student_id'=>$student['student_id'],
                     'institution_class_id'=>  $institutionClass[0]['id'],
                     'education_grade_id' => $student['education_grade_id'],
@@ -100,7 +102,8 @@ class UpdateClassEntriyWithZeroId extends Command
                     'student_status_id' => 1,
                     'created_user_id' => $student['created_user_id'],
                     'updated_from' => $student['updated_from']
-                    ]);
+                ];
+                Institution_class_student::create($institutionClassStudent);
                 Institution_student::create([
                     'student_id'=>$student['student_id'],
                     'student_status_id' => 1,
@@ -119,22 +122,18 @@ class UpdateClassEntriyWithZeroId extends Command
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
                 echo "updated:" .$student['student_id']; 
-                $studentCount = Institution_class_student::getStudentsCount($institutionClass[0]['id']);
-                $user = Security_user::find($student['student_id']);
-                if($user->gender_id == 1){
-                    Institution_class::where(['id' => $institutionClass[0]['id']])
-                    ->update([
-                        'total_male_students' => $studentCount['total_male_students']+1,
-                        'total_female_students' => $studentCount['total_female_students']
-                    ]);
-                }else{
-                    Institution_class::where(['id' => $institutionClass[0]['id']])
-                    ->update([
-                        'total_male_students' => $studentCount['total_male_students'],
-                        'total_female_students' => $studentCount['total_female_students']+1
-                    ]);
-                }
-            }  
+                array_walk([$institutionClassStudent],array($this,'updateClassCount'));
+            }
+
         }
+    }
+
+    public function updateClassCount($institutionClass){
+        $studentCount = Institution_class_student::getStudentsCount($institutionClass['institution_class_id']);
+        Institution_class::where(['id' => $institutionClass['institution_class_id']])
+        ->update([
+            'total_male_students' => $studentCount['total_male_students'],
+            'total_female_students' => $studentCount['total_female_students']
+        ]);
     }
 }
