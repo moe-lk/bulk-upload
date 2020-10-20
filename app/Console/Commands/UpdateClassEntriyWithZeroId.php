@@ -115,7 +115,7 @@ class UpdateClassEntriyWithZeroId extends Command
                     'taking_g5_exam' => $student['updated_from'] == 'doe' ? true: false,
                     'income_at_g5' =>  $student['income_at_g5'],
                     'updated_from' => $student['updated_from'],
-                    'exam_center_for_special_education' =>  $student['exam_center_for_special_education'],
+                    'exam_center_for_special_education_g5' =>  $student['exam_center_for_special_education_g5'],
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
                 echo "updated:" .$student['student_id']; 
