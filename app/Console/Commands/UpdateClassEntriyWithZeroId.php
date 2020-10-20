@@ -46,7 +46,7 @@ class UpdateClassEntriyWithZeroId extends Command
     public function handle()
     {
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
-        $students = Institution_student::where('updated_from',$this->argument('from'))
+        $students = Institution_student::withTrashed()->where('updated_from',$this->argument('from'))
         ->get()->toArray();
         if(count($students)>0){
             array_walk($students,array($this,'process'));
@@ -63,9 +63,9 @@ class UpdateClassEntriyWithZeroId extends Command
         
         if(count($wrongStudentsClass)>0){
             
-            Institution_class_student::where('student_id',$student['student_id'])->delete();
-            Institution_student_admission::where('student_id',$student['student_id'])->delete();
-            Institution_student::where('student_id',$student['student_id'])->delete();
+            Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
+            Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
+            Institution_student::where('student_id',$student['student_id'])->forceDelete();
             
             echo "deleted wrong class reference:" .$student['student_id']; 
 
