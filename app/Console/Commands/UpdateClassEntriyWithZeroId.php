@@ -58,11 +58,11 @@ class UpdateClassEntriyWithZeroId extends Command
     public function process($student){
         $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get()->toArray();
         $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id',$institution_class)
+        ->orWhere('institution_class_id',0)
         ->where('student_id',$student['student_id'])
         ->get()->toArray();
         
         if(count($wrongStudentsClass)>0){
-            
             Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
             Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
             Institution_student::where('student_id',$student['student_id'])->forceDelete();
