@@ -21,6 +21,8 @@ class Student_guardian extends Base_Model  {
      */
     protected $table = 'student_guardians';
 
+    protected $softDelete = true;
+
     /**
      * Attributes that should be mass-assignable.
      *
