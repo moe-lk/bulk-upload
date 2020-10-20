@@ -45,7 +45,7 @@ class UpdateClassEntriyWithZeroId extends Command
     public function handle()
     {
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
-        $students = Institution_student::withTrashed()->where('updated_from','doe')
+        $students = Institution_student::where('updated_from','doe')
         ->get()->toArray();
         if(count($students)>0){
             array_walk(array($this,'process'),$students);
