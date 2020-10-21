@@ -112,13 +112,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
-                $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
-                $academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
-
+                //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
+                //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
+                $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
-                $identityType = $identityType !== null ? $identityType->id : null;
+                //$identityType = $identityType !== null ? $identityType->id : null;
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
@@ -143,7 +143,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
                             'birthplace_area_id' => $row['birth_registrar_office_as_in_birth_certificate'] ? $BirthArea : $studentInfo['birthplace_area_id'],
                             'nationality_id' => $row['nationality'] ? $nationalityId : $studentInfo['nationality_id'],
-                            'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
+                            //'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
                             'identity_number' => $row['identity_number'] ? $identityNUmber : $studentInfo['identity_number'],
                             'is_student' => 1,
                             'modified' => now(),
@@ -151,7 +151,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             ]);
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
-
+                //dd($academicPeriod);            
                 if(!empty($row['admission_no']) && !empty($academicPeriod)){
                     Institution_student::where('student_id','=',$studentInfo->id)
                     ->where('institution_id','=', $institution)
@@ -413,16 +413,16 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
-            '*.identity_type' => 'required_with:identity_number',
-            '*.identity_number' => 'nullable|regex:/^[0-9]+$/|min:4|max:12',
-            '*.academic_period' => 'required_with:admission_no|nullable|exists:academic_periods,name',
+            //'*.identity_type' => 'nullable|required_with:identity_number',
+            '*.identity_number' => 'nullable|regex:/^[0-9]{4}+$/',
+            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
             '*.bmi_weight' => 'required_with:*.bmi_height|nullable|numeric|max:200|min:10',
             '*.bmi_date_yyyy_mm_dd' => 'required_with:*.bmi_height|nullable|date',
             '*.bmi_academic_period' => 'required_with:*.bmi_weight|nullable|exists:academic_periods,name',
-            '*.admission_no' => 'nullable|max:12|min:4|regex:/^[A-Za-z0-9\/]+$/',
+            '*.admission_no' => 'nullable|min:4|max:12|regex:/^[A-Za-z0-9\/]+$/',
             '*.start_date_yyyy_mm_dd' => 'nullable|date',
             '*.special_need_type' => 'nullable',
             '*.special_need' => 'nullable|exists:special_need_difficulties,name|required_if:special_need_type,Differantly Able',
