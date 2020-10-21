@@ -151,7 +151,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             ]);
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
-                //dd($academicPeriod);            
+                           
                 if(!empty($row['admission_no']) && !empty($academicPeriod)){
                     Institution_student::where('student_id','=',$studentInfo->id)
                     ->where('institution_id','=', $institution)
