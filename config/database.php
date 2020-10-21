@@ -46,7 +46,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'sis-mysql'),
+            'host' => env('DB_HOST', 'sis-mysql-2'),
             // 'port' => env('DB_PORT', '3307'),
             'database' => env('DB_DATABASE', 'openemis'),
             'username' => env('DB_USERNAME', 'root'),
