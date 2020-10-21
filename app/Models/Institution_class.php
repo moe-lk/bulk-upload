@@ -68,4 +68,14 @@ class Institution_class extends Base_Model  {
             ->get()->toArray();
     }
 
+    public static function getGradeClasses($education_grade_id,$institution_id){
+        return self::query()
+        ->select('institution_classes.id','institution_classes.institution_id','institution_classes.institution_shift_id',
+            'institution_classes.name','institution_classes.no_of_students','institution_classes.class_number','institution_class_grades.education_grade_id')
+        ->where('institution_class_grades.education_grade_id',$education_grade_id)
+        ->where('institution_classes.institution_id',$institution_id)
+        ->join('institution_class_grades','institution_classes.id','institution_class_grades.institution_class_id')
+        ->get()->toArray();
+    }
+
 }

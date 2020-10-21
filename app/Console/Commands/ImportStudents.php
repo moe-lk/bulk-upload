@@ -118,7 +118,7 @@ class ImportStudents extends Command
 
     protected function getFiles()
     {
-        $files = Upload::where('is_processed', '=', 0)
+        $query = Upload::where('is_processed', '=', 0)
             ->select(
                 'uploads.id',
                 'uploads.security_user_id',
@@ -136,12 +136,16 @@ class ImportStudents extends Command
             )
             ->join('user_contacts', 'uploads.security_user_id', '=', 'user_contacts.security_user_id')
             ->join('contact_types', 'user_contacts.contact_type_id', '=', 'contact_types.id')
-            //only for UAT
-            //  ->where('contact_types.contact_option_id', '=', 5)
-           ->where('contact_types.contact_option_id', '!=', 5)
-            //  ->where('contact_types.name', '=', 'TestEmail')
-            ->limit(1)
-            ->get()->toArray();
+       
+            ;
+            if(env('APP_ENV') == 'stage'){
+                $query->where('contact_types.contact_option_id', '=', 5)
+                ->where('contact_types.name', '=', 'TestEmail');
+            }else{
+                $query->where('contact_types.contact_option_id', '!=', 5);
+            }
+            
+        $files = $query->limit(1)->get()->toArray();     
         $node = $this->argument('node');
         if (!empty($files)) {
             DB::beginTransaction();
