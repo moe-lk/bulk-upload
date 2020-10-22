@@ -207,25 +207,22 @@ class Import
         $row = $this->formateDate($row, 'guardians_date_of_birth_yyyy_mm_dd');
 
         $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
+      
         if (array_key_exists('identity_type', $row)) {
-
-            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
-                $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
-                // dd(($row['date_of_birth_yyyy_mm_dd']));
-                $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-                if ($BirthDivision !== null) {
-                    $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                        ->where('parent_id', '=', $BirthDivision->id)->first();
-                    if ($BirthArea !== null) {
-                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
-                    }
+        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
+            $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
+            // dd(($row['date_of_birth_yyyy_mm_dd']));
+            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
+            if ($BirthDivision !== null) {
+                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
+                    ->where('parent_id', '=', $BirthDivision->id)->first();
+                if ($BirthArea !== null) {
+                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
                 }
             }
 
         }
-
-        
-
+    }
         return $row;
     }
 

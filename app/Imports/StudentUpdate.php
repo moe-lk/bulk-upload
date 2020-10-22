@@ -112,7 +112,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
-
                 //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
                 $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
@@ -414,9 +413,9 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
-            //'*.identity_type' => 'nullable|required_with:identity_number',
+            //'*.identity_type' => 'required_with:identity_number',
             '*.identity_number' => 'nullable|regex:/^[0-9]{4}+$/',
-            '*.academic_period' => 'required_with:*.admission_no|nullable|exists:academic_periods,name',
+            '*.academic_period' => 'required_with:admission_no|nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
