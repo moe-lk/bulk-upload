@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Base_Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Webpatser\Uuid\Uuid;
 
 class Student_guardian extends Base_Model  {
 
+    use SoftDeletes;
 
     public const CREATED_AT = 'created';
 
@@ -20,6 +22,8 @@ class Student_guardian extends Base_Model  {
      * @var string
      */
     protected $table = 'student_guardians';
+
+    protected $softDelete = true;
 
     /**
      * Attributes that should be mass-assignable.
