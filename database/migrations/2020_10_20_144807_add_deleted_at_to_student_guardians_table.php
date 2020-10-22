@@ -14,7 +14,7 @@ class AddDeletedAtToStudentGuardiansTable extends Migration
     public function up()
     {
         Schema::table('student_guardians', function (Blueprint $table) {
-            $table->timestamp('deleted_at');
+            $table->softDeletes();
         });
     }
 

@@ -112,6 +112,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
+
                 //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
                 $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();

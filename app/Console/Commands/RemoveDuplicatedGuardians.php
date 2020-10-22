@@ -43,6 +43,7 @@ class RemoveDuplicatedGuardians extends Command
             $this->start_time = microtime(TRUE);
             $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $this->output->writeln('############### Starting delete Duplication ################');
+            Student_guardian::withTrashed()->restore();
             $this->delete();
             $this->end_time  = microtime(TRUE);
             $this->output->writeln('The cook took ' . ($this->end_time - $this->start_time) . ' seconds to complete');
@@ -56,7 +57,7 @@ class RemoveDuplicatedGuardians extends Command
            INNER JOIN student_guardians t2 
                set t1.deleted_at=now() 
            WHERE 
-               t1.created < t2.created AND
+               t1.id < t2.id AND
                t1.student_id = t2.student_id AND
                t1.guardian_id = t1.guardian_id");
        }catch(\Exception $e){
