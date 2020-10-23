@@ -57,7 +57,7 @@ class RemoveDuplicatedGuardians extends Command
            INNER JOIN student_guardians t2 
                set t1.deleted_at=now() 
            WHERE 
-               t1.id < t2.id AND
+               t1.id > t2.id AND
                t1.student_id = t2.student_id AND
                t1.guardian_id = t1.guardian_id");
        }catch(\Exception $e){
