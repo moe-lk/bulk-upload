@@ -59,7 +59,7 @@ class RemoveDuplicatedGuardians extends Command
            WHERE 
                t1.id > t2.id AND
                t1.student_id = t2.student_id AND
-               t1.guardian_id = t1.guardian_id");
+               t1.guardian_id = t2.guardian_id");
        }catch(\Exception $e){
            dd($e);
        }
