@@ -71,6 +71,8 @@ class Student_guardian extends Base_Model  {
         ->where('guardian_id', $guardian->id)
         ->exist();
 
+        $totalGuardians = self::where('student_id',$student->student_id)->count();
+
         $data = [
             'student_id' => $student->student_id,
             'guardian_id' => $guardian->id,
@@ -80,7 +82,7 @@ class Student_guardian extends Base_Model  {
         if(!$exist){
             $data['created'] = now();
             self::create($data);
-        }else{
+        }elseif ($totalGuardians <= 2){
             $data['modified'] = now();
             self::where('student_id' , $student->student_id)
             ->where('guardian_id',$guardian->id)
