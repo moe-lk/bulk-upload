@@ -114,7 +114,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
-                $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
+                //$academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
