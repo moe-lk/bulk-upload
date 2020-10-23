@@ -46,7 +46,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'sis-mysql'),
+            'host' => env('DB_HOST', 'sis-mysql-2'),
             // 'port' => env('DB_PORT', '3307'),
             'database' => env('DB_DATABASE', 'openemis'),
             'username' => env('DB_USERNAME', 'root'),
@@ -56,12 +56,16 @@ return [
             'collation' => 'utf8_unicode_ci',
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => false,
+            'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::ATTR_EMULATE_PREPARES => true
-            ]) : [],
+            'modes' => [
+                'STRICT_TRANS_TABLES',
+                'NO_ZERO_IN_DATE',
+                'NO_ZERO_DATE',
+                'ERROR_FOR_DIVISION_BY_ZERO',
+                'NO_ENGINE_SUBSTITUTION',
+            ],
+            'options' => [ PDO::ATTR_EMULATE_PREPARES => true],
         ],
 
         'pgsql' => [
