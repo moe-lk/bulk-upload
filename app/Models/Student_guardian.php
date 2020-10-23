@@ -67,15 +67,25 @@ class Student_guardian extends Base_Model  {
 
     public static function createStudentGuardian($student,$guardian,$user){
      
+        $exist = self::where('student_id', $student->student_id)
+        ->where('guardian_id', $guardian->id)
+        ->exist();
+
         $data = [
             'student_id' => $student->student_id,
             'guardian_id' => $guardian->id,
             'guardian_relation_id' => $guardian->guardian_relation_id,
-            'created' => now(),
             'created_user_id' => $user
         ];
-        self::create($data);
-        
+        if(!$exist){
+            $data['created'] = now();
+            self::create($data);
+        }else{
+            $data['modified'] = now();
+            self::where('student_id' , $student->student_id)
+            ->where('guardian_id',$guardian->id)
+            ->update($data);
+        }
     }
 
 

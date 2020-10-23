@@ -216,7 +216,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $father = null;
                     if (!empty($row['fathers_identity_number'])) {
                         $father = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['fathers_identity_number'])->first();
+                                        ->where('identity_number', '=', $row['fathers_identity_number'])->get();
                     }
 
 
@@ -269,7 +269,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if (!empty($row['mothers_identity_number'])) {
                         $mother = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['mothers_identity_number'])->first();
+                                        ->where('identity_number', '=', $row['mothers_identity_number'])->get();
                     }
 
                     if ($mother === null) {
@@ -322,7 +322,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if (!empty($row['guardians_identity_number'])) {
                         $guardian = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['guardians_identity_number'])->first();
+                                        ->where('identity_number', '=', $row['guardians_identity_number'])->get();
                     }
 
                     if ($guardian === null) {
