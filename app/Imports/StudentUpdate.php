@@ -114,7 +114,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
-                $academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
+                //$academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
@@ -151,14 +151,22 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             ]);
 
                 $student = Institution_class_student::where('student_id', '=', $studentInfo->id)->first();
-                           
-                if(!empty($row['admission_no']) && !empty($academicPeriod)){
+
+
+                /*if(!empty($row['admission_no']) && !empty($academicPeriod)){
+
                     Institution_student::where('student_id','=',$studentInfo->id)
                     ->where('institution_id','=', $institution)
                     ->where('academic_period_id','=',$academicPeriod->id)
                     ->update(['admission_id'=> $row['admission_no']]);
-                }
+                }*/
 
+                if(!empty($row['admission_no'])){
+                    Institution_student::where('student_id','=',$studentInfo->id)
+                    ->where('institution_id','=', $institution)
+                   // ->where('academic_period_id','=',$academicPeriod->id)
+                    ->update(['admission_id'=> $row['admission_no']]);
+                }
                 if (!empty($row['special_need'])) {
 
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
@@ -415,7 +423,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.nationality' => 'nullable',
             //'*.identity_type' => 'required_with:identity_number',
             '*.identity_number' => 'nullable|regex:/^[0-9]{4}+$/',
-            '*.academic_period' => 'required_with:admission_no|nullable|exists:academic_periods,name',
+            '*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
