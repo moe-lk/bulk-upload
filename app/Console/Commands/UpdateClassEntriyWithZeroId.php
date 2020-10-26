@@ -19,7 +19,7 @@ class UpdateClassEntriyWithZeroId extends Command
      *
      * @var string
      */
-    protected $signature = 'update:zero_id_class {from} {max}';
+    protected $signature = 'update:zero_id_class {from} {max} {code}';
 
     /**
      * The console command description.
@@ -47,6 +47,8 @@ class UpdateClassEntriyWithZeroId extends Command
     {
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $students = Institution_student::withTrashed()->where('updated_from',$this->argument('from'))
+        ->join('institutions','institutions.id','institution_students.institution_id')
+        ->where('institutions.code',$this->argument('code'))
         ->get()->toArray();
         if(count($students)>0){
             processParallel(array($this,'process'),$students,$this->argument('max'));
