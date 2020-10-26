@@ -35,6 +35,7 @@ class UpdateClassEntriyWithZeroId extends Command
      */
     public function __construct()
     {
+        $this->class = new Institution_class;
         parent::__construct();
     }
 
@@ -79,9 +80,9 @@ class UpdateClassEntriyWithZeroId extends Command
             ->get()->toArray();
 
         if (count($wrongStudentsClass) > 0) {
-            Institution_class_student::where('student_id', $student['student_id'])->delete();
-            Institution_student_admission::where('student_id', $student['student_id'])->delete();
-            Institution_student::where('student_id', $student['student_id'])->delete();
+            Institution_class_student::where('student_id', $student['student_id'])->forceDelete();
+            Institution_student_admission::where('student_id', $student['student_id'])->forceDelete();
+            Institution_student::where('student_id', $student['student_id'])->forceDelete();
 
             array_walk($wrongStudentsClass, array($this, 'updateClassCount'));
 
@@ -138,7 +139,7 @@ class UpdateClassEntriyWithZeroId extends Command
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
                 echo "updated:" . $student['student_id'];
-                $this->class = new Institution_class;
+               
                 array_walk([$institutionClassStudent], array($this->class, 'updateClassCount'));
             }
         }
