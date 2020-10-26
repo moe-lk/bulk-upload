@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Institution_student;
 use App\Models\Security_user;
 use App\Models\Student_guardian;
 use Illuminate\Console\Command;
@@ -29,6 +30,7 @@ class MapStudentArea extends Command
      */
     public function __construct()
     {
+        $this->output =  new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
     }
 
@@ -44,36 +46,8 @@ class MapStudentArea extends Command
     }
 
     public function process($student){
-        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-        $father = Student_guardian::where('student_id',$student['id'])
-        ->join('security_users as sg','guardian_id', 'sg.id')
-        ->where('guardian_relation_id',1)
-        ->get()->first();
-
-        $mother = Student_guardian::where('student_id',$student['id'])
-        ->join('security_users as sg','guardian_id', 'sg.id')
-        ->where('guardian_relation_id',1)
-        ->get()->first();
-
-        $guardian = Student_guardian::where('student_id',$student['id'])
-        ->join('security_users as sg','guardian_id', 'sg.id')
-        ->where('guardian_relation_id',3)
-        ->get()->first();
-
-        if(!is_null($father)){
-            Security_user::where('id',$student['id'])
-            ->update(['address_area_id' => $father->address_area_id]);
-            $output->writeln('Updated father area to:'. $student['openemis_no']);
-        }elseif(!is_null($mother)){
-            Security_user::where('id',$student['id'])
-            ->update(['address_area_id' => $mother->address_area_id]);
-            $output->writeln('Updated mother area to:'. $student['openemis_no']);
-        }elseif(!is_null($guardian)){
-            Security_user::where('id',$student['id'])
-            ->update(['address_area_id' => $guardian->address_area_id]);
-            $output->writeln('Updated guardian area to:'. $student['openemis_no']);
-        }else{
-            $output->writeln('No area found for student:'. $student['openemis_no']);
-        }
+        $student['student_id'] = $student['id'];
+        Institution_student::updateStudentArea($student);
+        $this->output->writeln('area updated for student:'. $student['openemis_no']) ;
     }
 }

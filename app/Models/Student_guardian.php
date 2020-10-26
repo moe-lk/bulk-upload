@@ -90,5 +90,4 @@ class Student_guardian extends Base_Model  {
         }
     }
 
-
 }
