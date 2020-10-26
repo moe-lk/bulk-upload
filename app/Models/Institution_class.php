@@ -78,4 +78,14 @@ class Institution_class extends Base_Model  {
         ->get()->toArray();
     }
 
+    public function updateClassCount($institutionClass)
+    {
+        $studentCount = Institution_class_student::getStudentsCount($institutionClass['institution_class_id']);
+        Institution_class::where(['id' => $institutionClass['institution_class_id']])
+            ->update([
+                'total_male_students' => $studentCount['total_male_students'],
+                'total_female_students' => $studentCount['total_female_students']
+            ]);
+    }
+
 }
