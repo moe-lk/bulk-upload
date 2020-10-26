@@ -75,8 +75,8 @@ class MapStudentArea extends Command
         }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id ==  $mother->address_area_id)){
             Security_user::where('id',$student['id'])
             ->update(['address_area_id' => $mother->address_area_id]);
-            $output->writeln('Updated mother area to:'. $student['openemis_no']);
-        }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id ==  $mother->address_area_id) && !is_null($guardian)){
+            $output->writeln('Updated father & mother area to:'. $student['openemis_no']);
+        }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id !==  $mother->address_area_id) && !is_null($guardian)){
             Security_user::where('id',$student['id'])
             ->update(['address_area_id' => $guardian->address_area_id]);
             $output->writeln('Updated guardian area to:'. $student['openemis_no']);
