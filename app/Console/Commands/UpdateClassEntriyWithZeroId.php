@@ -63,7 +63,7 @@ class UpdateClassEntriyWithZeroId extends Command
             ->where('institutions.id', $institution['id'])
             ->get()->toArray();
         if (count($students) > 0) {
-            processParallel(array($this, 'process'), $students);
+            array_walk($students,array($this, 'process'));
         } else {
             echo "all are updated \r\n";
         }
@@ -71,16 +71,17 @@ class UpdateClassEntriyWithZeroId extends Command
 
     public function process($student)
     {
-        $institution_class = Institution_class::select('id')->where('institution_id', $student['institution_id'])->get()->toArray();
-        $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id', $institution_class)
+       try{
+        $wrongStudentsClass = Institution_class_student::where('institution_id', $student['institution_id'])
+            ->whereRaw('institution_class_id not in (select id from institution_classes)')
             ->orWhere('institution_class_id', 0)
             ->where('student_id', $student['student_id'])
             ->get()->toArray();
 
         if (count($wrongStudentsClass) > 0) {
-            Institution_class_student::where('student_id', $student['student_id'])->forceDelete();
-            Institution_student_admission::where('student_id', $student['student_id'])->forceDelete();
-            Institution_student::where('student_id', $student['student_id'])->forceDelete();
+            Institution_class_student::where('student_id', $student['student_id'])->delete();
+            Institution_student_admission::where('student_id', $student['student_id'])->delete();
+            Institution_student::where('student_id', $student['student_id'])->delete();
 
             array_walk($wrongStudentsClass, array($this, 'updateClassCount'));
 
@@ -137,18 +138,12 @@ class UpdateClassEntriyWithZeroId extends Command
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
                 echo "updated:" . $student['student_id'];
-                array_walk([$institutionClassStudent], array($this, 'updateClassCount'));
+                $this->class = new Institution_class;
+                array_walk([$institutionClassStudent], array($this->class, 'updateClassCount'));
             }
         }
-    }
-
-    public function updateClassCount($institutionClass)
-    {
-        $studentCount = Institution_class_student::getStudentsCount($institutionClass['institution_class_id']);
-        Institution_class::where(['id' => $institutionClass['institution_class_id']])
-            ->update([
-                'total_male_students' => $studentCount['total_male_students'],
-                'total_female_students' => $studentCount['total_female_students']
-            ]);
+       }catch(\Exception $e){
+            dd($e);
+       }
     }
 }
