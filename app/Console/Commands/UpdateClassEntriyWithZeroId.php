@@ -139,8 +139,8 @@ class UpdateClassEntriyWithZeroId extends Command
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
                 echo "updated:" . $student['student_id'];
-               
-                array_walk([$institutionClassStudent], array($this->class, 'updateClassCount'));
+                $institutionClassStudent = [$institutionClassStudent];
+                array_walk($institutionClassStudent, array($this->class, 'updateClassCount'));
             }
         }
        }catch(\Exception $e){
