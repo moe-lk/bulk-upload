@@ -69,7 +69,7 @@ class Student_guardian extends Base_Model  {
      
         $exist = self::where('student_id', $student->student_id)
         ->where('guardian_relation_id', $guardian->guardian_relation_id)
-        ->exist();
+        ->exists();
 
         $totalGuardians = self::where('student_id',$student->student_id)->count();
 
