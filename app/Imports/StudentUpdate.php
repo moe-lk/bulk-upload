@@ -360,6 +360,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
+                Institution_student::updateStudentArea($student);
 
                 $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
