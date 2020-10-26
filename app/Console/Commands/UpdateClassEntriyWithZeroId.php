@@ -46,42 +46,55 @@ class UpdateClassEntriyWithZeroId extends Command
     public function handle()
     {
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
-        $students = Institution_student::withTrashed()->where('updated_from',$this->argument('from'))
-        ->join('institutions','institutions.id','institution_students.institution_id')
-        ->where('institutions.code',$this->argument('code'))
-        ->get()->toArray();
-        if(count($students)>0){
-            processParallel(array($this,'process'),$students,$this->argument('max'));
-        }else{
+
+        if ($this->argument('code') !== 'All') {
+            $institutions = Institution::where('code', $this->argument('code'))->get()->toArray();
+            processParallel(array($this,'processInstitution'),$institutions,$this->argument('max'));
+        } else {
+            $institutions = Institution::where('institution_status_id', 1)->get()->toArray();
+            processParallel(array($this,'processInstitution'),$institutions,$this->argument('max'));
+        }
+    }
+
+    public function processInstitution($institution)
+    {
+        $students = Institution_student::withTrashed()->where('updated_from', $this->argument('from'))
+            ->join('institutions', 'institutions.id', 'institution_students.institution_id')
+            ->where('institutions.id', $institution['id'])
+            ->get()->toArray();
+        if (count($students) > 0) {
+            processParallel(array($this, 'process'), $students);
+        } else {
             echo "all are updated \r\n";
         }
     }
 
-    public function process($student){
-        $institution_class = Institution_class::select('id')->where('institution_id',$student['institution_id'])->get()->toArray();
-        $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id',$institution_class)
-        ->orWhere('institution_class_id',0)
-        ->where('student_id',$student['student_id'])
-        ->get()->toArray();
-        
-        if(count($wrongStudentsClass)>0){
-            Institution_class_student::where('student_id',$student['student_id'])->forceDelete();
-            Institution_student_admission::where('student_id',$student['student_id'])->forceDelete();
-            Institution_student::where('student_id',$student['student_id'])->forceDelete();
+    public function process($student)
+    {
+        $institution_class = Institution_class::select('id')->where('institution_id', $student['institution_id'])->get()->toArray();
+        $wrongStudentsClass = Institution_class_student::whereNotIn('institution_class_id', $institution_class)
+            ->orWhere('institution_class_id', 0)
+            ->where('student_id', $student['student_id'])
+            ->get()->toArray();
 
-            array_walk($wrongStudentsClass,array($this,'updateClassCount'));
-            
-            echo "deleted wrong class reference:" .$student['student_id']; 
+        if (count($wrongStudentsClass) > 0) {
+            Institution_class_student::where('student_id', $student['student_id'])->forceDelete();
+            Institution_student_admission::where('student_id', $student['student_id'])->forceDelete();
+            Institution_student::where('student_id', $student['student_id'])->forceDelete();
 
-            $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'],$student['institution_id']);
+            array_walk($wrongStudentsClass, array($this, 'updateClassCount'));
 
-            if(count($institutionClass) == 1){
+            echo "deleted wrong class reference:" . $student['student_id'];
+
+            $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'], $student['institution_id']);
+
+            if (count($institutionClass) == 1) {
                 $start_date = new Carbon($student['start_date']);
                 $end_date = new Carbon($student['end_date']);
                 Institution_student_admission::create(
                     [
-                        'student_id'=>$student['student_id'],
-                        'institution_class_id'=>  $institutionClass[0]['id'],
+                        'student_id' => $student['student_id'],
+                        'institution_class_id' =>  $institutionClass[0]['id'],
                         'start_date' => $student['start_date'],
                         'start_year' => $start_date->format('Y'),
                         'end_date' => $student['start_date'],
@@ -95,8 +108,8 @@ class UpdateClassEntriyWithZeroId extends Command
                     ]
                 );
                 $institutionClassStudent = [
-                    'student_id'=>$student['student_id'],
-                    'institution_class_id'=>  $institutionClass[0]['id'],
+                    'student_id' => $student['student_id'],
+                    'institution_class_id' =>  $institutionClass[0]['id'],
                     'education_grade_id' => $student['education_grade_id'],
                     'institution_id' => $student['institution_id'],
                     'status_id' => 124,
@@ -107,7 +120,7 @@ class UpdateClassEntriyWithZeroId extends Command
                 ];
                 Institution_class_student::create($institutionClassStudent);
                 Institution_student::create([
-                    'student_id'=>$student['student_id'],
+                    'student_id' => $student['student_id'],
                     'student_status_id' => 1,
                     'education_grade_id' => $student['education_grade_id'],
                     'institution_id' => $student['institution_id'],
@@ -117,25 +130,25 @@ class UpdateClassEntriyWithZeroId extends Command
                     'start_year' => $start_date->format('Y'),
                     'end_date' => $student['start_date'],
                     'end_year' => $end_date->format('Y'),
-                    'taking_g5_exam' => $student['updated_from'] == 'doe' ? true: false,
+                    'taking_g5_exam' => $student['updated_from'] == 'doe' ? true : false,
                     'income_at_g5' =>  $student['income_at_g5'],
                     'updated_from' => $student['updated_from'],
                     'exam_center_for_special_education_g5' =>  $student['exam_center_for_special_education_g5'],
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
-                echo "updated:" .$student['student_id']; 
-                array_walk([$institutionClassStudent],array($this,'updateClassCount'));
+                echo "updated:" . $student['student_id'];
+                array_walk([$institutionClassStudent], array($this, 'updateClassCount'));
             }
-
         }
     }
 
-    public function updateClassCount($institutionClass){
+    public function updateClassCount($institutionClass)
+    {
         $studentCount = Institution_class_student::getStudentsCount($institutionClass['institution_class_id']);
         Institution_class::where(['id' => $institutionClass['institution_class_id']])
-        ->update([
-            'total_male_students' => $studentCount['total_male_students'],
-            'total_female_students' => $studentCount['total_female_students']
-        ]);
+            ->update([
+                'total_male_students' => $studentCount['total_male_students'],
+                'total_female_students' => $studentCount['total_female_students']
+            ]);
     }
 }
