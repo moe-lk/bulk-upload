@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Base_Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Webpatser\Uuid\Uuid;
 
 class Student_guardian extends Base_Model  {
 
+    use SoftDeletes;
 
     public const CREATED_AT = 'created';
 
@@ -20,6 +22,8 @@ class Student_guardian extends Base_Model  {
      * @var string
      */
     protected $table = 'student_guardians';
+
+    protected $softDelete = true;
 
     /**
      * Attributes that should be mass-assignable.
@@ -63,15 +67,27 @@ class Student_guardian extends Base_Model  {
 
     public static function createStudentGuardian($student,$guardian,$user){
      
+        $exist = self::where('student_id', $student->student_id)
+        ->where('guardian_relation_id', $guardian->guardian_relation_id)
+        ->exists();
+
+        $totalGuardians = self::where('student_id',$student->student_id)->count();
+
         $data = [
             'student_id' => $student->student_id,
             'guardian_id' => $guardian->id,
             'guardian_relation_id' => $guardian->guardian_relation_id,
-            'created' => now(),
             'created_user_id' => $user
         ];
-        self::create($data);
-        
+        if(!$exist){
+            $data['created'] = now();
+            self::create($data);
+        }else{
+            $data['modified'] = now();
+            self::where('student_id' , $student->student_id)
+            ->where('guardian_relation_id',$guardian->guardian_relation_id)
+            ->update($data);
+        }
     }
 
 }
