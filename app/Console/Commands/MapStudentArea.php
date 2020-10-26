@@ -64,7 +64,7 @@ class MapStudentArea extends Command
             Security_user::where('id',$student['id'])
             ->update(['address_area_id' => $father->address_area_id]);
             $output->writeln('Updated father area to:'. $student['openemis_no']);
-        }elseif(!is_null($mother)  && is_null($father) && is_null($guardian)){
+        }elseif(!is_null($mother)  && (is_null($father) && is_null($guardian))){
             Security_user::where('id',$student['id'])
             ->update(['address_area_id' => $mother->address_area_id]);
             $output->writeln('Updated mother area to:'. $student['openemis_no']);
@@ -80,6 +80,18 @@ class MapStudentArea extends Command
             Security_user::where('id',$student['id'])
             ->update(['address_area_id' => $guardian->address_area_id]);
             $output->writeln('Updated guardian area to:'. $student['openemis_no']);
+        }elseif(!is_null($father) && $father->address == $student['address']){
+            Security_user::where('id',$student['id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
+            $output->writeln('Updated mother area to:'. $student['openemis_no']);
+        }elseif(!is_null($mother) && $mother->address == $student['address']){
+            Security_user::where('id',$student['id'])
+            ->update(['address_area_id' => $mother->address_area_id]);
+            $output->writeln('Updated mother area to:'. $student['openemis_no']);
+        }elseif(!is_null($guardian) && $guardian->address == $student['address']){
+            Security_user::where('id',$student['id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
+            $output->writeln('Updated mother area to:'. $student['openemis_no']);
         }
     }
 }
