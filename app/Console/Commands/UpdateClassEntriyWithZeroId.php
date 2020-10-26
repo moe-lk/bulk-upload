@@ -19,7 +19,7 @@ class UpdateClassEntriyWithZeroId extends Command
      *
      * @var string
      */
-    protected $signature = 'update:zero_id_class {from}';
+    protected $signature = 'update:zero_id_class {from} {max}';
 
     /**
      * The console command description.
@@ -49,7 +49,7 @@ class UpdateClassEntriyWithZeroId extends Command
         $students = Institution_student::withTrashed()->where('updated_from',$this->argument('from'))
         ->get()->toArray();
         if(count($students)>0){
-            array_walk($students,array($this,'process'));
+            processParallel(array($this,'process'),$students,$this->argument('max'));
         }else{
             echo "all are updated \r\n";
         }
