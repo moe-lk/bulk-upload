@@ -45,9 +45,9 @@ class MapStudentArea extends Command
         array_walk($students,array($this,'process'));
     }
 
-   public function process($student){
-       $student['student_id'] = $student['id'];
-       Institution_student::updateStudentArea($student);
-       $this->output->writeln('area updated for student:'. $student['openemis_no']) ;
-   }
+    public function process($student){
+        $student['student_id'] = $student['id'];
+        Institution_student::updateStudentArea($student);
+        $this->output->writeln('area updated for student:'. $student['openemis_no']) ;
+    }
 }
