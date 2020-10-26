@@ -423,7 +423,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.nationality' => 'nullable',
             //'*.identity_type' => 'required_with:identity_number',
             '*.identity_number' => 'nullable|regex:/^[0-9]{4}+$/',
-            '*.academic_period' => 'nullable|exists:academic_periods,name',
+            //'*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',
