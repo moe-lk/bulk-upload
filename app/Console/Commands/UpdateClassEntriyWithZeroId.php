@@ -66,8 +66,9 @@ class UpdateClassEntriyWithZeroId extends Command
             ->get()->toArray();
         if (count($students) > 0) {
             array_walk($students,array($this, 'process'));
+            $this->output->writeln("institution :" .$institution['code']. ' cleaned');
         } else {
-            $this->output->writeln("all are updated");
+            $this->output->writeln("all records are cleaned at  :".$institution['code'] );
         }
     }
 
@@ -86,8 +87,6 @@ class UpdateClassEntriyWithZeroId extends Command
             Institution_student::where('student_id', $student['student_id'])->forceDelete();
 
             array_walk($wrongStudentsClass, array($this->class, 'updateClassCount'));
-
-            $this->output->writeln("deleted wrong class reference:" . $student['student_id']);
 
             $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'], $student['institution_id']);
 
@@ -139,7 +138,6 @@ class UpdateClassEntriyWithZeroId extends Command
                     'exam_center_for_special_education_g5' =>  $student['exam_center_for_special_education_g5'],
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
-                $this->output->writeln("updated:" . $student['student_id']);
                 $institutionClassStudent = [$institutionClassStudent];
                 array_walk($institutionClassStudent, array($this->class, 'updateClassCount'));
             }
