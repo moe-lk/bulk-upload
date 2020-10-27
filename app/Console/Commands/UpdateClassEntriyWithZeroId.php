@@ -74,7 +74,7 @@ class UpdateClassEntriyWithZeroId extends Command
     {
        try{
         $wrongStudentsClass = Institution_class_student::where('institution_id', $student['institution_id'])
-            ->whereRaw('institution_class_id not in (select id from institution_classes)')
+            ->whereRaw('institution_class_id not in (select id from institution_classes where institution_id ='.$student['institution_id'].' )')
             ->orWhere('institution_class_id', 0)
             ->where('student_id', $student['student_id'])
             ->get()->toArray();
