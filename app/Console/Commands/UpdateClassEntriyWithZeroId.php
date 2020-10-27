@@ -36,6 +36,7 @@ class UpdateClassEntriyWithZeroId extends Command
     public function __construct()
     {
         $this->class = new Institution_class;
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
     }
 
@@ -66,7 +67,7 @@ class UpdateClassEntriyWithZeroId extends Command
         if (count($students) > 0) {
             array_walk($students,array($this, 'process'));
         } else {
-            echo "all are updated \r\n";
+            $this->output->writeln("all are updated");
         }
     }
 
@@ -86,7 +87,7 @@ class UpdateClassEntriyWithZeroId extends Command
 
             array_walk($wrongStudentsClass, array($this->class, 'updateClassCount'));
 
-            echo "deleted wrong class reference:" . $student['student_id'];
+            $this->output->writeln("deleted wrong class reference:" . $student['student_id']);
 
             $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'], $student['institution_id']);
 
@@ -138,7 +139,7 @@ class UpdateClassEntriyWithZeroId extends Command
                     'exam_center_for_special_education_g5' =>  $student['exam_center_for_special_education_g5'],
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
-                echo "updated:" . $student['student_id'];
+                $this->output->writeln("updated:" . $student['student_id']);
                 $institutionClassStudent = [$institutionClassStudent];
                 array_walk($institutionClassStudent, array($this->class, 'updateClassCount'));
             }
