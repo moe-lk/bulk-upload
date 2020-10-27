@@ -36,6 +36,7 @@ class UpdateClassEntriyWithZeroId extends Command
     public function __construct()
     {
         $this->class = new Institution_class;
+        $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
         parent::__construct();
     }
 
@@ -65,8 +66,9 @@ class UpdateClassEntriyWithZeroId extends Command
             ->get()->toArray();
         if (count($students) > 0) {
             array_walk($students,array($this, 'process'));
+            $this->output->writeln("institution :" .$institution['code']. ' cleaned');
         } else {
-            echo "all are updated \r\n";
+            $this->output->writeln("all records are cleaned at  :".$institution['code'] );
         }
     }
 
@@ -74,7 +76,7 @@ class UpdateClassEntriyWithZeroId extends Command
     {
        try{
         $wrongStudentsClass = Institution_class_student::where('institution_id', $student['institution_id'])
-            ->whereRaw('institution_class_id not in (select id from institution_classes)')
+            ->whereRaw('institution_class_id not in (select id from institution_classes where institution_id ='.$student['institution_id'].' )')
             ->orWhere('institution_class_id', 0)
             ->where('student_id', $student['student_id'])
             ->get()->toArray();
@@ -85,8 +87,6 @@ class UpdateClassEntriyWithZeroId extends Command
             Institution_student::where('student_id', $student['student_id'])->forceDelete();
 
             array_walk($wrongStudentsClass, array($this->class, 'updateClassCount'));
-
-            echo "deleted wrong class reference:" . $student['student_id'];
 
             $institutionClass =  Institution_class::getGradeClasses($student['education_grade_id'], $student['institution_id']);
 
@@ -138,7 +138,6 @@ class UpdateClassEntriyWithZeroId extends Command
                     'exam_center_for_special_education_g5' =>  $student['exam_center_for_special_education_g5'],
                     'modified_user_id' =>  $student['modified_user_id'],
                 ]);
-                echo "updated:" . $student['student_id'];
                 $institutionClassStudent = [$institutionClassStudent];
                 array_walk($institutionClassStudent, array($this->class, 'updateClassCount'));
             }
