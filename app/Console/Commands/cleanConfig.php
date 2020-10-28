@@ -52,7 +52,7 @@ class cleanConfig extends Command
             'academic_period' => $academicPeriod
         ];
 
-        if($year <= 2019){
+        if($year == '2019' || '2018/19'){
             die('Academic Year 2019 or earlier can`t be deleted');
         }else{
             $this->clone->cleanConfig($params);

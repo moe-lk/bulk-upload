@@ -172,6 +172,14 @@ class ValidatorExtended extends IlluminateValidator
     }
     protected function validateNic($attribute, $value, $perameters, $validator)
     {
+        switch($data['identity_type']){
+            case 'BC':
+                //inclde the bc validation
+                break;
+            case 'NIC':
+                 //inclde the NIC validation
+                break;
+        }
         $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
         if (!$valid) {
             $this->_custom_messages['nic'] = $attribute . ' is not valid,  Please check the NIC number';

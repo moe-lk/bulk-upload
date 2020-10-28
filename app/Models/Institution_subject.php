@@ -61,10 +61,19 @@ class Institution_subject extends Base_Model  {
 
 
 
-    public function getInstitutionSubjects($institution_id,$academic_period_id){
-        return self::query()->where('institution_id',$institution_id)
+    public function getInstitutionSubjects($institution_id,$academic_period_id, $al = false){
+        $query =  self::query()->where('institution_id',$institution_id)
             ->where('academic_period_id',$academic_period_id)
-            ->get()->toArray();
+            ->join('education_grades_subjects','institution_subjects.education_subject_id','education_grades_subjects.id')
+            ->join('education_grades', 'education_grades_subjects.education_grade_id', 'education_grades.id')
+            ->join('education_levels', 'education_grades.education_programme_id', 'education_levels.id');
+
+        if ($al == true) {
+            $query->where('education_levels.id', '>', 3);
+        } else {
+            $query->where('education_levels.id', '<=', 3);
+        }
+        return $query->get()->toArray();
     }
 
     public  static function getStudentsCount($institution_subject_id)
