@@ -47,7 +47,7 @@ class CloneController extends Controller
         $this->shifts->where(['academic_period_id' => $academicPeriod->id])->delete();
         $this->output->writeln('cleaned shifts');
 
-        $this->shifts->where(['cloned' => $academicPeriod->code])->update(['cloned' => '2019']);
+        $this->shifts->where(['cloned' => $academicPeriod->code])->update(['cloned' => $params['previous_academic_period']['code']]);
         $this->output->writeln('updated shifts');
 
         $classIds =  $this->institution_classes->select('id')->where(['academic_period_id' => $academicPeriod->id])->get()->toArray();
@@ -65,7 +65,7 @@ class CloneController extends Controller
 
     public function process($shift, $count, $params)
     {
-         echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
+        // echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
         $year = $params['year'];
         $academicPeriod = $params['academic_period'];
         $previousAcademicPeriod = $params['previous_academic_period'];
@@ -90,14 +90,9 @@ class CloneController extends Controller
             try {
                 array_walk($institutionSubjects, array($this, 'insertInstitutionSubjects'), $academicPeriod);
                 if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod)) {
-
                     $newInstitutionClasses = $this->generateNewClass($institutionClasses, $shiftId, $academicPeriod->id);
                     try {
-                        $newInstitutionClasses = $this->institution_classes->getShiftClasses($shiftId, $mode);
-                        if (!$mode) {
                             array_walk($newInstitutionClasses, array($this, 'insertInstitutionClasses'), $params);
-                        } else {
-                        }
                         $this->output->writeln('##########################################################################################################################');
                         $this->output->writeln('updating from ' . $shiftId);
                     } catch (\Exception $e) {

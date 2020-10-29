@@ -47,12 +47,15 @@ class cleanConfig extends Command
         $this->start_time = microtime(TRUE);
         $year = $this->argument('year');
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
+        $previousAcademicPeriodYear = $academicPeriod->order;
+        $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
 
         $params = [
-            'academic_period' => $academicPeriod
+            'academic_period' => $academicPeriod,
+            'previous_academic_period' => $previousAcademicPeriod
         ];
 
-        if($year == '2019' || '2018/19'){
+        if($year == '2019' || $year == '2018/19'){
             die('Academic Year 2019 or earlier can`t be deleted');
         }else{
             $this->clone->cleanConfig($params);
