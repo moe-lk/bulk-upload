@@ -64,8 +64,8 @@ class CloneConfigData extends Command
 
         $function = array($this->clone, 'process');
         if(count($shift) > 0){
-            // processParallel($function,$shift, $this->argument('max'),$params);
-            array_walk($shift,$function,$params);
+            processParallel($function,$shift, $this->argument('max'),$params);
+            // array_walk($shift,$function,$params);
         }else{
             $this->output->writeln('Nothing to clone');
         }
