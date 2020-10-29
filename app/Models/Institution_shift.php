@@ -49,12 +49,18 @@ class Institution_shift extends Base_Model  {
             ->where('academic_period_id',$shift['academic_period_id'])->exists();
     }
 
+    public function getShift($shift){
+        return self::query()
+            ->where('institution_id',$shift['institution_id'])
+            ->where('location_institution_id',$shift['location_institution_id'])
+            ->where('shift_option_id',$shift['shift_option_id'])
+            ->where('academic_period_id',$shift['academic_period_id'])->first();
+    }
+
     public function getShiftsToClone(string $year){
         return self::query()
-            // ->select('institution_shifts.*')
-            // ->select('institution_shifts.id','start_time','end_time','academic_period_id','institution_id','location_institution_id','shift_option_id','previous_shift_id','institution_shifts.modified_user_id','institution_shifts.modified','institution_shifts.created_user_id','institution_shifts.created','cloned')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
-            ->where('academic_periods.code',$year)
+            // ->where('academic_periods.code',$year)
             ->where('institution_shifts.cloned',$year)
             ->get()->toArray();
     }

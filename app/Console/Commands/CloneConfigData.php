@@ -60,6 +60,7 @@ class CloneConfigData extends Command
             'previous_academic_period' => $previousAcademicPeriod,
             'mode' => $this->argument('mode')
         ];
+
         $function = array($this->clone, 'process');
         if(count($shift) > 0){
             // processParallel($function,$shift, $this->argument('max'),$params);

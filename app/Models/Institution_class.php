@@ -81,14 +81,14 @@ class Institution_class extends Base_Model
             ->groupBy('institution_classes.id');
 
         if ($al == true) {
-            $query->where('education_programmes.education_cycle_id', 3)
+            $query->whereIn('education_programmes.education_cycle_id', [4,5])
             ->where('institution_id', $shift);
             $data = $query
             ->groupBy('institution_classes.id')
             ->get()->toArray();
             return $data;
         } else {
-            $query->where('education_programmes.education_cycle_id', '<', 2)
+            $query->whereNotIn('education_programmes.education_cycle_id',[4,5])
             ->where('institution_shift_id', $shift);
             $data = $query
             ->get()->toArray();

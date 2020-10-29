@@ -48,6 +48,7 @@ class PromoteStudents extends Command
     {
         parent::__construct();
         $this->instituion_grade = new \App\Models\Institution_grade();
+        $this->academic_period = new Academic_period;
     }
 
 
@@ -61,7 +62,10 @@ class PromoteStudents extends Command
     {
         $year = $this->argument('year');
         $institution = $this->argument('institution');
-        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($year,$institution);
+        $academicPeriod = $this->academic_period->getAcademicPeriod($year);
+        $previousAcademicPeriodYear = $academicPeriod->order;
+        $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
+        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod,$institution);
         (new BulkPromotion())->callback($institutionGrade,$year);
     }
 }
