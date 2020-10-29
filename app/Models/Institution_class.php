@@ -71,7 +71,8 @@ class Institution_class extends Base_Model
                 'institution_classes.no_of_students',
                 'institution_classes.class_number',
                 'institution_class_grades.education_grade_id',
-                'education_programmes.education_cycle_id'
+                'education_programmes.education_cycle_id',
+                'institution_classes.created_user_id'
 
             )
             ->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')
@@ -88,7 +89,7 @@ class Institution_class extends Base_Model
             ->get()->toArray();
             return $data;
         } else {
-            $query->whereNotIn('education_programmes.education_cycle_id',[4,5])
+            $query->whereIn('education_programmes.education_cycle_id',[1,2,3])
             ->where('institution_shift_id', $shift);
             $data = $query
             ->get()->toArray();

@@ -71,12 +71,13 @@ class CloneController extends Controller
         $previousAcademicPeriod = $params['previous_academic_period'];
         $mode = $params['mode'] == 'AL' ? true : false;
 
-        $shiftId = $this->updateShifts($year, $shift);
+        $data = $this->updateShifts($year, $shift);
+        $shiftId = $data['shift_id'];
 
         $params = [
             'previous_academic_period_id' => $previousAcademicPeriod->id,
             'academic_period_id' => $academicPeriod->id,
-            'shift_id' => $shiftId
+            'shift_id' => $data['shift_id']
         ];
 
 
@@ -85,21 +86,27 @@ class CloneController extends Controller
             $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id,  $mode);
             array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
         } else {
-            $institutionClasses = $this->institution_classes->getShiftClasses($shift['institution_id'], $mode);
-            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id, $mode);
+            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id, $mode);        
             try {
-                array_walk($institutionSubjects, array($this, 'insertInstitutionSubjects'), $academicPeriod);
-                if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod)) {
-                    $newInstitutionClasses = $this->generateNewClass($institutionClasses, $shiftId, $academicPeriod->id);
-                    try {
+                if($data['created']){
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shift['id'] , $mode);
+                    array_walk($institutionSubjects, array($this, 'insertInstitutionSubjects'), $academicPeriod);
+                    if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod)) {
+                        $newInstitutionClasses = $this->generateNewClass($institutionClasses, $shiftId, $academicPeriod->id);
+                        try {
                             array_walk($newInstitutionClasses, array($this, 'insertInstitutionClasses'), $params);
-                        $this->output->writeln('##########################################################################################################################');
-                        $this->output->writeln('updating from ' . $shiftId);
-                    } catch (\Exception $e) {
-                        dd($e);
-                        Log::error($e->getMessage(), [$e]);
+                            $this->output->writeln('##########################################################################################################################');
+                            $this->output->writeln('updating from ' . $shiftId);
+                        } catch (\Exception $e) {
+                            dd($e);
+                            Log::error($e->getMessage(), [$e]);
+                        }
                     }
+                }else{
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shiftId , $mode);
+                    array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                 }
+               
                 //            DB::commit();
             } catch (\Exception $e) {
                 //            DB::rollBack();
@@ -153,7 +160,6 @@ class CloneController extends Controller
     public function  insertInstitutionClasses($class, $count, $param)
     {
         try {
-
             $academicPeriod = $param['academic_period_id'];
             $educationGrdae = $class['education_grade_id'];
 
@@ -174,10 +180,12 @@ class CloneController extends Controller
             $class['no_of_students'] = $noOfStudents;
             $class['created'] = now();
             $class['institution_shift_id'] = $param['shift_id'];
+            // $class['created_user_id'] = 
             $this->output->writeln('Create class:' . $class['name']);
             $class = Institution_class::create($class);
             $institutionClassGrdaeObj['institution_class_id'] = $class->id;
             $institutionClassGrdaeObj['education_grade_id'] = $educationGrdae;
+            $institutionClassGrdaeObj['created_user_id'] = $class['created_user_id'];
             Institution_class_grade::create($institutionClassGrdaeObj);
             $institutionSubjects = Institution_subject::query()->where('education_grade_id', $educationGrdae)
                 ->where('institution_id', $class->institution_id)
@@ -189,6 +197,7 @@ class CloneController extends Controller
             $this->insertInstitutionClassSubjects($institutionSubjects, $class);
             //                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
         } catch (\Exception $e) {
+            dd($e);
             Log::error($e->getMessage(), [$e]);
         }
     }
@@ -258,10 +267,18 @@ class CloneController extends Controller
         $this->shifts->where('id', $shift['id'])->update(['cloned' => $year]);
         $shift['academic_period_id'] = $academicPeriod->id;
         $exist = $this->shifts->getShift($shift);
+        $data = array();
         if (is_null($exist)) {
-            return $this->shifts->create((array)$shift)->id;
+            $data = [
+                'shift_id' => $this->shifts->create((array)$shift)->id,
+                'created' => true
+            ];
         } else {
-            return $exist->id;
+            $data = [
+                'shift_id' => $exist->id,
+                'created' => false
+            ];
         };
+        return $data;
     }
 }
