@@ -66,12 +66,13 @@ class Institution_subject extends Base_Model  {
             ->where('academic_period_id',$academic_period_id)
             ->join('education_grades_subjects','institution_subjects.education_subject_id','education_grades_subjects.id')
             ->join('education_grades', 'education_grades_subjects.education_grade_id', 'education_grades.id')
-            ->join('education_levels', 'education_grades.education_programme_id', 'education_levels.id');
+            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id')
+            ->join('education_cycles', 'education_programmes.education_cycle_id','education_cycles.id');
 
         if ($al == true) {
-            $query->where('education_levels.id', '>', 3);
+            $query->whereIn('education_programmes.education_cycle_id', [4,5]);
         } else {
-            $query->where('education_levels.id', '<=', 3);
+            $query->whereNotIn('education_programmes.education_cycle_id', [4,5]);
         }
         return $query->get()->toArray();
     }

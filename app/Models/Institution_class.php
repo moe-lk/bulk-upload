@@ -89,7 +89,7 @@ class Institution_class extends Base_Model
             ->get()->toArray();
             return $data;
         } else {
-            $query->whereIn('education_programmes.education_cycle_id',[1,2,3])
+            $query->whereNotIn('education_programmes.education_cycle_id',[4,5])
             ->where('institution_shift_id', $shift);
             $data = $query
             ->get()->toArray();
