@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\CloneController;
 use App\Models\Academic_period;
 use Illuminate\Console\Command;
 use App\Models\Institution_shift;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\CloneController;
 
 class CloneConfigData extends Command
 {
@@ -47,6 +48,7 @@ class CloneConfigData extends Command
      */
     public function handle()
     {
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $this->start_time = microtime(TRUE);
         $year = $this->argument('year');
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
