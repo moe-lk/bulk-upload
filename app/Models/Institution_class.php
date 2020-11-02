@@ -88,7 +88,7 @@ class Institution_class extends Base_Model
             ->get()->toArray();
             return $data;
         } else {
-            $query->whereNot('education_programmes.education_cycle_id',4)
+            $query->where('education_programmes.education_cycle_id','<>',4)
             ->where('institution_shift_id', $shift);
             $data = $query
             ->get()->toArray();
