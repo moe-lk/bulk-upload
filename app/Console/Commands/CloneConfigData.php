@@ -56,18 +56,16 @@ class CloneConfigData extends Command
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
         $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code);
 
-
         $params = [
             'year' => $year,
             'academic_period' => $academicPeriod,
             'previous_academic_period' => $previousAcademicPeriod,
             'mode' => $this->argument('mode')
         ];
-
         $function = array($this->clone, 'process');
         if(count($shift) > 0){
-            processParallel($function,$shift, $this->argument('max'),$params);
-            // array_walk($shift,$function,$params);
+            // processParallel($function,$shift, $this->argument('max'),$params);
+            array_walk($shift,$function,$params);
         }else{
             $this->output->writeln('Nothing to clone');
         }

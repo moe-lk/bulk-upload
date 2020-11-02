@@ -71,7 +71,6 @@ class Institution_class extends Base_Model
                 'institution_classes.no_of_students',
                 'institution_classes.class_number',
                 'institution_class_grades.education_grade_id',
-                'education_programmes.education_cycle_id',
                 'institution_classes.created_user_id'
 
             )
