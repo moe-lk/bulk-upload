@@ -71,7 +71,6 @@ class Institution_class extends Base_Model
                 'institution_classes.no_of_students',
                 'institution_classes.class_number',
                 'institution_class_grades.education_grade_id',
-                'education_programmes.education_cycle_id',
                 'institution_classes.created_user_id'
 
             )
@@ -82,14 +81,14 @@ class Institution_class extends Base_Model
             ->groupBy('institution_classes.id');
 
         if ($al == true) {
-            $query->whereIn('education_programmes.education_cycle_id', [4,5])
+            $query->where('education_programmes.education_cycle_id', 4)
             ->where('institution_id', $shift);
             $data = $query
             ->groupBy('institution_classes.id')
             ->get()->toArray();
             return $data;
         } else {
-            $query->whereNotIn('education_programmes.education_cycle_id',[4,5])
+            $query->where('education_programmes.education_cycle_id','<>',4)
             ->where('institution_shift_id', $shift);
             $data = $query
             ->get()->toArray();
