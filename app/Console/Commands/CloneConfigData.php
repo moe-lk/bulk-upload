@@ -54,7 +54,7 @@ class CloneConfigData extends Command
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
         $previousAcademicPeriodYear = $academicPeriod->order;
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
-        $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code);
+        $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code,$this->argument(('max')));
 
         $params = [
             'year' => $year,
