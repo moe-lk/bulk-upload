@@ -59,6 +59,7 @@ class Institution_shift extends Base_Model  {
 
     public function getShiftsToClone(string $year,$limit){
         return self::query()
+            ->select('institution_shifts.*')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
             ->where('academic_periods.code',$year)
             ->whereNotIn('institution_shifts.cloned',['2020','2018/2019'])
