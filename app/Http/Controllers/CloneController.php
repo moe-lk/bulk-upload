@@ -65,9 +65,8 @@ class CloneController extends Controller
 
     public function process($shift, $count, $params)
     {
-        // echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
+         echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
         $year = $params['year'];
-        DB::beginTransaction();
         $academicPeriod = $params['academic_period'];
         $previousAcademicPeriod = $params['previous_academic_period'];
         $mode = $params['mode'] == 'AL' ? true : false;
@@ -87,9 +86,8 @@ class CloneController extends Controller
             $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id,  $mode);
             try{
                 array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
-                DB::commit();
+               
             }catch(\Exception $e){
-                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         } else {
@@ -113,9 +111,8 @@ class CloneController extends Controller
                     array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                 }
                
-                DB::commit();
+               
             } catch (\Exception $e) {
-                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         }
