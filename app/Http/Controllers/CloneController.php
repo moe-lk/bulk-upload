@@ -105,6 +105,8 @@ class CloneController extends Controller
                         } catch (\Exception $e) {
                             Log::error($e->getMessage(), [$e]);
                         }
+                    } else {
+                        $this->output->writeln('no classes found ' . $shift['institution_id']);
                     }
                 } else {
                     $shift['id'] = $shiftId;
@@ -142,21 +144,21 @@ class CloneController extends Controller
     public function updateInstitutionClasses($class, $count, $params)
     {
         try {
-            Institution_class::where('id', $class['id'])
-                ->update([
-                    'institution_shift_id' => $params['shift_id'],
-                    'academic_period_id' => $params['academic_period_id']
-                ]);
-
-            Institution_class_student::where('institution_class_id', $class['id'])
-                ->update([
-                    'academic_period_id' => $params['academic_period_id'],
-                    'modified' => now()
-                ]);
-
-            $educationGrade = Institution_class_grade::select('education_grade_id')->where('institution_class_id', $class['id'])->get()->toArray();
-
             if ($params['mode']) {
+                Institution_class::where('id', $class['id'])
+                    ->update([
+                        'institution_shift_id' => $params['shift_id'],
+                        'academic_period_id' => $params['academic_period_id']
+                    ]);
+
+                Institution_class_student::where('institution_class_id', $class['id'])
+                    ->update([
+                        'academic_period_id' => $params['academic_period_id'],
+                        'modified' => now()
+                    ]);
+
+                $educationGrade = Institution_class_grade::select('education_grade_id')->where('institution_class_id', $class['id'])->get()->toArray();
+
                 Institution_student::whereIn('education_grade_id', $educationGrade)
                     ->update([
                         'academic_period_id' => $params['academic_period_id']
@@ -272,24 +274,28 @@ class CloneController extends Controller
      */
     public function updateShifts($year, $shift)
     {
-        $academicPeriod = $this->academic_period->getAcademicPeriod($year);
-        $this->shifts->where('id', $shift['id'])->update(['cloned' => $year]);
-        $shift['academic_period_id'] = $academicPeriod->id;
-        $exist = $this->shifts->getShift($shift);
-        $data = array();
+        try {
+            $academicPeriod = $this->academic_period->getAcademicPeriod($year);
+            $this->shifts->where('id', $shift['id'])->update(['cloned' => $year]);
+            $shift['academic_period_id'] = $academicPeriod->id;
+            $exist = $this->shifts->getShift($shift);
+            $data = array();
 
-        if (is_null($exist)) {
-            $shift = $this->shifts->create((array)$shift);
-            $data = [
-                'shift_id' => $shift->id,
-                'created' => true
-            ];
-        } else {
-            $data = [
-                'shift_id' => $exist->id,
-                'created' => false
-            ];
-        };
-        return $data;
+            if (is_null($exist)) {
+                $shift = $this->shifts->create((array)$shift);
+                $data = [
+                    'shift_id' => $shift->id,
+                    'created' => true
+                ];
+            } else {
+                $data = [
+                    'shift_id' => $exist->id,
+                    'created' => false
+                ];
+            };
+            return $data;
+        } catch (\Exception $e) {
+            dd($e);
+        }
     }
 }
