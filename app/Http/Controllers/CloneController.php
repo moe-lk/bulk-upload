@@ -65,7 +65,7 @@ class CloneController extends Controller
 
     public function process($shift, $count, $params)
     {
-         echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
+        echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
         $year = $params['year'];
         $academicPeriod = $params['academic_period'];
         $previousAcademicPeriod = $params['previous_academic_period'];
@@ -77,24 +77,24 @@ class CloneController extends Controller
         $params = [
             'previous_academic_period_id' => $previousAcademicPeriod->id,
             'academic_period_id' => $academicPeriod->id,
-            'shift_id' => $data['shift_id']
+            'shift_id' => $data['shift_id'],
+            'mode' => $mode
         ];
 
 
         if ($mode) {
             $institutionClasses = $this->institution_classes->getShiftClasses($shift['institution_id'],  $mode);
             $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id,  $mode);
-            try{
+            try {
                 array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
-               
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 Log::error($e->getMessage(), [$e]);
             }
         } else {
-            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id, $mode);        
+            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id, $mode);
             try {
-                if($data['created']){
-                    $institutionClasses = $this->institution_classes->getShiftClasses($shift['id'] , $mode);
+                if ($data['created']) {
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shift['id'], $mode);
                     array_walk($institutionSubjects, array($this, 'insertInstitutionSubjects'), $academicPeriod);
                     if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod)) {
                         $newInstitutionClasses = $this->generateNewClass($institutionClasses, $shiftId, $academicPeriod->id);
@@ -106,12 +106,12 @@ class CloneController extends Controller
                             Log::error($e->getMessage(), [$e]);
                         }
                     }
-                }else{
-                    $institutionClasses = $this->institution_classes->getShiftClasses($shiftId , $mode);
+                } else {
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shiftId, $mode);
                     array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
+                    $this->output->writeln('##########################################################################################################################');
+                    $this->output->writeln('updating from ' . $shift['institution_id']);
                 }
-               
-               
             } catch (\Exception $e) {
                 Log::error($e->getMessage(), [$e]);
             }
@@ -140,24 +140,30 @@ class CloneController extends Controller
 
     public function updateInstitutionClasses($class, $count, $params)
     {
-        Institution_class::where('id', $class['id'])
-            ->update([
-                'institution_shift_id' => $params['shift_id'],
-                'academic_period_id' => $params['academic_period_id']
-            ]);
+        try {
+            Institution_class::where('id', $class['id'])
+                ->update([
+                    'institution_shift_id' => $params['shift_id'],
+                    'academic_period_id' => $params['academic_period_id']
+                ]);
 
-        Institution_class_student::where('institution_class_id', $class['id'])
-            ->update([
-                'academic_period_id' => $params['academic_period_id'],
-                'modified' => now()
-            ]);
+            Institution_class_student::where('institution_class_id', $class['id'])
+                ->update([
+                    'academic_period_id' => $params['academic_period_id'],
+                    'modified' => now()
+                ]);
 
-        $educationGrade = Institution_class_grade::select('education_grade_id')->where('institution_class_id', $class['id'])->get()->toArray();
+            $educationGrade = Institution_class_grade::select('education_grade_id')->where('institution_class_id', $class['id'])->get()->toArray();
 
-        Institution_student::whereIn('education_grade_id', $educationGrade)
-            ->update([
-                'academic_period_id' => $params['academic_period_id']
-            ]);
+            if ($params['mode']) {
+                Institution_student::whereIn('education_grade_id', $educationGrade)
+                    ->update([
+                        'academic_period_id' => $params['academic_period_id']
+                    ]);
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage(), [$e]);
+        }
     }
 
     public function  insertInstitutionClasses($class, $count, $param)
