@@ -91,6 +91,7 @@ class Institution_class extends Base_Model
             $query->where('education_programmes.education_cycle_id','<>',4)
             ->where('institution_shift_id', $shift);
             $data = $query
+            ->groupBy('institution_classes.id')
             ->get()->toArray();
             return $data;
         }
