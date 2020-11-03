@@ -282,6 +282,7 @@ class CloneController extends Controller
             $data = array();
 
             if (is_null($exist)) {
+                $shift['cloned'] = $year;
                 $shift = $this->shifts->create((array)$shift);
                 $data = [
                     'shift_id' => $shift->id,
