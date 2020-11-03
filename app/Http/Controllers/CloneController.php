@@ -94,7 +94,7 @@ class CloneController extends Controller
             $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id, $mode);
             try {
                 if ($data['created']) {
-                    $institutionClasses = $this->institution_classes->getShiftClasses($shift['id'], $mode);
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
                     array_walk($institutionSubjects, array($this, 'insertInstitutionSubjects'), $academicPeriod);
                     if (!empty($institutionClasses) && !is_null($shiftId) && !is_null($academicPeriod)) {
                         $newInstitutionClasses = $this->generateNewClass($institutionClasses, $shiftId, $academicPeriod->id);
@@ -107,7 +107,8 @@ class CloneController extends Controller
                         }
                     }
                 } else {
-                    $institutionClasses = $this->institution_classes->getShiftClasses($shiftId, $mode);
+                    $shift['id'] = $shiftId;
+                    $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
                     array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                     $this->output->writeln('##########################################################################################################################');
                     $this->output->writeln('updating from ' . $shift['institution_id']);
