@@ -65,6 +65,7 @@ class CloneController extends Controller
 
     public function process($shift, $count, $params)
     {
+        DB::beginTransaction();
         echo ('[' . getmypid() . ']This Process executed at' . date("F d, Y h:i:s A") . "\n");
         $year = $params['year'];
         $academicPeriod = $params['academic_period'];
@@ -83,11 +84,13 @@ class CloneController extends Controller
 
 
         if ($mode) {
-            $institutionClasses = $this->institution_classes->getShiftClasses($shift['institution_id'],  $mode);
+            $institutionClasses = $this->institution_classes->getShiftClasses($shift,  $mode);
             $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id,  $mode);
             try {
                 array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
+                DB::commit();
             } catch (\Exception $e) {
+                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         } else {
@@ -102,20 +105,29 @@ class CloneController extends Controller
                             array_walk($newInstitutionClasses, array($this, 'insertInstitutionClasses'), $params);
                             $this->output->writeln('##########################################################################################################################');
                             $this->output->writeln('updating from ' . $shift['institution_id']);
+                            DB::commit();
                         } catch (\Exception $e) {
+                            DB::rollBack();
                             Log::error($e->getMessage(), [$e]);
                         }
                     } else {
                         $this->output->writeln('no classes found ' . $shift['institution_id']);
                     }
                 } else {
-                    $shift['id'] = $shiftId;
-                    $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
-                    array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
-                    $this->output->writeln('##########################################################################################################################');
-                    $this->output->writeln('updating from ' . $shift['institution_id']);
+                    try {
+                        $shift['id'] = $shiftId;
+                        $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
+                        array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
+                        $this->output->writeln('##########################################################################################################################');
+                        $this->output->writeln('updating from ' . $shift['institution_id']);
+                        DB::commit();
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        Log::error($e->getMessage(), [$e]);
+                    }
                 }
             } catch (\Exception $e) {
+                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         }
@@ -163,8 +175,10 @@ class CloneController extends Controller
                     ->update([
                         'academic_period_id' => $params['academic_period_id']
                     ]);
+                DB::commit();
             }
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error($e->getMessage(), [$e]);
         }
     }
