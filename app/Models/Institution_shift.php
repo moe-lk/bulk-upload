@@ -57,12 +57,13 @@ class Institution_shift extends Base_Model  {
             ->where('academic_period_id',$shift['academic_period_id'])->first();
     }
 
-    public function getShiftsToClone(string $year,$limit){
+    public function getShiftsToClone(string $year,$limit,$mode){
         return self::query()
             ->select('institution_shifts.*')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
             ->where('academic_periods.code',$year)
-            ->whereNotIn('institution_shifts.cloned',['2020','2018/2019'])
+            ->whereNotIn('institution_shifts.cloned',[ !$mode ? '2020' : '2018/2019'])
+            ->groupBy('institution_shifts.id')
             ->limit($limit)
             ->get()
             ->toArray();

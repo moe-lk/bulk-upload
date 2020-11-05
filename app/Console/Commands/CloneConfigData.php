@@ -52,10 +52,10 @@ class CloneConfigData extends Command
         $this->start_time = microtime(TRUE);
         $year = $this->argument('year');
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
+        $mode = $this->argument('mode') == 'AL' ? true : false; 
         $previousAcademicPeriodYear = $academicPeriod->order;
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
-        $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code,$this->argument(('max')));
-
+        $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code,$this->argument(('max')),$mode);
         $params = [
             'year' => $year,
             'academic_period' => $academicPeriod,
