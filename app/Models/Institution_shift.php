@@ -62,7 +62,7 @@ class Institution_shift extends Base_Model  {
             ->select('institution_shifts.*')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
             ->where('academic_periods.code',$year)
-            ->whereNotIn('institution_shifts.cloned',[ !$mode ? '2020' : '2019','2018/2019'])
+            ->whereNotIn('institution_shifts.cloned',[ !$mode ? '2020' : '2018/2019'])
             ->groupBy('institution_shifts.id')
             ->limit($limit)
             ->get()
