@@ -52,7 +52,9 @@ class Education_grade extends Model  {
             if(empty($gradeOptions) && !is_null($nextProgramme)){
                 $programmeId =  $nextProgramme->next_programme_id;
                 $gradeOptions = self::where( 'education_programme_id',$programmeId
-                )->get()->first();
+                )
+                ->where('order',1)
+                ->get()->first();
             }
             // Default is to get the list of grades with the next programme grades
 //            if ($getNextProgrammeGrades) {

@@ -53,16 +53,18 @@ class BulkPromotion extends Controller
     {
         if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
             $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
-            $isAvailableforPromotion = 0;
+            $isAvailableforPromotion = false;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
-            $this->process($institutionGrade, $nextGrade, $params);
-            // if (!empty($nextGrade)) {
-            //     $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
-            // }
+           
+            if (!empty($nextGrade)) {
+                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+            }
 
-            // if (!empty($isAvailableforPromotion)) {
-            //     $this->process($institutionGrade, $nextGrade, $params);
-            // } else {
+            if (!empty($isAvailableforPromotion)) {
+                $this->process($institutionGrade, $nextGrade, $params);
+            } 
+            //leave school levers
+            // else {
             //     $this->process($institutionGrade, $nextGrade, $params);
             // }
         }
