@@ -69,24 +69,19 @@ class Institution_grade extends Base_Model
      */
     public function getParallelClasses($id, $institutionId, $educationGradeId, $academicPeriodId)
     {
-        if (!is_null($id)) {
-            return self::find($id)
-                ->select('institution_grades.id as insGrade','institution_classes.id', 'institution_classes.name', 'institution_grades.education_grade_id')
-                ->join('institution_classes', function ($join) use ($educationGradeId, $academicPeriodId) {
-                    $join->on('institution_classes.institution_id', '=', 'institution_grades.institution_id')
-                        ->where('institution_classes.academic_period_id', $academicPeriodId)
-                        ->join('institution_class_grades', function ($join) use ($educationGradeId) {
-                            $join->on('institution_class_grades.institution_class_id', '=', 'institution_classes.id')
-                                ->where('institution_class_grades.education_grade_id', $educationGradeId);
-                        });
-                })
-                ->where('institution_grades.education_grade_id', $educationGradeId)
-                ->where('institution_grades.institution_id', $institutionId)
-                ->groupBy('institution_grades.id')
-                ->get();
-        }else{
-            return null;
-        }
+        return self::select('institution_grades.id as insGrade', 'institution_classes.id', 'institution_classes.name', 'institution_grades.education_grade_id')
+            ->join('institution_classes', function ($join) use ($educationGradeId, $academicPeriodId) {
+                $join->on('institution_classes.institution_id', '=', 'institution_grades.institution_id')
+                    ->where('institution_classes.academic_period_id', $academicPeriodId)
+                    ->join('institution_class_grades', function ($join) use ($educationGradeId) {
+                        $join->on('institution_class_grades.institution_class_id', '=', 'institution_classes.id')
+                            ->where('institution_class_grades.education_grade_id', $educationGradeId);
+                    });
+            })
+            ->where('institution_grades.education_grade_id', $educationGradeId)
+            ->where('institution_grades.institution_id', $institutionId)
+            ->groupBy('institution_classes.id')
+            ->get();
     }
 
 
@@ -96,8 +91,9 @@ class Institution_grade extends Base_Model
      * @param $year
      * @param $id
      */
-    public function updatePromoted($year, $id){
-        self::where('id',$id)->update(['promoted'=>$year]);
+    public function updatePromoted($year, $id)
+    {
+        self::where('id', $id)->update(['promoted' => $year]);
     }
 
     /**
@@ -107,9 +103,10 @@ class Institution_grade extends Base_Model
      * @param $gradeId
      * @return mixed
      */
-    public function getInstitutionGrade($institutionId, $gradeId){
-         return self::where('education_grade_id',$gradeId)
-             ->where('institution_id',$institutionId)->get()->first();
+    public function getInstitutionGrade($institutionId, $gradeId)
+    {
+        return self::where('education_grade_id', $gradeId)
+            ->where('institution_id', $institutionId)->get()->first();
     }
 
     /**
@@ -117,16 +114,16 @@ class Institution_grade extends Base_Model
      * @param null $institution
      * @return mixed
      */
-    public function getInstitutionGradeToPromoted($year, $institution = null){
+    public function getInstitutionGradeToPromoted($year, $institution = null)
+    {
         return self::query()
-            ->select('education_grades.name','institutions.code','institutions.name as institution_name','institution_grades.id','institution_grades.institution_id','institution_grades.education_grade_id')
-            ->where('promoted','=',$year)
-            ->join('education_grades','institution_grades.education_grade_id','=','education_grades.id')
-            ->join('institutions', function($join) use ($year,$institution){
-                $join->on('institutions.id','=','institution_grades.institution_id')
-                    ->where('institutions.code','=',$institution);
+            ->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
+            ->where('promoted', '=', $year)
+            ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
+            ->join('institutions', function ($join) use ($year, $institution) {
+                $join->on('institutions.id', '=', 'institution_grades.institution_id')
+                    ->where('institutions.code', '=', $institution);
             })
-            ->orderBy('institution_id')
             ->groupBy('institution_grades.id')
             ->get()->toArray();
     }
@@ -135,13 +132,14 @@ class Institution_grade extends Base_Model
      * @param $year
      * @return mixed
      */
-    public function getInstitutionGradeList($year,$limit){
+    public function getInstitutionGradeList($year, $limit)
+    {
         return self::query()
-            ->select('education_grades.name','institutions.code','institutions.name as institution_name','institution_grades.id','institution_grades.institution_id','institution_grades.education_grade_id')
-            ->where('promoted','=',$year)
-            ->join('education_grades','institution_grades.education_grade_id','=','education_grades.id')
-            ->join('institutions', function($join) use ($year){
-                $join->on('institutions.id','=','institution_grades.institution_id');
+            ->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
+            ->where('promoted', '=', $year)
+            ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
+            ->join('institutions', function ($join) use ($year) {
+                $join->on('institutions.id', '=', 'institution_grades.institution_id');
             })
             ->orderBy('institution_id')
             ->groupBy('institutions.id')
