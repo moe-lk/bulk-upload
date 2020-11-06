@@ -82,6 +82,7 @@ class Institution_grade extends Base_Model
                 })
                 ->where('institution_grades.education_grade_id', $educationGradeId)
                 ->where('institution_grades.institution_id', $institutionId)
+                ->groupBy('institution_grades.id')
                 ->get();
         }else{
             return null;
