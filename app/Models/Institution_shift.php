@@ -49,18 +49,29 @@ class Institution_shift extends Base_Model  {
             ->where('academic_period_id',$shift['academic_period_id'])->exists();
     }
 
-    public function getShiftsToClone(int $year){
+    public function getShift($shift){
+        return self::query()
+            ->where('institution_id',$shift['institution_id'])
+            ->where('location_institution_id',$shift['location_institution_id'])
+            ->where('shift_option_id',$shift['shift_option_id'])
+            ->where('academic_period_id',$shift['academic_period_id'])->first();
+    }
+
+    public function getShiftsToClone(string $year,$limit,$mode){
         return self::query()
             ->select('institution_shifts.*')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
-            // ->where('academic_periods.code',$year)
-            ->where('institution_shifts.cloned',$year)
-            ->get()->toArray();
+            ->where('academic_periods.code',$year)
+            ->whereNotIn('institution_shifts.cloned',[ !$mode ? '2020' : '2018/2019'])
+            ->groupBy('institution_shifts.id')
+            ->limit($limit)
+            ->get()
+            ->toArray();
     }
 
-    public function getShiftsTodelete(int $year,$academic_period_id){
+    public function getShiftsTodelete(string $year,$academic_period_id){
         return self::query()
-            ->select('institution_shifts.*')
+            // ->select('institution_shifts.*','academic_periods.academic_period_id')
             ->join('academic_periods','academic_periods.id','=','institution_shifts.academic_period_id')
             ->where('academic_period_id',$academic_period_id)
             ->where('institution_shifts.cloned',$year)

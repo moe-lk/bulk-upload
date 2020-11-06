@@ -260,6 +260,8 @@ return [
     ],
     'optional_columns' => [
         "preferred_name",
+        "identity_type",
+        "academic_period",
         "guardians_phone",
         "fathers_phone",
         "mothers_phone",
