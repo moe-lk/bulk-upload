@@ -2,8 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Institution_grade;
+use App\Models\Academic_period;
 use Illuminate\Console\Command;
+use App\Models\Institution_grade;
 
 class CallPromotionCommand extends Command
 {
@@ -12,7 +13,7 @@ class CallPromotionCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'promote:run {year}';
+    protected $signature = 'promote:run {year} {limit}';
 
     /**
      * The console command description.
@@ -30,6 +31,7 @@ class CallPromotionCommand extends Command
     {
         parent::__construct();
         $this->instituion_grade = new Institution_grade();
+        $this->academic_period = new Academic_period();
     }
 
     /**
@@ -40,7 +42,11 @@ class CallPromotionCommand extends Command
     public function handle()
     {
         $year = $this->argument('year');
-        $institutions = $this->instituion_grade->getInstitutionGradeList($year);
+        $limit = $this->argument('limit');
+        $academicPeriod = $this->academic_period->getAcademicPeriod($year);
+        $previousAcademicPeriodYear = $academicPeriod->order;
+        $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
+        $institutions = $this->instituion_grade->getInstitutionGradeList($previousAcademicPeriod->code,$limit);
         array_walk($institutions,array($this,'callPromotion'),$year);
     }
 
