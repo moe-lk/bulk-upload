@@ -36,9 +36,9 @@ class BulkPromotion extends Controller
      * @param [type] $year
      * @return void
      */
-    public function callback($institutionGrade, $year)
+    public function callback($institutionGrade, $params)
     {
-        array_walk($institutionGrade, array($this, 'processGrades'), $year);
+        array_walk($institutionGrade, array($this, 'processGrades'), $params);
     }
 
     /**
@@ -49,22 +49,22 @@ class BulkPromotion extends Controller
      * @param [type] $year
      * @return void
      */
-    public function processGrades($institutionGrade, $count, $year)
+    public function processGrades($institutionGrade, $count, $params)
     {
         if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
-            $this->instituion_grade->updatePromoted($year, $institutionGrade['id']);
+            $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
             $isAvailableforPromotion = 0;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
+            $this->process($institutionGrade, $nextGrade, $params);
+            // if (!empty($nextGrade)) {
+            //     $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+            // }
 
-            if (!empty($nextGrade)) {
-                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
-            }
-
-            if (!empty($isAvailableforPromotion)) {
-                $this->process($institutionGrade, $nextGrade, $year, 1);
-            } else {
-                $this->process($institutionGrade, $nextGrade, $year, 3);
-            }
+            // if (!empty($isAvailableforPromotion)) {
+            //     $this->process($institutionGrade, $nextGrade, $params);
+            // } else {
+            //     $this->process($institutionGrade, $nextGrade, $params);
+            // }
         }
     }
 
@@ -139,38 +139,37 @@ class BulkPromotion extends Controller
      * @param $year
      * @return int
      */
-    public function process($institutionGrade, $nextGrade, $year)
+    public function process($institutionGrade, $nextGrade, $params)
     {
-        $academicPeriod = Academic_period::query()->where('code', $year - 1)->get()->first();
-        $nextAcademicPeriod = Academic_period::query()->where('code', $year)->get()->first();
-
+        $academicPeriod = $params['academicPeriod'];
+        $previousAcademicPeriod = $params['previousAcademicPeriod'];
         $nextGradeObj = null;
         if ($nextGrade !== []  && !is_null($nextGrade)) {
             $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $academicPeriod->id);
-            $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $nextAcademicPeriod->id);
+            $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $academicPeriod->id);
         }
 
         if (!is_null($nextGradeObj)) {
             if ($nextGradeObj->count() == 1) {
                 // promote parallel classes
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, $nextGradeObj->toArray(), 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, $nextGradeObj->toArray(), 1);
                 return 1;
             } elseif (($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count())) {
                 // promote pool promotion
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 1);
                 return 2;
             } elseif (($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count()) {
                 // Promote matching class name with previous class
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, $nextGradeObj->toArray(), 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, $nextGradeObj->toArray(), 1);
                 return 1;
             } else {
                 // default pool promotion
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 1);
                 return 2;
             }
         } else {
             // default pool promotion
-            $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 3);
+            $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 3);
             return 2;
         }
     }

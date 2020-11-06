@@ -68,7 +68,11 @@ class PromoteStudents extends Command
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
         $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod->code,$institution);
         $output->writeln('Start promoting:'.$institution);
-        (new BulkPromotion())->callback($institutionGrade,$year);
+        $params = [
+            'academicPeriod' => $academicPeriod,
+            'previousAcademicPeriod' => $previousAcademicPeriod
+        ];
+        (new BulkPromotion())->callback($institutionGrade,$params);
         $output->writeln('Finished promoting:'.$institution);
     }
 }
