@@ -55,14 +55,14 @@ class BulkPromotion extends Controller
             $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
             $isAvailableforPromotion = false;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
-           
+
             if (!empty($nextGrade)) {
                 $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
             }
 
             if (!empty($isAvailableforPromotion)) {
                 $this->process($institutionGrade, $nextGrade, $params);
-            } 
+            }
             //leave school levers
             // else {
             //     $this->process($institutionGrade, $nextGrade, $params);
@@ -248,45 +248,42 @@ class BulkPromotion extends Controller
         $nextGrade = $params[2];
         $classes = $params[3];
         $status = $params[4];
+        $class = null;
+        if (count($classes) == 1) {
+            $class = $classes[0];
+        } else {
+            $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
+            $class = $classes[$classes];
+        }
 
+        if (!is_null($class)) {
 
-        $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
-        if (is_numeric($class)) {
-            $class = $classes[$class];
+            $studentObj = [
+                'student_id' => $student['student_id'],
+                'institution_class_id' =>  $class['id'],
+                'education_grade_id' =>  $nextGrade->id,
+                'academic_period_id' => $academicPeriod->id,
+                'institution_id' => $student['institution_id'],
+                'student_status_id' => $status,
+                'created_user_id' => $student['created_user_id']
+            ];
+            $allSubjects = Institution_class_subject::getAllSubjects($class['id']);
 
-            if (count($classes) == 1) {
-                $class = $classes[0];
+            if (!empty($allSubjects)) {
+                $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
+                $this->student = $studentObj;
+                $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+                $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                array_walk($allSubjects, array($this, 'insertSubject'));
             }
-
-            if (!is_null($class)) {
-
-                $studentObj = [
-                    'student_id' => $student['student_id'],
-                    'institution_class_id' =>  $class['id'],
-                    'education_grade_id' =>  $nextGrade->id,
-                    'academic_period_id' => $academicPeriod->id,
-                    'institution_id' => $student['institution_id'],
-                    'student_status_id' => $status,
-                    'created_user_id' => $student['created_user_id']
-                ];
-                $allSubjects = Institution_class_subject::getAllSubjects($class['id']);
-
-                if (!empty($allSubjects)) {
-                    $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                    $this->student = $studentObj;
-                    $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
-                    $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    array_walk($allSubjects, array($this, 'insertSubject'));
-                }
-                if (!$this->institution_class_students->isDuplicated($studentObj)) {
-                    $this->institution_class_students->create($studentObj);
-                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                    $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
-                } else {
-                    $this->institution_class_students->where('id', (string)$student['id'])->update($studentObj);
-                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                    $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
-                }
+            if (!$this->institution_class_students->isDuplicated($studentObj)) {
+                $this->institution_class_students->create($studentObj);
+                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
+            } else {
+                $this->institution_class_students->where('id', (string)$student['id'])->update($studentObj);
+                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
             }
         }
     }
