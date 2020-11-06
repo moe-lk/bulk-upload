@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Academic_period;
 use Illuminate\Console\Command;
 use App\Models\Institution_grade;
+use Illuminate\Support\Facades\DB;
 
 class CallPromotionCommand extends Command
 {

@@ -145,7 +145,7 @@ class BulkPromotion extends Controller
         $previousAcademicPeriod = $params['previousAcademicPeriod'];
         $nextGradeObj = null;
         if ($nextGrade !== []  && !is_null($nextGrade)) {
-            $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $academicPeriod->id);
+            $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $previousAcademicPeriod->id);
             $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $academicPeriod->id);
         }
 
