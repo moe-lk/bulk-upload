@@ -48,7 +48,7 @@ class PromoteStudents extends Command
     {
         parent::__construct();
         $this->instituion_grade = new \App\Models\Institution_grade();
-        $this->academic_period = new Academic_period;
+        $this->academic_period = new Academic_period();
     }
 
 
@@ -60,12 +60,19 @@ class PromoteStudents extends Command
      */
     public function handle()
     {
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $year = $this->argument('year');
         $institution = $this->argument('institution');
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
         $previousAcademicPeriodYear = $academicPeriod->order;
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
-        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod,$institution);
-        (new BulkPromotion())->callback($institutionGrade,$year);
+        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod->code,$institution);
+        $output->writeln('Start promoting:'.$institution);
+        $params = [
+            'academicPeriod' => $academicPeriod,
+            'previousAcademicPeriod' => $previousAcademicPeriod
+        ];
+        (new BulkPromotion())->callback($institutionGrade,$params);
+        $output->writeln('Finished promoting:'.$institution);
     }
 }
