@@ -61,10 +61,20 @@ class Institution_subject extends Base_Model  {
 
 
 
-    public function getInstitutionSubjects($institution_id,$academic_period_id){
-        return self::query()->where('institution_id',$institution_id)
+    public function getInstitutionSubjects($institution_id,$academic_period_id, $al = false){
+        $query =  self::query()->where('institution_id',$institution_id)
             ->where('academic_period_id',$academic_period_id)
-            ->get()->toArray();
+            ->join('education_grades_subjects','institution_subjects.education_subject_id','education_grades_subjects.id')
+            ->join('education_grades', 'education_grades_subjects.education_grade_id', 'education_grades.id')
+            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id')
+            ->join('education_cycles', 'education_programmes.education_cycle_id','education_cycles.id');
+
+        if ($al == true) {
+            $query->whereIn('education_programmes.education_cycle_id', [4,5]);
+        } else {
+            $query->whereNotIn('education_programmes.education_cycle_id', [4,5]);
+        }
+        return $query->get()->toArray();
     }
 
     public  static function getStudentsCount($institution_subject_id)

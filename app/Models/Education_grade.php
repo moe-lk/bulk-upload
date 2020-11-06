@@ -50,7 +50,7 @@ class Education_grade extends Model  {
             )->where('order',$order+1)->get()->first();
             $nextProgramme = self::getNextProgrammeList($programmeId);
             if(empty($gradeOptions) && !is_null($nextProgramme)){
-                $programmeId = $nextProgramme->next_programme_id;
+                $programmeId =  $nextProgramme->next_programme_id;
                 $gradeOptions = self::where( 'education_programme_id',$programmeId
                 )->get()->first();
             }
@@ -86,7 +86,7 @@ class Education_grade extends Model  {
             $results = [];
         }
 
-        return $results;
+        return (object)$results;
     }
 
 

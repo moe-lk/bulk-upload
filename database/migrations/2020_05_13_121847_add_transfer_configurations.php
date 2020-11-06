@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -46,7 +47,7 @@ class AddTransferConfigurations extends Migration
                 '_edit' => NULL,
                 '_add' => NULL,
                 '_delete' => NULL,
-                '_execute' => 'StudentTransferOut.edit|StudentTransferOut.view',
+                '_execute' => 'StudentTransferOut.index|StudentTransferOut.view',
                 'order' => '32',
                 'visible' => '1',
                 'description' => NULL,
@@ -55,50 +56,10 @@ class AddTransferConfigurations extends Migration
                 'created_user_id' => '1',
                 'created' => '1990-01-01 00:00:00',
             ],
-            [
-                'id' => '1022',
-                'name' => 'Transfer Request',
-                'controller' => 'Institutions',
-                'module' => 'Institutions',
-                'category' => 'Students',
-                'parent_id' => '1000',
-                '_view' => 'TransferRequests.index|TransferRequests.view',
-                '_edit' => NULL,
-                '_add' => NULL,
-                '_delete' => 'TransferRequests.remove',
-                '_execute' => 'TransferRequests.add|TransferRequests.edit|Transfer.add',
-                'order' => '31',
-                'visible' => '1',
-                'description' => NULL,
-                'modified_user_id' => '2',
-                'modified' => '2017-10-12 17:06:58',
-                'created_user_id' => '1',
-                'created' => '1990-01-01 00:00:00',
-            ],
-            [
-                'id' => '1023',
-                'name' => 'Transfer Approval',
-                'controller' => 'Institutions',
-                'module' => 'Institutions',
-                'category' => 'Students',
-                'parent_id' => '1000',
-                '_view' => 'TransferApprovals.view',
-                '_edit' => NULL,
-                '_add' => NULL,
-                '_delete' => NULL,
-                '_execute' => 'TransferApprovals.edit|TransferApprovals.view',
-                'order' => '32',
-                'visible' => '1',
-                'description' => NULL,
-                'modified_user_id' => '2',
-                'modified' => '2017-10-12 17:06:58',
-                'created_user_id' => '1',
-                'created' => '1990-01-01 00:00:00',
-            ]
             ];
 
-   //         DB::table('security_functions')->whereIn('id',[1022,1023,8001,8002])->delete();
-   //         DB::table('security_functions')->insert($data);
+           DB::table('security_functions')->whereIn('id',[1022,1023,8001,8002])->delete();
+           DB::table('security_functions')->insert($data);
     }
 
     /**
