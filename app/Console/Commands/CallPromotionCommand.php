@@ -41,6 +41,7 @@ class CallPromotionCommand extends Command
      */
     public function handle()
     {
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $year = $this->argument('year');
         $limit = $this->argument('limit');
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
