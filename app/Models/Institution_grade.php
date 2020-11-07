@@ -127,8 +127,7 @@ class Institution_grade extends Base_Model
                 $join->on('institutions.id', '=', 'institution_grades.institution_id')
                     ->where('institutions.code', '=', $institution);
             })
-            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id')
-            ->join('education_cycles', 'education_programmes.education_cycle_id', 'education_cycles.id');
+            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id');
         switch ($mode) {
             case '1-5':
                 $query->where('education_programmes.education_cycle_id', 1);
@@ -141,7 +140,7 @@ class Institution_grade extends Base_Model
                 break; 
             case 'SP':
                 $query->where('education_programmes.education_cycle_id', 7);
-                break;   
+                break;
         }
         $data = $query->groupBy('institution_grades.id')
             ->get()->toArray();
