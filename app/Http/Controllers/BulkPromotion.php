@@ -265,7 +265,7 @@ class BulkPromotion extends Controller
                 'student_status_id' => $status,
                 'created_user_id' => $student['created_user_id']
             ];
-            $allSubjects = Institution_class_subject::getAllSubjects($class['id']);
+            $allSubjects = Institution_class_subject::getAllSubjects($class);
 
             if (!empty($allSubjects)) {
                 $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
