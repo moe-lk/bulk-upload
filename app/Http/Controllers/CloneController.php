@@ -38,7 +38,14 @@ class CloneController extends Controller
 
     public function array_walk($shift, $count, $params)
     {
-        array_walk($shift, array($this, 'process'), $params);
+        try{
+           DB::beginTransaction();
+            array_walk($shift, array($this, 'process'), $params);
+            DB::commit();
+        }catch(\Exception $e){
+            $this->output->writeln('Terminating ' . $shift['institution_id']);
+            DB::rollBack();
+        }
     }
 
     public function cleanConfig($params)
@@ -88,6 +95,8 @@ class CloneController extends Controller
                 array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                 $this->output->writeln('updating from ' . $shift['institution_id']);
             } catch (\Exception $e) {
+                $this->output->writeln('Terminating ' . $shift['institution_id']);
+                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         } else {
@@ -101,8 +110,10 @@ class CloneController extends Controller
                         try {
                             array_walk($newInstitutionClasses, array($this, 'insertInstitutionClasses'), $params);
                             $this->output->writeln('##########################################################################################################################');
-                            $this->output->writeln('updating from ' . $shift['institution_id']);
+                            $this->output->writeln('updating from = ' . $shift['institution_id']);
                         } catch (\Exception $e) {
+                            $this->output->writeln('Terminating ' . $shift['institution_id']);
+                            DB::rollBack();
                             Log::error($e->getMessage(), [$e]);
                         }
                     } else {
@@ -116,11 +127,16 @@ class CloneController extends Controller
                         $this->output->writeln('##########################################################################################################################');
                         $this->output->writeln('updating from ' . $shift['institution_id']);
                     } catch (\Exception $e) {
+                        $this->output->writeln('Terminating ' . $shift['institution_id']);
+                        DB::rollBack();
                         Log::error($e->getMessage(), [$e]);
                     }
                 }
+                DB::commit();
             } catch (\Exception $e) {
                 Log::error($e->getMessage(), [$e]);
+                $this->output->writeln('Terminating ' . $shift['institution_id']);
+                DB::rollBack();
             }
         }
     }
@@ -141,6 +157,7 @@ class CloneController extends Controller
             unset($subjects['id']);
             $this->institution_subjects->create($subjects);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error($e->getMessage(), [$e]);
         }
     }
@@ -169,6 +186,7 @@ class CloneController extends Controller
                     ]);
             }
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error($e->getMessage(), [$e]);
         }
     }
@@ -198,7 +216,7 @@ class CloneController extends Controller
             $class['institution_shift_id'] = $param['shift_id'];
             // $class['created_user_id'] = 
             $this->output->writeln('Create class:' . $class['name']);
-            $class = Institution_class::create($class);
+            $class =  Institution_class::create($class);
             $institutionClassGrdaeObj['institution_class_id'] = $class->id;
             $institutionClassGrdaeObj['education_grade_id'] = $educationGrdae;
             $institutionClassGrdaeObj['created_user_id'] = $class['created_user_id'];
@@ -213,6 +231,7 @@ class CloneController extends Controller
             $this->insertInstitutionClassSubjects($institutionSubjects, $class);
             //                array_walk($classSubjects,array($this,'insertInstitutionClassSubjects'),$params);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error($e->getMessage(), [$e]);
         }
     }
@@ -224,6 +243,7 @@ class CloneController extends Controller
                 array_walk($subjects, array($this, 'insertClassSubjects'), $class);
                 $this->output->writeln('updating subjects ' . $class->name);
             } catch (\Exception $e) {
+                DB::rollBack();
                 Log::error($e->getMessage(), [$e]);
             }
         };
@@ -244,6 +264,7 @@ class CloneController extends Controller
                 $this->institution_class_subjects->create($subjectobj);
             }
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error($e->getMessage(), [$e]);
         }
     }
@@ -286,7 +307,7 @@ class CloneController extends Controller
             $data = array();
 
             if (is_null($exist)) {
-                $shift['cloned'] = $year;
+                $shift['cloned'] = $academicPeriod->code;
                 unset($shift['id']);
                 unset($shift['created']);
                 unset($shift['modified']);
@@ -303,7 +324,7 @@ class CloneController extends Controller
             };
             return $data;
         } catch (\Exception $e) {
-            dd($e);
+            DB::rollBack();
         }
     }
 }
