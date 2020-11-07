@@ -7,6 +7,7 @@ use App\Models\Institution;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
+use Illuminate\Support\Facades\DB;
 use App\Models\Institution_student;
 use App\Models\Institution_subject;
 use Illuminate\Support\Facades\Log;
@@ -51,21 +52,31 @@ class BulkPromotion extends Controller
      */
     public function processGrades($institutionGrade, $count, $params)
     {
-        if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
-            $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
-            $isAvailableforPromotion = false;
-            $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
-            if (!empty($nextGrade)) {
-                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+        try{
+            DB::beginTransaction();
+            if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
+                $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
+                $isAvailableforPromotion = false;
+                $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
+                if (!empty($nextGrade)) {
+                    $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+                }
+                if (!empty($isAvailableforPromotion)) {
+                    $this->process($institutionGrade, $nextGrade, $params);
+                    DB::commit();
+                }else{
+                    DB::rollBack();
+                }
+                //leave school levers
+                // else {
+                //     $this->process($institutionGrade, $nextGrade, $params);
+                // }
             }
-            if (!empty($isAvailableforPromotion)) {
-                $this->process($institutionGrade, $nextGrade, $params);
-            }
-            //leave school levers
-            // else {
-            //     $this->process($institutionGrade, $nextGrade, $params);
-            // }
+          
+        }catch(\Exception $e){
+            DB::rollBack();
         }
+       
     }
 
 
@@ -109,9 +120,10 @@ class BulkPromotion extends Controller
                 ];
                 array_walk($studentListToPromote, array($this, 'assingeToClasses'), $params);
                 array_walk($parallelClasses, array($this, 'updateStudentCount'));
+                DB::commit();
             }
         } catch (\Exception $e) {
-            dd($e);
+            DB::rollBack();
             Log::error($e->getMessage());
         }
     }
