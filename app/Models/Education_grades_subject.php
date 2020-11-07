@@ -46,4 +46,12 @@ class Education_grades_subject extends Model  {
         return $this->hasMany('App\Models\Institution_subject','education_grade_id','education_grade_id');
     }
 
+    public function getGradeSubjects($educationGrade){
+        self::where('education_grade_id',$educationGrade['education_grade_id'])
+        ->where('academic_period_id',$educationGrade['academic_period_id'])
+        ->get()
+        ->toArray();
+        ;
+    }
+
 }
