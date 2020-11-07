@@ -109,7 +109,10 @@ class Institution_class_student extends Model
             ->where('student_id', $student['student_id'])
             ->join('institution_classes', 'institution_class_students.institution_class_id', '=', 'institution_classes.id')
             ->where('institution_class_students.student_id', $student['student_id'])
-            ->get()->last();
+            ->where('institution_class_students.academic_period_id',$student['academic_period_id'])
+            ->where('institution_class_students.institution_id',$student['institution_id'])
+            ->whereNull('institution_class_students.deleted_at')
+            ->get()->first();
     }
 
 
