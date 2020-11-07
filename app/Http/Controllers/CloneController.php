@@ -14,6 +14,7 @@ use App\Models\Institution_class_grade;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
+use App\Models\Institution_grade;
 use App\Models\Institution_student;
 
 class CloneController extends Controller
@@ -31,6 +32,7 @@ class CloneController extends Controller
         $this->institution_classes = new Institution_class();
         $this->institution_class_subjects = new Institution_class_subject();
         $this->institution_subjects =  new Institution_subject();
+        $this->institution_grades = new Institution_grade();
         $this->education_grade_subjects =  new Education_grades_subject();
         $this->output = new \Symfony\Component\Console\Output\ConsoleOutput();
     }
@@ -61,12 +63,14 @@ class CloneController extends Controller
         $this->institution_classes->where(['academic_period_id' => $academicPeriod->id])->delete();
         $this->output->writeln('cleaned classes');
 
-        $this->institution_class_subjects->whereNotIn('institution_class_id', $classIds)->delete();
-        $this->output->writeln('cleaned subjects');
+        do {
+            $deleted = $this->institution_class_subjects->whereRaw("institution_class_id not in (select id from institution_classes where academic_period_id =".$academicPeriod->id." )")->limit(10000)->delete();
+            $this->output->writeln('cleaned subjects');
+        }while($deleted > 0);
 
         do {
-            $deleted =  $this->institution_subjects->where('academic_period_id', $academicPeriod->id)->limit(100000)->delete();
-            $this->output->writeln('100000 institutions cleaned shifts');
+            $deleted =  $this->institution_subjects->where('academic_period_id', $academicPeriod->id)->limit(10000)->delete();
+            $this->output->writeln('10000 institutions cleaned subjects');
         } while ($deleted > 0);
     }
 
@@ -98,7 +102,7 @@ class CloneController extends Controller
                 Log::error($e->getMessage(), [$e]);
             }
         } else {
-            $institutionSubjects = $this->institution_subjects->getInstitutionSubjects($shift['institution_id'], $previousAcademicPeriod->id);
+            $institutionSubjects = $this->institution_grades->getGradeSubjects($shift['institution_id']);
             try {
                 if ($data['created']) {
                     $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
@@ -145,15 +149,13 @@ class CloneController extends Controller
      * @param $count
      * @param $academicPeriod
      */
-    public function insertInstitutionSubjects($subjects, $count, $academicPeriod)
+    public function insertInstitutionSubjects($subject, $count, $academicPeriod)
     {
         try {
-            $subjects['academic_period_id'] = $academicPeriod->id;
-            $subjects['created'] = now();
-            unset($subjects['total_male_students']);
-            unset($subjects['total_female_students']);
-            unset($subjects['id']);
-            $this->institution_subjects->create($subjects);
+            $subject['academic_period_id'] = $academicPeriod->id;
+            $subject['created'] = now();
+            $subject['created_user_id'] = 1;
+            $this->institution_subjects->create($subject);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e->getMessage(), [$e]);

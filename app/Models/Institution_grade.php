@@ -166,4 +166,14 @@ class Institution_grade extends Base_Model
             ->get()
             ->toArray();
     }
+
+    public function getGradeSubjects($institutionId){
+        return self::query()
+        ->select('education_grades_subjects.education_grade_id','education_grades_subjects.education_subject_id','education_subjects.name')
+        ->where('institution_grades.institution_id',$institutionId)
+        ->join('education_grades', 'institution_grades.education_grade_id', 'education_grades.id')
+        ->join('education_grades_subjects','education_grades.id','education_grades_subjects.education_grade_id')
+        ->join('education_subjects','education_grades_subjects.education_subject_id','education_subjects.id')
+        ->groupBy('education_grades_subjects.id');
+    }
 }
