@@ -55,11 +55,9 @@ class BulkPromotion extends Controller
             $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
             $isAvailableforPromotion = false;
             $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
-
             if (!empty($nextGrade)) {
                 $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
             }
-
             if (!empty($isAvailableforPromotion)) {
                 $this->process($institutionGrade, $nextGrade, $params);
             }
@@ -146,8 +144,8 @@ class BulkPromotion extends Controller
         $academicPeriod = $params['academicPeriod'];
         $previousAcademicPeriod = $params['previousAcademicPeriod'];
         $nextGradeObj = null;
+        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $previousAcademicPeriod->id);
         if ($nextGrade !== []  && !is_null($nextGrade)) {
-            $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $previousAcademicPeriod->id);
             $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $academicPeriod->id);
         }
 
