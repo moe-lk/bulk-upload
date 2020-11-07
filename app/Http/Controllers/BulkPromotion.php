@@ -251,7 +251,9 @@ class BulkPromotion extends Controller
             $class = $classes[0];
         } else {
             $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
-            $class = $classes[$classes];
+            if (is(is_numeric($class))) {
+                $class = $classes[$class];
+            }
         }
 
         if (!is_null($class)) {
@@ -274,7 +276,7 @@ class BulkPromotion extends Controller
                 $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                 array_walk($allSubjects, array($this, 'insertSubject'));
             }
-            if (!$this->institution_class_students->isDuplicated($studentObj)) {
+            if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
                 $this->institution_class_students->create($studentObj);
                 $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                 $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);

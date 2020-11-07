@@ -49,7 +49,7 @@ class Education_grade extends Model  {
             $gradeOptions = self::where( 'education_programme_id',$programmeId
             )->where('order',$order+1)->get()->first();
             $nextProgramme = self::getNextProgrammeList($programmeId);
-            if((($gradeOptions) !== []) && !is_null($nextProgramme)){
+            if(is_null($gradeOptions) && !is_null($nextProgramme)){
                 $programmeId =  $nextProgramme->next_programme_id;
                 $gradeOptions = self::where( 'education_programme_id',$programmeId
                 )

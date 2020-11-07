@@ -83,7 +83,7 @@ class Institution_grade extends Base_Model
             ->where('institution_grades.institution_id', $institutionId)
             ->groupBy('institution_classes.id')
             ->get();
-        return $data;    
+        return $data;
     }
 
 
@@ -116,9 +116,10 @@ class Institution_grade extends Base_Model
      * @param null $institution
      * @return mixed
      */
-    public function getInstitutionGradeToPromoted($year, $institution = null)
+    public function getInstitutionGradeToPromoted($year, $institution = null, $mode)
     {
-        return self::query()
+        $data = array();
+        $query = self::query()
             ->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
             ->where('promoted', '=', $year)
             ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
@@ -126,8 +127,25 @@ class Institution_grade extends Base_Model
                 $join->on('institutions.id', '=', 'institution_grades.institution_id')
                     ->where('institutions.code', '=', $institution);
             })
-            ->groupBy('institution_grades.id')
+            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id')
+            ->join('education_cycles', 'education_programmes.education_cycle_id', 'education_cycles.id');
+        switch ($mode) {
+            case '1-5':
+                $query->where('education_programmes.education_cycle_id', 1);
+                break;
+            case '6-11':
+                $query->whereIn('education_programmes.education_cycle_id', [2, 3]);
+                break;
+            case 'AL':
+                $query->where('education_programmes.education_cycle_id', 4);
+                break; 
+            case 'SP':
+                $query->where('education_programmes.education_cycle_id', 7);
+                break;   
+        }
+        $data = $query->groupBy('institution_grades.id')
             ->get()->toArray();
+        return $data;
     }
 
     /**

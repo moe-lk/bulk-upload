@@ -30,7 +30,7 @@ class PromoteStudents extends Command
      *
      * @var string
      */
-    protected $signature = 'promote:students  {institution} {year}';
+    protected $signature = 'promote:students  {institution} {year} {mode}';
 
     /**
      * The console command description.
@@ -66,7 +66,8 @@ class PromoteStudents extends Command
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
         $previousAcademicPeriodYear = $academicPeriod->order;
         $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
-        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod->code,$institution);
+        $mode = $this->argument('mode');
+        $institutionGrade = $this->instituion_grade->getInstitutionGradeToPromoted($previousAcademicPeriod->code,$institution,$mode);
         $output->writeln('Start promoting:'.$institution);
         $params = [
             'academicPeriod' => $academicPeriod,
