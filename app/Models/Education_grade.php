@@ -49,11 +49,11 @@ class Education_grade extends Model  {
             $gradeOptions = self::where( 'education_programme_id',$programmeId
             )->where('order',$order+1)->get()->first();
             $nextProgramme = self::getNextProgrammeList($programmeId);
-            if(empty($gradeOptions) && !is_null($nextProgramme)){
+            if((($gradeOptions) !== []) && !is_null($nextProgramme)){
                 $programmeId =  $nextProgramme->next_programme_id;
                 $gradeOptions = self::where( 'education_programme_id',$programmeId
                 )
-                ->where('order',1)
+                ->orderBy('order')
                 ->get()->first();
             }
             // Default is to get the list of grades with the next programme grades
