@@ -263,7 +263,7 @@ class BulkPromotion extends Controller
             $class = $classes[0];
         } else {
             $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
-            if (is(is_numeric($class))) {
+            if (is_numeric($class)) {
                 $class = $classes[$class];
             }
         }
