@@ -52,7 +52,7 @@ class BulkPromotion extends Controller
      */
     public function processGrades($institutionGrade, $count, $params)
     {
-        try{
+        try {
             DB::beginTransaction();
             if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
                 $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
@@ -64,7 +64,7 @@ class BulkPromotion extends Controller
                 if (!empty($isAvailableforPromotion)) {
                     $this->process($institutionGrade, $nextGrade, $params);
                     DB::commit();
-                }else{
+                } else {
                     DB::rollBack();
                 }
                 //leave school levers
@@ -72,11 +72,9 @@ class BulkPromotion extends Controller
                 //     $this->process($institutionGrade, $nextGrade, $params);
                 // }
             }
-          
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollBack();
         }
-       
     }
 
 
@@ -279,24 +277,28 @@ class BulkPromotion extends Controller
                 'student_status_id' => $status,
                 'created_user_id' => $student['created_user_id']
             ];
-            $allSubjects = Institution_class_subject::getAllSubjects($class);
+            $allInsSubjects = Institution_class_subject::getAllSubjects($class);
 
-            if (!empty($allSubjects)) {
-                $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                $this->student = $studentObj;
-                $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
-                $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                array_walk($allSubjects, array($this, 'insertSubject'));
-                array_walk($allSubjects,array($this,'updateSubjectCount'));
-            }
-            if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
-                $this->institution_class_students->create($studentObj);
-                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
-            } else {
-                $this->institution_class_students->where('id', (string)$student['id'])->update($studentObj);
-                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
+            try {
+                if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
+                    $this->institution_class_students->create($studentObj);
+                    if (!empty($allSubjects)) {
+                        $allSubjects = unique_multidim_array($allInsSubjects, 'institution_subject_id');
+                        $this->student = $studentObj;
+                        $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+                        $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                        array_walk($allSubjects, array($this, 'insertSubject'));
+                         array_walk($allInsSubjects,array($this,'updateSubjectCount'));
+                    }
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
+                } else {
+                    $this->institution_class_students->where('id', (string)$student['id'])->update($studentObj);
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
+                }
+            } catch (\Exception $e) {
+                dd($e);
             }
         }
     }
@@ -310,7 +312,7 @@ class BulkPromotion extends Controller
     protected function updateSubjectCount($subject)
     {
         $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
-        Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
+        Institution_subject::where(['institution_subject_id' => $subject['institution_subject_id']])
             ->update([
                 'total_male_students' => $totalStudents['total_male_students'],
                 'total_female_students' => $totalStudents['total_female_students']
