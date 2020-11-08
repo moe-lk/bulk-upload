@@ -263,7 +263,7 @@ class BulkPromotion extends Controller
             $class = $classes[0];
         } else {
             $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
-            if (is(is_numeric($class))) {
+            if (is_numeric($class)) {
                 $class = $classes[$class];
             }
         }
@@ -287,6 +287,7 @@ class BulkPromotion extends Controller
                 $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
                 $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                 array_walk($allSubjects, array($this, 'insertSubject'));
+                array_walk($allSubjects,array($this,'updateSubjectCount'));
             }
             if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
                 $this->institution_class_students->create($studentObj);
