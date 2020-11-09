@@ -88,12 +88,11 @@ class Institution_class_subject extends Base_Model  {
     }
 
     public static function getAllSubjects($institutionClass){
-        $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass)->first();
         $allSubjects = Institution_class_subject::with(['institutionSubject'])
-        ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
-            $query->whereHas('institutionGradeSubject')->where('education_grade_id', $institutionGrade->education_grade_id);
+        ->whereHas('institutionSubject', function ($query) use ($institutionClass) {
+            $query->whereHas('institutionGradeSubject')->where('education_grade_id', $institutionClass['education_grade_id']);
         })
-        ->where('institution_class_id', '=', $institutionClass)
+        ->where('institution_class_id', '=', $institutionClass['id'])
         ->get()->toArray();
         return $allSubjects;
     }

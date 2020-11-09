@@ -2,10 +2,11 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\CloneController;
 use App\Models\Academic_period;
 use Illuminate\Console\Command;
 use App\Models\Institution_shift;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\CloneController;
 
 class CloneConfigData extends Command
 {
@@ -14,7 +15,7 @@ class CloneConfigData extends Command
      *
      * @var string
      */
-    protected $signature = 'clone:config {year} {max}';
+    protected $signature = 'clone:config {year} {mode} {max}';
 
     /**
      * The console command description.
@@ -47,21 +48,28 @@ class CloneConfigData extends Command
      */
     public function handle()
     {
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $this->start_time = microtime(TRUE);
         $year = $this->argument('year');
-        $shift = $this->shifts->getShiftsToClone($year - 1);
-        $previousAcademicPeriod = $this->academic_period->getAcademicPeriod($year - 1);
         $academicPeriod = $this->academic_period->getAcademicPeriod($year);
-
+        $mode = $this->argument('mode') == 'AL' ? true : false; 
+        $previousAcademicPeriodYear = $academicPeriod->order;
+        $previousAcademicPeriod = Academic_period::where('order',$previousAcademicPeriodYear+1)->first();
+        $shift = $this->shifts->getShiftsToClone($previousAcademicPeriod->code,$this->argument(('max')),$mode);
         $params = [
             'year' => $year,
             'academic_period' => $academicPeriod,
-            'previous_academic_period' => $previousAcademicPeriod
+            'previous_academic_period' => $previousAcademicPeriod,
+            'mode' => $this->argument('mode')
         ];
-        // dd($shift);
+
         $function = array($this->clone, 'process');
-        // array_walk($shift,$function,$params);
-        processParallel($function,$shift, $this->argument('max'),$params);
+        if(count($shift) > 0){
+            // processParallel($function,$shift, $this->argument('max'),$params);
+            array_walk($shift,$function,$params);
+        }else{
+            $this->output->writeln('Nothing to clone');
+        }
         $this->end_time = microtime(TRUE);
 
 

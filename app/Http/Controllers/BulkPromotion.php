@@ -7,6 +7,7 @@ use App\Models\Institution;
 use App\Models\Academic_period;
 use App\Models\Education_grade;
 use App\Models\Institution_class;
+use Illuminate\Support\Facades\DB;
 use App\Models\Institution_student;
 use App\Models\Institution_subject;
 use Illuminate\Support\Facades\Log;
@@ -36,9 +37,9 @@ class BulkPromotion extends Controller
      * @param [type] $year
      * @return void
      */
-    public function callback($institutionGrade, $year)
+    public function callback($institutionGrade, $params)
     {
-        array_walk($institutionGrade, array($this, 'processGrades'), $year);
+        array_walk($institutionGrade, array($this, 'processGrades'), $params);
     }
 
     /**
@@ -49,22 +50,30 @@ class BulkPromotion extends Controller
      * @param [type] $year
      * @return void
      */
-    public function processGrades($institutionGrade, $count, $year)
+    public function processGrades($institutionGrade, $count, $params)
     {
-        if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
-            $this->instituion_grade->updatePromoted($year, $institutionGrade['id']);
-            $isAvailableforPromotion = 0;
-            $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
-
-            if (!empty($nextGrade)) {
-                $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+        try {
+            DB::beginTransaction();
+            if (!empty($institutionGrade) && $this->institutions->isActive($institutionGrade['institution_id'])) {
+                $this->instituion_grade->updatePromoted($params['academicPeriod']->code, $institutionGrade['id']);
+                $isAvailableforPromotion = false;
+                $nextGrade = $this->education_grades->getNextGrade($institutionGrade['education_grade_id']);
+                if (!empty($nextGrade)) {
+                    $isAvailableforPromotion = $this->instituion_grade->getInstitutionGrade($institutionGrade['institution_id'], $nextGrade->id);
+                }
+                if (!empty($isAvailableforPromotion)) {
+                    $this->process($institutionGrade, $nextGrade, $params);
+                    DB::commit();
+                } else {
+                    DB::rollBack();
+                }
+                //leave school levers
+                // else {
+                //     $this->process($institutionGrade, $nextGrade, $params);
+                // }
             }
-
-            if (!empty($isAvailableforPromotion)) {
-                $this->process($institutionGrade, $nextGrade, $year, 1);
-            } else {
-                $this->process($institutionGrade, $nextGrade, $year, 3);
-            }
+        } catch (\Exception $e) {
+            DB::rollBack();
         }
     }
 
@@ -109,9 +118,10 @@ class BulkPromotion extends Controller
                 ];
                 array_walk($studentListToPromote, array($this, 'assingeToClasses'), $params);
                 array_walk($parallelClasses, array($this, 'updateStudentCount'));
+                DB::commit();
             }
         } catch (\Exception $e) {
-            dd($e);
+            DB::rollBack();
             Log::error($e->getMessage());
         }
     }
@@ -139,38 +149,37 @@ class BulkPromotion extends Controller
      * @param $year
      * @return int
      */
-    public function process($institutionGrade, $nextGrade, $year)
+    public function process($institutionGrade, $nextGrade, $params)
     {
-        $academicPeriod = Academic_period::query()->where('code', $year - 1)->get()->first();
-        $nextAcademicPeriod = Academic_period::query()->where('code', $year)->get()->first();
-
+        $academicPeriod = $params['academicPeriod'];
+        $previousAcademicPeriod = $params['previousAcademicPeriod'];
         $nextGradeObj = null;
+        $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $previousAcademicPeriod->id);
         if ($nextGrade !== []  && !is_null($nextGrade)) {
-            $currentGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $institutionGrade['education_grade_id'], $academicPeriod->id);
-            $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $nextAcademicPeriod->id);
+            $nextGradeObj = $this->instituion_grade->getParallelClasses($institutionGrade['id'], $institutionGrade['institution_id'], $nextGrade->id, $academicPeriod->id);
         }
 
         if (!is_null($nextGradeObj)) {
             if ($nextGradeObj->count() == 1) {
                 // promote parallel classes
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, $nextGradeObj->toArray(), 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, $nextGradeObj->toArray(), 1);
                 return 1;
             } elseif (($nextGradeObj->count() > 1) && ($nextGradeObj->count() !==  $currentGradeObj->count())) {
                 // promote pool promotion
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 1);
                 return 2;
             } elseif (($nextGradeObj->count() > 1) && $currentGradeObj->count() == $nextGradeObj->count()) {
                 // Promote matching class name with previous class
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, $nextGradeObj->toArray(), 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, $nextGradeObj->toArray(), 1);
                 return 1;
             } else {
                 // default pool promotion
-                $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 1);
+                $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 1);
                 return 2;
             }
         } else {
             // default pool promotion
-            $this->promotion($institutionGrade, $nextGrade, $academicPeriod, $nextAcademicPeriod, [], 3);
+            $this->promotion($institutionGrade, $nextGrade, $previousAcademicPeriod, $academicPeriod, [], 3);
             return 2;
         }
     }
@@ -247,38 +256,40 @@ class BulkPromotion extends Controller
         $nextGrade = $params[2];
         $classes = $params[3];
         $status = $params[4];
-
-
-        $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
-        if (is_numeric($class)) {
-            $class = $classes[$class];
-
-            if (count($classes) == 1) {
-                $class = $classes[0];
+        $class = null;
+        if (count($classes) == 1) {
+            $class = $classes[0];
+        } else {
+            $class = $this->getStudentClass($student, $educationGrade, $nextGrade, $classes);
+            if (is_numeric($class)) {
+                $class = $classes[$class];
             }
+        }
 
-            if (!is_null($class)) {
+        if (!is_null($class)) {
 
-                $studentObj = [
-                    'student_id' => $student['student_id'],
-                    'institution_class_id' =>  $class['id'],
-                    'education_grade_id' =>  $nextGrade->id,
-                    'academic_period_id' => $academicPeriod->id,
-                    'institution_id' => $student['institution_id'],
-                    'student_status_id' => $status,
-                    'created_user_id' => $student['created_user_id']
-                ];
-                $allSubjects = Institution_class_subject::getAllSubjects($class['id']);
+            $studentObj = [
+                'student_id' => $student['student_id'],
+                'institution_class_id' =>  $class['id'],
+                'education_grade_id' =>  $nextGrade->id,
+                'academic_period_id' => $academicPeriod->id,
+                'institution_id' => $student['institution_id'],
+                'student_status_id' => $status,
+                'created_user_id' => $student['created_user_id']
+            ];
+            $allInsSubjects = Institution_class_subject::getAllSubjects($class);
 
-                if (!empty($allSubjects)) {
-                    $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                    $this->student = $studentObj;
-                    $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
-                    $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    array_walk($allSubjects, array($this, 'insertSubject'));
-                }
-                if (!$this->institution_class_students->isDuplicated($studentObj)) {
+            try {
+                if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
                     $this->institution_class_students->create($studentObj);
+                    if (!empty($allInsSubjects)) {
+                        $allSubjects = unique_multidim_array($allInsSubjects, 'institution_subject_id');
+                        $this->student = $studentObj;
+                        $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+                        $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                        array_walk($allSubjects, array($this, 'insertSubject'));
+                        array_walk($allInsSubjects,array($this,'updateSubjectCount'));
+                    }
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
                 } else {
@@ -286,6 +297,8 @@ class BulkPromotion extends Controller
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
                 }
+            } catch (\Exception $e) {
+                dd($e);
             }
         }
     }
@@ -299,7 +312,7 @@ class BulkPromotion extends Controller
     protected function updateSubjectCount($subject)
     {
         $totalStudents = Institution_subject_student::getStudentsCount($subject['institution_subject_id']);
-        Institution_subject::where(['institution_subject_id' => $subject->institution_subject_id])
+        Institution_subject::where(['institution_subject_id' => $subject['institution_subject_id']])
             ->update([
                 'total_male_students' => $totalStudents['total_male_students'],
                 'total_female_students' => $totalStudents['total_female_students']
