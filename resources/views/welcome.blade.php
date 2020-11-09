@@ -81,7 +81,8 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    Dear users, we are doing the bulk promotion of students from the last academic year.
+                    Due to this process the File process will be halt for some time and it will began after 26th of November. 
                 </div>
 
                 <div class="links">
