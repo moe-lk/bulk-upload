@@ -116,7 +116,7 @@ class Institution_student extends Base_Model
      */
     public function getStudentListToPromote($institutionGrade, $academicPeriod)
     {
-        return self::query()
+        return $this
             ->select(
                 'institution_students.id',
                 'institution_students.student_id',
@@ -130,7 +130,6 @@ class Institution_student extends Base_Model
             )
             ->where('institution_students.institution_id', $institutionGrade['institution_id'])
             ->where('institution_students.education_grade_id', $institutionGrade['education_grade_id'])
-            ->whereNull('institution_students.deleted_at')
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
     }
 
