@@ -14,8 +14,9 @@
                         </div>
                     @endif
 
-                    You are logged in! If you can't access to the bulk upload menu , then you are not given permission for do this.
-                    Please contact you School Coordinator and get access to your class room.
+                    <!-- You are logged in! If you can't access to the bulk upload menu , then you are not given permission for do this.
+                    Please contact you School Coordinator and get access to your class room. -->
+                    Dear users, we are doing the bulk promotion of students from the last academic year.Due to this process the File process will be halt for some time and it will began after 26th of November. 
                 </div>
             </div>
         </div>

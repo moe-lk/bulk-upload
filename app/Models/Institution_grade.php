@@ -162,7 +162,7 @@ class Institution_grade extends Base_Model
             ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id');
             switch ($mode) {
                 case '1-5':
-                    $query->where('education_programmes.education_cycle_id', [1,2]);
+                    $query->whereIn('education_programmes.education_cycle_id', [1,2]);
                     break;
                 case '6-11':
                     $query->whereIn('education_programmes.education_cycle_id', [2,3,4]);
