@@ -217,7 +217,6 @@ class BulkPromotion extends Controller
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
             $output->writeln('----------------- ' . $student['admission_id'] . ' to ' . $studentData['education_grade_id']);
         } catch (\Exception $e) {
-            dd($e);
             Log::error($e->getMessage());
         }
     }
@@ -277,19 +276,19 @@ class BulkPromotion extends Controller
                 'student_status_id' => $status,
                 'created_user_id' => $student['created_user_id']
             ];
-            $allInsSubjects = Institution_class_subject::getAllSubjects($class);
+            // $allInsSubjects = Institution_class_subject::getAllSubjects($class);
 
             try {
                 if (!$this->institution_class_students->isDuplicated($studentObj) && !is_null($class['id'])) {
                     $this->institution_class_students->create($studentObj);
-                    if (!empty($allInsSubjects)) {
-                        $allSubjects = unique_multidim_array($allInsSubjects, 'institution_subject_id');
-                        $this->student = $studentObj;
-                        $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
-                        $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                        array_walk($allSubjects, array($this, 'insertSubject'));
-                        array_walk($allInsSubjects,array($this,'updateSubjectCount'));
-                    }
+                    // if (!empty($allInsSubjects)) {
+                    //     $allSubjects = unique_multidim_array($allInsSubjects, 'institution_subject_id');
+                    //     $this->student = $studentObj;
+                    //     $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+                    //     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                    //     array_walk($allSubjects, array($this, 'insertSubject'));
+                    //     array_walk($allInsSubjects,array($this,'updateSubjectCount'));
+                    // }
                     $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
                 } else {
@@ -298,7 +297,7 @@ class BulkPromotion extends Controller
                     $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
                 }
             } catch (\Exception $e) {
-                dd($e);
+                Log::error($e->getMessage());
             }
         }
     }
