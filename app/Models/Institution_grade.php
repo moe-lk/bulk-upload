@@ -134,6 +134,7 @@ class Institution_grade extends Base_Model
                 break;
             case '6-11':
                 $query->whereIn('education_programmes.education_cycle_id', [2, 3]);
+                $query->whereNotIn('education_grades.id',[29,34]);
                 break;
             case 'AL':
                 $query->where('education_programmes.education_cycle_id', 4);
