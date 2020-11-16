@@ -1,23 +1,32 @@
-FROM moelk/laravel
+FROM php:7.4-fpm
 
-# Install cron
-USER bitnami
-RUN rm  composer.lock
-RUN sudo apt-get update && sudo apt-get install -y cron
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libzip-dev
 
-COPY --chown=bitnami:bitnami . /app
-COPY --chown=bitnami:bitnami  run.sh /app/run.sh
-COPY --chown=bitnami:bitnami  crontab /etc/cron.d/cool-task
-RUN chmod 0644 /etc/cron.d/cool-task
-RUN sudo chown bitnami:bitnami /var/log /etc/environment /var/run
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN crontab /etc/cron.d/cool-task
-RUN touch /var/log/cron.log
-RUN echo 'test' > /var/log/cron.log
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+RUN docker-php-ext-install -j$(nproc)  zip
 
-RUN sudo service cron restart
+ADD . /var/www
 
-# RUN sudo cron -f
-# CMD ["sudo","cron","-f"]
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-EXPOSE 80
+# Set working directory
+WORKDIR /var/www
+
+# Create system user to run Composer and Artisan Commands
+RUN composer install
+
+EXPOSE 9000
