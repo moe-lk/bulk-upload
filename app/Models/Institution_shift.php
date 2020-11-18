@@ -68,18 +68,15 @@ class Institution_shift extends Base_Model
             ->where('academic_periods.code', $year);
 
         if ($mode) {
-            $query->whereNot('institution_shifts.cloned', '2018/2019');
+            $query->where('institution_shifts.cloned','<>', '2018/2019');
         } else {
-            $query->whereNot('institution_shifts.cloned', '2020');
+            $query->where('institution_shifts.cloned','<>', '2020');
         }
-
-
-
+        
         $data =    $query->groupBy('institution_shifts.id')
             ->limit($limit)
             ->get()
             ->toArray();
-
         return $data;
     }
 
