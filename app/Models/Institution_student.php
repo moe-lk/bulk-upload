@@ -129,6 +129,7 @@ class Institution_student extends Base_Model
                 'institution_students.admission_id'
             )
             ->where('institution_students.institution_id', $institutionGrade['institution_id'])
+            ->where('institution_students.student_status_id',1)
             ->where('institution_students.education_grade_id', $institutionGrade['education_grade_id'])
             ->where('institution_students.deleted_at',null)
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
