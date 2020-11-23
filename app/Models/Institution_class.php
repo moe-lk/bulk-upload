@@ -82,7 +82,7 @@ class Institution_class extends Base_Model
 
         if ($al == true) {
             $query->where('education_programmes.education_cycle_id', 4)
-            ->where('institution_id', $shift['institution_id']);
+            ->where('institution_id', $shift['id']);
             $data = $query
             ->groupBy('institution_classes.id')
             ->get()->toArray();
