@@ -133,10 +133,11 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
 
-
+                
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
                 $identityType = $identityType !== null ? $identityType->id : null;
+                
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
@@ -474,8 +475,8 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
-            '*.identity_type' => 'required_with:*.identity_number',
-            '*.identity_number' => 'required_with:*.identity_type|regex:/^[0-9]{4}+$/',
+            '*.identity_type' => 'nullable|required_with:*.identity_number',
+            '*.identity_number' => 'nullable|identity:identity_type|required_with:*.identity_type',
             '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
