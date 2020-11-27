@@ -16,7 +16,8 @@ RUN apt-get install -y \
     libmcrypt-dev \
     libreadline-dev \
     libfreetype6-dev \
-    g++
+    g++ \
+    nano
 
 ADD .  /var/www/html/
 # 2. apache configs + document root

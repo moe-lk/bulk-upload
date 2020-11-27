@@ -123,8 +123,8 @@ class CloneController extends Controller
                     }
                 } else {
                     try {
-                        $shift['id'] = $shiftId;
                         $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
+                        $shift['id'] = $shiftId;
                         array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                         $this->output->writeln('##########################################################################################################################');
                         $this->output->writeln('updating from ' . $shift['institution_id']);
