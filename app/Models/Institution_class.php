@@ -60,7 +60,7 @@ class Institution_class extends Base_Model
     }
 
 
-    public function getShiftClasses($shift, $al)
+    public function getShiftClasses($shift, $al , $param = [])
     {
         $query = self::query()
             ->select(
@@ -82,7 +82,8 @@ class Institution_class extends Base_Model
 
         if ($al == true) {
             $query->where('education_programmes.education_cycle_id', 4)
-            ->where('institution_shift_id', $shift['id']);
+            ->where('institution_shift_id', $shift['id'])
+            ->where('institution_classes.academic_period_id',$param['previous_academic_period_id']);
             $data = $query
             ->groupBy('institution_classes.id')
             ->get()->toArray();
