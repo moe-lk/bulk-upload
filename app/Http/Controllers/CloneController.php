@@ -123,8 +123,8 @@ class CloneController extends Controller
                     }
                 } else {
                     try {
-                        $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
                         $shift['id'] = $shiftId;
+                        $institutionClasses = $this->institution_classes->getShiftClasses($shift, $mode);
                         array_walk($institutionClasses, array($this, 'updateInstitutionClasses'), $params);
                         $this->output->writeln('##########################################################################################################################');
                         $this->output->writeln('updating from ' . $shift['institution_id']);
@@ -167,12 +167,14 @@ class CloneController extends Controller
         try {
             if ($params['mode']) {
                 Institution_class::where('id', $class['id'])
+                    ->where('academic_period_id',$params['previous_academic_period_id'])
                     ->update([
                         'institution_shift_id' => $params['shift_id'],
                         'academic_period_id' => $params['academic_period_id']
                     ]);
 
                 Institution_class_student::where('institution_class_id', $class['id'])
+                    ->where('academic_period_id',$params['previous_academic_period_id'])    
                     ->update([
                         'academic_period_id' => $params['academic_period_id'],
                         'modified' => now()
@@ -181,6 +183,7 @@ class CloneController extends Controller
                 $educationGrade = Institution_class_grade::select('education_grade_id')->where('institution_class_id', $class['id'])->get()->toArray();
 
                 Institution_student::whereIn('education_grade_id', $educationGrade)
+                    ->where('academic_period_id',$params['previous_academic_period_id'])
                     ->update([
                         'academic_period_id' => $params['academic_period_id']
                     ]);
