@@ -134,6 +134,7 @@ class Institution_grade extends Base_Model
                 break;
             case '6-11':
                 $query->whereIn('education_programmes.education_cycle_id', [2, 3]);
+                $query->whereNotIn('education_grades.id',[29,34]);
                 break;
             case 'AL':
                 $query->where('education_programmes.education_cycle_id', 4);
@@ -151,20 +152,33 @@ class Institution_grade extends Base_Model
      * @param $year
      * @return mixed
      */
-    public function getInstitutionGradeList($year, $limit)
+    public function getInstitutionGradeList($year, $limit,$mode)
     {
-        return self::query()
-            ->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
+        $query = $this->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
             ->where('promoted', '=', $year)
             ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
             ->join('institutions', function ($join) use ($year) {
                 $join->on('institutions.id', '=', 'institution_grades.institution_id');
             })
-            ->orderBy('institution_id')
-            ->groupBy('institutions.id')
-            ->limit($limit)
-            ->get()
-            ->toArray();
+            ->join('education_programmes', 'education_grades.education_programme_id', 'education_programmes.id');
+            switch ($mode) {
+                case '1-5':
+                    $query->whereIn('education_programmes.education_cycle_id', [1,2]);
+                    break;
+                case '6-11':
+                    $query->whereIn('education_programmes.education_cycle_id', [2,3,4]);
+                    break;
+                case 'AL':
+                    $query->where('education_programmes.education_cycle_id', 4);
+                    break; 
+                case 'SP':
+                    $query->where('education_programmes.education_cycle_id', 7);
+                    break;
+            }
+            $data = $query->groupBy('institutions.id')
+                ->limit($limit)
+                ->get()->toArray();
+            return $data;
     }
 
     public function getGradeSubjects($institutionId){

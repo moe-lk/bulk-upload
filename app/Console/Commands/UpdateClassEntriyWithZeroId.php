@@ -140,6 +140,7 @@ class UpdateClassEntriyWithZeroId extends Command
                 ]);
                 $institutionClassStudent = [$institutionClassStudent];
                 array_walk($institutionClassStudent, array($this->class, 'updateClassCount'));
+                $this->output->writeln("student record  :".$student['student_id'] );
             }
         }
        }catch(\Exception $e){
