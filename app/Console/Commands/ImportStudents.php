@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Http\Controllers\StudentImportSuccessMailController;
 use App\Imports\UsersImport;
 use App\Imports\StudentUpdate;
+use App\Imports\UpdateAdditionalInfo;
 use App\Mail\StudentImportFailure;
 use App\Mail\StudentImportSuccess;
 use App\Mail\EmptyFile;
@@ -239,8 +240,6 @@ class ImportStudents extends Command
         $this->output->writeln('Processing the file: ' . $file['filename']);
         if ($this->checkTime()) {
             try {
-                $this->import($file, 1, 'C');
-                sleep(10);
                 $this->import($file, 2, 'B');
             } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
                 $this->output->writeln($e->getMessage());
@@ -358,8 +357,8 @@ class ImportStudents extends Command
                     break;
                 case 2;
                     $this->output->writeln('Trying to update Students');
-                    if (($this->getSheetName($file, 'Update Students')) && $this->higestRow > 0) {
-                        $import = new StudentUpdate($file);
+                    if (($this->getSheetName($file, 'Update Students'))) {
+                        $import = new UpdateAdditionalInfo($file);
                         $import->import($excelFile, 'local', $this->getSheetType($file['filename']));
                         if ($import->failures()->count() > 0) {
                             self::writeErrors($import, $file, 'Update Students');

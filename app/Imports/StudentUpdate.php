@@ -411,7 +411,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
 
     public function rules(): array {
-
         return [
             '*.student_id' => 'required|exists:security_users,openemis_no|is_student_in_class:'.$this->file['institution_class_id'],
             '*.full_name' => 'nullable|regex:/^[\pL\s\-]+$/u|max:256',

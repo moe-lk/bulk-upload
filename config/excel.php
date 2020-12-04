@@ -281,5 +281,26 @@ return [
         "option_14",
         "option_15",
         "option_16"
+    ],
+    'additional_columns' => [
+        "remarks",
+        "student_idnsid",
+        "type_of_device_the_student_own",
+        "type_of_device_the_students_home_has",
+        "internet_connectivity_at_home",
+        "method_of_access_to_internet",
+        "has_a_tv_at_home",
+        "has_a_satellite_tv_connection_at_home",
+        "electricity_at_home",
+        "tv_channel_1",
+        "tv_channel_2",
+        "tv_channel_3",
+        "tv_channel_4",
+        "tv_channel_5",
+        "radio_channel_1",
+        "radio_channel_2",
+        "radio_channel_3",
+        "radio_channel_4",
+        "radio_channel_5",
     ]
 ];

@@ -100,7 +100,7 @@ class Import
 
     public function validateColumns($column, $existingColumns)
     {
-        $columns = Config::get('excel.columns');
+        $columns = Config::get('excel.additional_columns');
         $error = \Illuminate\Validation\ValidationException::withMessages([]);
         $this->failures = [];
         if (($column !== "") && (!in_array($column, $columns))) {
@@ -116,11 +116,12 @@ class Import
 
     public function validateColumnsToMap($existingColumns)
     {
-        $columns = Config::get('excel.columns');
+        $columns = Config::get('excel.additional_columns');
         $optional_columns = Config::get('excel.optional_columns');
         $columns = array_diff ($columns,$optional_columns);
         $error = \Illuminate\Validation\ValidationException::withMessages([]);
         $this->failures = [];
+
         foreach ($columns as  $column) {
                 if (($column !== "") && (!in_array($column, $existingColumns))) {
                     $this->isValidSheet = false;
@@ -251,7 +252,7 @@ class Import
      */
     public function map($row): array
     {
-        $row = $this->mapFields($row);
+        // $row = $this->mapFields($row);
         return $row;
     }
 
