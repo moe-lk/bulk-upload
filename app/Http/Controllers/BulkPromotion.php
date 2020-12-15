@@ -235,7 +235,13 @@ class BulkPromotion extends Controller
     {
         $studentClass = $this->institution_class_students->getStudentNewClass($student);
         if (!is_null($studentClass)) {
-            return  array_search(str_replace($educationGrade['name'], $nextGrade->name, $studentClass->name), array_column($classes, 'name'));
+            $class = array_search(str_replace($educationGrade['name'], $nextGrade->name, $studentClass->name), array_column($classes, 'name'));
+            if(is_null($class)){
+                $nextGradeName = explode(" ",$nextGrade->name);
+                $educationGrade['name'] = explode(" ",$educationGrade['name']);
+                $class = array_search(str_replace($educationGrade['name'], $nextGradeName, $studentClass->name), array_column($classes, 'name'));
+            }
+            return $class;
         } else {
             return false;
         }
@@ -297,6 +303,7 @@ class BulkPromotion extends Controller
                     $output->writeln('----------------- ' . $student['student_id'] . 'to ' . $class['name']);
                 }
             } catch (\Exception $e) {
+                
                 Log::error($e->getMessage());
             }
         }
