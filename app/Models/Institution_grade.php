@@ -121,7 +121,7 @@ class Institution_grade extends Base_Model
         $data = array();
         $query = self::query()
             ->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
-            ->where('promoted', '=', $year)
+            // ->where('promoted', '=', $year)
             ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
             ->join('institutions', function ($join) use ($year, $institution) {
                 $join->on('institutions.id', '=', 'institution_grades.institution_id')
@@ -155,7 +155,7 @@ class Institution_grade extends Base_Model
     public function getInstitutionGradeList($year, $limit,$mode)
     {
         $query = $this->select('education_grades.name', 'institutions.code', 'institutions.name as institution_name', 'institution_grades.id', 'institution_grades.institution_id', 'institution_grades.education_grade_id')
-            ->where('promoted', '=', $year)
+            // ->where('promoted', '=', $year)
             ->join('education_grades', 'institution_grades.education_grade_id', '=', 'education_grades.id')
             ->join('institutions', function ($join) use ($year) {
                 $join->on('institutions.id', '=', 'institution_grades.institution_id');

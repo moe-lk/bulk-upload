@@ -100,6 +100,4 @@ class User extends Authenticatable   {
     public function findForPassport($username) {
         return self::where('username', $username)->first(); // change column name whatever you use in credentials
     }
-
-
 }
