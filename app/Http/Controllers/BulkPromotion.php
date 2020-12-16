@@ -236,9 +236,9 @@ class BulkPromotion extends Controller
         $studentClass = $this->institution_class_students->getStudentNewClass($student);
         if (!is_null($studentClass)) {
             $class = array_search(str_replace($educationGrade['name'], $nextGrade->name, $studentClass->name), array_column($classes, 'name'));
-            if(is_null($class)){
-                $nextGradeName = explode(" ",$nextGrade->name);
-                $educationGrade['name'] = explode(" ",$educationGrade['name']);
+            if(!($class)){
+                $nextGradeName = explode(" ",$nextGrade->name)[0];
+                $educationGrade['name'] = explode(" ",$educationGrade['name'])[0];
                 $class = array_search(str_replace($educationGrade['name'], $nextGradeName, $studentClass->name), array_column($classes, 'name'));
             }
             return $class;
