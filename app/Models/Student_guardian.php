@@ -68,8 +68,10 @@ class Student_guardian extends Base_Model  {
     public static function createStudentGuardian($student,$guardian,$user){
      
         $exist = self::where('student_id', $student->student_id)
-        ->where('guardian_id', $guardian->id)
-        ->exist();
+        ->where('guardian_relation_id', $guardian->guardian_relation_id)
+        ->exists();
+
+        $totalGuardians = self::where('student_id',$student->student_id)->count();
 
         $data = [
             'student_id' => $student->student_id,
@@ -83,10 +85,9 @@ class Student_guardian extends Base_Model  {
         }else{
             $data['modified'] = now();
             self::where('student_id' , $student->student_id)
-            ->where('guardian_id',$guardian->id)
+            ->where('guardian_relation_id',$guardian->guardian_relation_id)
             ->update($data);
         }
     }
-
 
 }

@@ -116,7 +116,7 @@ class Institution_student extends Base_Model
      */
     public function getStudentListToPromote($institutionGrade, $academicPeriod)
     {
-        return self::query()
+        return $this
             ->select(
                 'institution_students.id',
                 'institution_students.student_id',
@@ -129,7 +129,9 @@ class Institution_student extends Base_Model
                 'institution_students.admission_id'
             )
             ->where('institution_students.institution_id', $institutionGrade['institution_id'])
+            ->where('institution_students.student_status_id',1)
             ->where('institution_students.education_grade_id', $institutionGrade['education_grade_id'])
+            ->where('institution_students.deleted_at',null)
             ->where('institution_students.academic_period_id', $academicPeriod->id)->get()->toArray();
     }
 
@@ -204,6 +206,49 @@ class Institution_student extends Base_Model
             );
         } catch (\Throwable $th) {
             Log::error($th);
+        }
+    }
+
+    public static function updateStudentArea(array $student){
+        $father = Student_guardian::where('student_id',$student['student_id'])
+        ->join('security_users as sg','guardian_id', 'sg.id')
+        ->where('guardian_relation_id',1)
+        ->get()->first();
+
+        $mother = Student_guardian::where('student_id',$student['student_id'])
+        ->join('security_users as sg','guardian_id', 'sg.id')
+        ->where('guardian_relation_id',2)
+        ->get()->first();
+
+        $guardian = Student_guardian::where('student_id',$student['student_id'])
+        ->join('security_users as sg','guardian_id', 'sg.id')
+        ->where('guardian_relation_id',3)
+        ->get()->first();
+
+        if(!is_null($father) && is_null($mother) && is_null($guardian)){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $father->address_area_id]);
+        }elseif(!is_null($mother)  && (is_null($father) && is_null($guardian))){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $mother->address_area_id]);
+        }elseif(!is_null($guardian) && is_null($father) && is_null($mother)){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
+        }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id ==  $mother->address_area_id)){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $mother->address_area_id]);
+        }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id !==  $mother->address_area_id) && !is_null($guardian)){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
+        }elseif(!is_null($father) && $father->address == $student['address']){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
+        }elseif(!is_null($mother) && $mother->address == $student['address']){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $mother->address_area_id]);
+        }elseif(!is_null($guardian) && $guardian->address == $student['address']){
+            Security_user::where('id',$student['student_id'])
+            ->update(['address_area_id' => $guardian->address_area_id]);
         }
     }
 }

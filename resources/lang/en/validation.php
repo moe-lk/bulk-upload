@@ -132,6 +132,7 @@ return [
         'full_name' => [
             'required' => 'Full name of the students is required'
         ],
+        
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],

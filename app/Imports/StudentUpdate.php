@@ -112,13 +112,13 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
-                //$identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
+                $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
                 //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
                 //$academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
-                //$identityType = $identityType !== null ? $identityType->id : null;
+                $identityType = $identityType !== null ? $identityType->id : null;
                 $nationalityId = $nationalityId !== null ? $nationalityId->id : null;
 
                 $BirthArea = $BirthArea !== null ? $BirthArea->id : null;
@@ -143,7 +143,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                             'address' => $row['address'] ? $row['address'] : $studentInfo['address'],
                             'birthplace_area_id' => $row['birth_registrar_office_as_in_birth_certificate'] ? $BirthArea : $studentInfo['birthplace_area_id'],
                             'nationality_id' => $row['nationality'] ? $nationalityId : $studentInfo['nationality_id'],
-                            //'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
+                            'identity_type_id' => $row['identity_type'] ? $identityType : $studentInfo['identity_type_id'],
                             'identity_number' => $row['identity_number'] ? $identityNUmber : $studentInfo['identity_number'],
                             'is_student' => 1,
                             'modified' => now(),
@@ -224,7 +224,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $father = null;
                     if (!empty($row['fathers_identity_number'])) {
                         $father = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['fathers_identity_number'])->get();
+                                        ->where('identity_number', '=', $row['fathers_identity_number'])->first();
                     }
 
 
@@ -277,7 +277,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if (!empty($row['mothers_identity_number'])) {
                         $mother = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['mothers_identity_number'])->get();
+                                        ->where('identity_number', '=', $row['mothers_identity_number'])->first();
                     }
 
                     if ($mother === null) {
@@ -330,7 +330,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
 
                     if (!empty($row['guardians_identity_number'])) {
                         $guardian = Security_user::where('identity_type_id', '=', $nationalityId)
-                                        ->where('identity_number', '=', $row['guardians_identity_number'])->get();
+                                        ->where('identity_number', '=', $row['guardians_identity_number'])->first();
                     }
 
                     if ($guardian === null) {
@@ -368,6 +368,7 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                         Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
                     }
                 }
+                Institution_student::updateStudentArea($student);
 
                 $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
 
@@ -421,9 +422,9 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'nullable',
-            //'*.identity_type' => 'required_with:identity_number',
-            '*.identity_number' => 'nullable|regex:/^[0-9]{4}+$/',
-            '*.academic_period' => 'nullable|exists:academic_periods,name',
+            '*.identity_type' => 'nullable|required_with:*.identity_number',
+            '*.identity_number' => 'nullable|identity:identity_type|required_with:*.identity_type',
+            //'*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',

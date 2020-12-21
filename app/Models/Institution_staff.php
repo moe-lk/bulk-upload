@@ -43,12 +43,12 @@ class Institution_staff extends Model  {
 
 
     public function staff_class(){
-        return $this->hasMany('App\Models\Institution_class','staff_id','staff_id');
+        return $this->hasMany('App\Models\Institution_class','staff_id','staff_id')
+        ->innerJoin('academic_periods','institution_classes.academic_period_id','academic_periods.id')
+        ->where('academic_periods.current',1);
     }
 
     public function institution(){
         return $this->belongsTo('App\Models\Institution','institution_id');
     }
-
-
 }

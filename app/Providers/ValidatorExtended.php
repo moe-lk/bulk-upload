@@ -28,7 +28,9 @@ class ValidatorExtended extends IlluminateValidator
         "is_bc" => "The Birth Certificate number is not valid",
         "nic" => "NIC number is Not valid",
         "is_student_in_class" => "The Student ID is not belong to this class",
-        "bmi" => "The record must have BMI information"
+        "bmi" => "The record must have BMI information",
+        "unmatch" => "Identity number format should match with Identity type",
+        "idnum" => "Identity number format is invalid"
     );
 
     public function __construct(
@@ -172,6 +174,14 @@ class ValidatorExtended extends IlluminateValidator
     }
     protected function validateNic($attribute, $value, $perameters, $validator)
     {
+        switch($data['identity_type']){
+            case 'BC':
+                //inclde the bc validation
+                break;
+            case 'NIC':
+                 //inclde the NIC validation
+                break;
+        }
         $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
         if (!$valid) {
             $this->_custom_messages['nic'] = $attribute . ' is not valid,  Please check the NIC number';
@@ -238,5 +248,80 @@ class ValidatorExtended extends IlluminateValidator
         } else {
             return true;
         }
+    }
+
+
+    protected function ValidateIdentity($attribute, $value, $perameters, $validator)
+
+    {
+       // dd($value);
+       
+        foreach ($validator->getData() as $data) {
+           
+            
+            if(($data['identity_type'] != null)&&($value != null))
+            {
+                //dd(true);
+               
+               if(!strcmp($data['identity_type'],"BC"))
+               {
+                    $out = 1;
+               }
+               else 
+               {
+                   $out = 2;
+               }
+               
+               if(($out == 1)&&(preg_match('/^[0-9]{4}+$/',$value)))
+                {
+                    //dd(true);
+                    return true;
+    
+                }
+                
+                elseif (($out == 2) &&(preg_match('/^[0-9]{9}[VX]{1}+$/',$value)))
+                 {
+                    return true;
+                }
+                elseif (($out == 2) && (preg_match('/^[0-9]{12}+$/',$value)))
+                {
+                    return true;
+                }
+                else {
+                   //dd(false);
+                        $this ->_custom_messages['unmatch'] = $attribute." format does not match with Identity type";
+                        $this->_set_custom_stuff();
+                        return false;
+                       
+                }
+            }
+            else if(($data['identity_type'] != null)&&($value == null)){
+                return true;
+            }
+            else {
+                if(preg_match('/^[0-9]{4}+$/',$value))
+                {
+                    //dd(true);
+                    return true;
+    
+                }
+                
+                elseif (preg_match('/^[0-9]{9}[VX]{1}+$/',$value))
+                 {
+                    return true;
+                }
+                elseif (preg_match('/^[0-9]{12}+$/',$value))
+                {
+                    return true;
+                }
+                else {
+                    $this ->_custom_messages['idnum'] = $attribute." format is invalild";
+                    $this->_set_custom_stuff();
+                    return false;
+                }
+            }
+        }
+
+        
     }
 }
