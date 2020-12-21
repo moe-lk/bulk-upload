@@ -109,7 +109,7 @@ class FileController extends Controller
 
     public function downloadTemplate(){
         $filename = 'censusNo_className_sis_students_bulk_upload';
-        $version = '2007_V2.2.0_20201012.xlsx';
+        $version = '2007_V2.0.2_20201211.xlsx';
         $file_path = storage_path() .'/app/public/'. $filename.'_'.$version;;
         if (file_exists($file_path))
         {
