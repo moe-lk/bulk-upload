@@ -1,4 +1,4 @@
-FROM php:7.2-apache
+FROM php:7.3-apache
 
 RUN apt-get update
 
@@ -18,6 +18,10 @@ RUN apt-get install -y \
     libfreetype6-dev \
     g++ \
     nano
+
+RUN apt-get install -y zip libzip-dev \
+    && docker-php-ext-configure zip --with-libzip \
+     && docker-php-ext-install zip    
 
 ADD .  /var/www/html/
 # 2. apache configs + document root
@@ -57,5 +61,6 @@ WORKDIR /var/www/html
 RUN chown -R www-data:www-data /var/www
 
 RUN composer install
+
 
 EXPOSE 80
