@@ -49,7 +49,12 @@ class Security_group_institution extends Model  {
     }
 
     public function institution_classes(){
-        return $this->hasMany('App\Models\Institution_class','institution_id','institution_id');
+        return $this->hasMany('App\Models\Institution_class','institution_id','institution_id')
+        ->select('institution_classes.*')
+        ->join('academic_periods', function($query){
+            $query->on('institution_classes.academic_period_id','academic_periods.id');
+            $query->whereIn('academic_periods.code',['2020','2019/2020']);
+        });
     }
 
     public function security_group(){
