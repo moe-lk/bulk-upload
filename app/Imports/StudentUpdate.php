@@ -113,8 +113,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
-                //$academicPeriod = Academic_period::where('name', '=', $institutionClass->academic_period_id)->first();
-                //$academicPeriod = Academic_period::where('name', '=',$row['academic_period'])->first();
 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
 
@@ -164,7 +162,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 if(!empty($row['admission_no'])){
                     Institution_student::where('student_id','=',$studentInfo->id)
                     ->where('institution_id','=', $institution)
-                   // ->where('academic_period_id','=',$academicPeriod->id)
                     ->update(['admission_id'=> $row['admission_no']]);
                 }
                 if (!empty($row['special_need'])) {
@@ -380,7 +377,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                     $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
                     $this->student = $student;
                     $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
-                    // $allSubjects = array_unique($allSubjects,SORT_REGULAR);
                     $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
                     array_walk($allSubjects,array($this,'insertSubject'));
                     array_walk($allSubjects, array($this, 'updateSubjectCount'));
@@ -424,7 +420,6 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
             '*.nationality' => 'nullable',
             '*.identity_type' => 'nullable|required_with:*.identity_number',
             '*.identity_number' => 'nullable|identity:identity_type|required_with:*.identity_type',
-            //'*.academic_period' => 'nullable|exists:academic_periods,name',
             '*.education_grade' => 'nullable|exists:education_grades,code',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'required_with:*.bmi_weight|nullable|numeric|max:200|min:60',

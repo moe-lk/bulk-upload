@@ -131,7 +131,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')->first();
                 $nationalityId = Nationality::where('name', 'like', '%' . $row['nationality'] . '%')->first();
                 $identityType = Identity_type::where('national_code', 'like', '%' . $row['identity_type'] . '%')->first();
-                $academicPeriod = Academic_period::where('name', '=', $row['academic_period'])->first();
+                $academicPeriod = Academic_period::where('id', '=', $institutionClass->academic_period_id)->first();
 
                 
                 $date = $row['date_of_birth_yyyy_mm_dd'];
@@ -216,15 +216,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $this->student = $student;
                 //                }
 
-
-                // if (!empty($row['identity_number'])) {
-                //     User_identity::create([
-                //         'identity_type_id' => $identityType,
-                //         'number' => $identityNUmber,
-                //         'security_user_id' => $student->student_id,
-                //         'created_user_id' => $this->file['security_user_id']
-                //     ]);
-                // }
 
                 if (!empty($row['special_need'])) {
                     $specialNeed = Special_need_difficulty::where('name', '=', $row['special_need'])->first();
@@ -479,7 +470,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.nationality' => 'required',
             '*.identity_type' => 'nullable|required_with:*.identity_number',
             '*.identity_number' => 'nullable|identity:identity_type|required_with:*.identity_type',
-            '*.academic_period' => 'required|exists:academic_periods,name',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'bail|required_with:*.bmi_weight|bmi:' . $this->file['institution_class_id'],
