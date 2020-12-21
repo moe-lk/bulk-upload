@@ -59,6 +59,8 @@ RUN mkdir -p /home/devuser/.composer && \
     chown -R devuser:devuser /home/devuser /var/www/html 
 WORKDIR /var/www/html
 RUN chown -R www-data:www-data /var/www
+RUN chgrp -R www-data storage/  && \
+	chmod -R g+rw  storage/
 
 RUN composer install
 
