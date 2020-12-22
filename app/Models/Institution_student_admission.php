@@ -82,4 +82,23 @@ class Institution_student_admission extends Base_Model
             Log::error($th);
         }
     }
+
+    public static function createAdmission($studentId,$row,$params,$file){
+        self::create([
+            'start_date' => $row['start_date_yyyy_mm_dd'],
+            'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
+            'end_date' => $params['academic_period']->end_date,
+            'end_year' => $params['academic_period']->end_year,
+            'student_id' => $studentId,
+            'status_id' => 124,
+            'assignee_id' => $params['assignee_id'],
+            'institution_id' => $params['institution'],
+            'academic_period_id' => $params['academic_period']->id,
+            'education_grade_id' => $params['institution_grade']->education_grade_id,
+            'institution_class_id' => $params['institution_class']->id,
+            'comment' => 'Imported using bulk data upload',
+            'admission_id' => $row['admission_no'],
+            'created_user_id' => $file['security_user_id']
+        ]);
+    }
 }
