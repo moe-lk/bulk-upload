@@ -138,4 +138,16 @@ class Institution_class_student extends Model
             Log::error($th);
         }
     }
+
+    public static function createOrUpdate($studentId,$params,$file){
+       return  self::create([
+            'student_id' => $studentId,
+            'institution_class_id' => $params['institution_class']->id,
+            'education_grade_id' => $params['institution_grade']->education_grade_id,
+            'academic_period_id' => $params['academic_period']->id,
+            'institution_id' => $params['institution'],
+            'student_status_id' => 1,
+            'created_user_id' => $file['security_user_id']
+        ]);
+    }
 }

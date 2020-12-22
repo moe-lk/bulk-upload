@@ -41,10 +41,6 @@ class Security_group extends Model  {
      */
     protected $dates = ['modified', 'created', 'created', 'created', 'modified', 'created'];
 
-//    public function securityUsers(){
-//        return $this->hasMany( User::class);
-//    }
-
     public function security_users(){
         return $this->belongsTo('App\Models\Security_group_user','security_group_id');
     }

@@ -2,63 +2,64 @@
 
 namespace App\Imports;
 
+use Exception;
+use App\Models\User;
+use Webpatser\Uuid\Uuid;
+use App\Models\Nationality;
+use App\Rules\admissionAge;
+use App\Models\User_contact;
+use Lsf\UniqueUid\UniqueUid;
+use App\Models\Identity_type;
+use App\Models\Security_user;
+use App\Models\User_identity;
+use App\Imports\StudentUpdate;
+use App\Models\Import_mapping;
+use App\Models\Security_group;
+use App\Models\User_body_mass;
+use App\Models\Academic_period;
+use App\Models\Student_guardian;
+use App\Models\User_nationality;
+use App\Models\Institution_class;
+use App\Models\User_special_need;
 use App\Mail\StudentCountExceeded;
 use App\Mail\StudentImportSuccess;
+use Illuminate\Support\Facades\DB;
+use App\Models\Area_administrative;
+use App\Models\Institution_student;
+use App\Models\Institution_subject;
+use App\Models\Workflow_transition;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Config;
+use App\Models\Institution_class_grade;
+use App\Models\Special_need_difficulty;
+use Illuminate\Support\Facades\Request;
+use Maatwebsite\Excel\Concerns\ToModel;
 use App\Models\Education_grades_subject;
 use App\Models\Institution_class_student;
 use App\Models\Institution_class_subject;
-use App\Models\Institution_student_admission;
-use App\Models\Institution_subject;
-use App\Models\Institution_subject_student;
-use App\Models\User_special_need;
-use App\Models\Security_group;
-use App\Models\Security_user;
-use App\Models\User;
-use App\Models\User_body_mass;
-use App\Models\Institution_student;
-use App\Models\Import_mapping;
-use App\Models\Identity_type;
-use App\Models\Student_guardian;
-use App\Models\Academic_period;
-use App\Models\Institution_class;
-use App\Models\Institution_class_grade;
-use App\Models\Area_administrative;
-use App\Models\Special_need_difficulty;
-use App\Models\Workflow_transition;
-use App\Models\User_nationality;
-use App\Models\User_identity;
-use App\Models\Nationality;
-use App\Rules\admissionAge;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Request;
-use Maatwebsite\Excel\Concerns\RegistersEventListeners;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Maatwebsite\Excel\Concerns\WithStartRow;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\Importable;
 use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Concerns\WithLimit;
+use Maatwebsite\Excel\Events\AfterImport;
 use Maatwebsite\Excel\Events\BeforeSheet;
+use Maatwebsite\Excel\Validators\Failure;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\BeforeImport;
 use Maatwebsite\Excel\Jobs\AfterImportJob;
-use Maatwebsite\Excel\Validators\Failure;
-use Maatwebsite\Excel\Concerns\SkipsOnError;
+use App\Models\Institution_subject_student;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\WithStartRow;
+use App\Models\Institution_student_admission;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
-use Webpatser\Uuid\Uuid;
-use Exception;
-use App\Imports\StudentUpdate;
-use Lsf\UniqueUid\UniqueUid;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Exceptions\ConcernConflictException;
 
 class Import
@@ -265,7 +266,6 @@ class Import
         $totalStudents = $totalMaleStudents + $totalFemaleStudents;
 
         $exceededStudents = ($totalStudents + $this->limit()) > $institutionClass->no_of_students ? true : false;
-
         if ($exceededStudents == true) {
             $error = \Illuminate\Validation\ValidationException::withMessages([]);
             $failure = new Failure(3, 'remark', ['Class student count exceeded! Max number of students is' . $institutionClass->no_of_students], [null]);
@@ -329,5 +329,57 @@ class Import
             Institution_subject_student::updateOrInsert($subject);
         }
         $this->updateSubjectCount($subject);
+    }
+
+    public function createOrUpdateGuardian($row,$student,$param){
+        if (!empty($row[$param.'s_full_name']) && ($row[$param.'s_date_of_birth_yyyy_mm_dd'] !== null)) {
+            $guardian = Security_user::createOrUpdateGuardianProfile($row, $param, $this->file);
+            if (!is_null($guardian)) {
+                Security_user::where('id', '=', $guardian->id)
+                    ->update(['is_guardian' => 1]);
+                $guardian['guardian_relation_id'] = $this->setRelation($param,$guardian);
+                Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
+            }      
+        } 
+    }
+
+    protected function setRelation($param,$guardian){
+        switch($param){
+            case 'father':
+                return 1;
+            case 'mother':  
+                return 2;  
+            case 'guardian':
+                return 3;    
+        }
+    }
+
+    protected function setGender($row){
+        switch ($row['gender_mf']) {
+            case 'M':
+                $row['gender_mf'] = 1;
+                $this->maleStudentsCount += 1;
+                break;
+            case 'F':
+                $row['gender_mf'] = 2;
+                $this->femaleStudentsCount += 1;
+                break;
+        }
+        return $row;
+    }
+
+    protected function insertOrUpdateSubjects($row,$student,$institution){
+        $mandatorySubject = Institution_class_subject::getMandatorySubjects($this->file['institution_class_id']);
+                $subjects = getMatchingKeys($row);
+                $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
+                $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+                if (!empty($allSubjects)) {
+                    $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
+                    $this->student = $student;
+                    $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
+                    $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+                    array_walk($allSubjects,array($this,'insertSubject'));
+                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
+                }
     }
 }

@@ -224,7 +224,7 @@ class Institution_student extends Base_Model
         ->join('security_users as sg','guardian_id', 'sg.id')
         ->where('guardian_relation_id',3)
         ->get()->first();
-
+    
         if(!is_null($father) && is_null($mother) && is_null($guardian)){
             Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $father->address_area_id]);
@@ -235,7 +235,8 @@ class Institution_student extends Base_Model
             Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $guardian->address_area_id]);
         }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id ==  $mother->address_area_id)){
-            Security_user::where('id',$student['student_id'])
+            // dd($father->address_area_id,$mother->address_area_id,$student['student_id']);
+            $d = Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $mother->address_area_id]);
         }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id !==  $mother->address_area_id) && !is_null($guardian)){
             Security_user::where('id',$student['student_id'])
@@ -250,5 +251,21 @@ class Institution_student extends Base_Model
             Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $guardian->address_area_id]);
         }
+    }
+
+    public static function createOrUpdate($studentId,$row,$params,$file){
+        self::create([
+            'student_status_id' => 1,
+            'student_id' => $studentId,
+            'education_grade_id' => $params['institution_grade']->education_grade_id,
+            'academic_period_id' => $params['academic_period']->id,
+            'start_date' => $row['start_date_yyyy_mm_dd'],
+            'start_year' => $row['start_date_yyyy_mm_dd']->format('Y'),
+            'end_date' => $params['academic_period']->end_date,
+            'end_year' => $params['academic_period']->end_year,
+            'institution_id' => $params['institution'],
+            'admission_id' => $row['admission_no'],
+            'created_user_id' => $file['security_user_id']
+        ]);
     }
 }

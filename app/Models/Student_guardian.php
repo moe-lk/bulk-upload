@@ -67,9 +67,11 @@ class Student_guardian extends Base_Model  {
 
     public static function createStudentGuardian($student,$guardian,$user){
      
-        $exist = self::where('student_id', $student->student_id)
-        ->where('guardian_relation_id', $guardian->guardian_relation_id)
-        ->exists();
+        $exist = true;
+        if(!is_null($guardian))
+            $exist = self::where('student_id', $student->student_id)
+            ->where('guardian_relation_id', $guardian->guardian_relation_id)
+            ->exists();
 
         $totalGuardians = self::where('student_id',$student->student_id)->count();
 

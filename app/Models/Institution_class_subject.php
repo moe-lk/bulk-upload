@@ -73,14 +73,13 @@ class Institution_class_subject extends Base_Model  {
     }
 
 
-    public static function getMandetorySubjects($institutionClass){
+    public static function getMandatorySubjects($institutionClass){
         $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass)->first();
         $mandatorySubject = Institution_class_subject::with(['institutionSubject'])
             ->whereHas('institutionSubject', function ($query) use ($institutionGrade) {
                 $query->whereHas('institutionGradeSubject',function($query){
                     $query->where('auto_allocation',1);
                 })->where('education_grade_id', $institutionGrade->education_grade_id);
-                // ->where('auto_allocation', $institutionGrade->education_grade_id);
             })
             ->where('institution_class_id', '=', $institutionClass)
             ->get()->toArray();
