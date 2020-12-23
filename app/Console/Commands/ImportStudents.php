@@ -90,7 +90,6 @@ class ImportStudents extends Command
     protected function  process($files)
     {
         $time = Carbon::now()->tz('Asia/Colombo');
-        //        array_walk($files, array($this,'processSheet'));
         $node = $this->argument('node');
         $files[0]['node'] = $node;
         $this->processSheet($files[0]);
@@ -478,15 +477,7 @@ class ImportStudents extends Command
             $reader->setActiveSheetIndex($sheet);
             $highestRow = 0;
             $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-            for ($row = 3; $row <= $highestRow; $row++) {
-                $rowData = $reader->getActiveSheet()->getCell($column . $row)->getValue();
-                if (empty($rowData) || $rowData == null) {
-                    continue;
-                } else {
-                    $highestRow += 1;
-                }
-            }
-            return $highestRow;
+            return $highestRow-1;
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
             $user = User::find($file['security_user_id']);
