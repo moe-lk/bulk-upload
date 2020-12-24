@@ -180,7 +180,7 @@ class ValidatorExtended extends IlluminateValidator
         foreach ($validator->getData() as $data) {
             switch($data[$perameters[0]]){
                 case 'BC':
-                    $valid = preg_match('/^([0-9]{10,12})$/i', $value);
+                    $valid = preg_match('/^([0-9]{3,5})$/i', $value);
                     break;
                 case 'NIC':
                     $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
