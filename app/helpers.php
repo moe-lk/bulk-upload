@@ -52,6 +52,13 @@ function isEmpty($value){
     return $value['institution_optional_subject'] !== null;
 }
 
+function isEmptyRow($row) {
+    foreach($row as $cell){
+        if (null !== $cell) return false;
+    }
+    return true;
+}
+
 function unique_multidim_array(array $array, $key) {
     $temp_array = array();
     $i = 0;
@@ -176,13 +183,6 @@ function errors_unique_array($item,$key){
         }
 
         return $errors;
-}
-
-function isEmptyRow($row) {
-    foreach($row as $cell){
-        if (null !== $cell) return false;
-    }
-    return true;
 }
 
 function sig_handler($signo){
