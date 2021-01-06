@@ -90,7 +90,6 @@ class ImportStudents extends Command
     protected function  process($files)
     {
         $time = Carbon::now()->tz('Asia/Colombo');
-        //        array_walk($files, array($this,'processSheet'));
         $node = $this->argument('node');
         $files[0]['node'] = $node;
         $this->processSheet($files[0]);
@@ -324,11 +323,11 @@ class ImportStudents extends Command
             $this->getFileSize($file);
             $user = User::find($file['security_user_id']);
             $excelFile = '/sis-bulk-data-files/' . $file['filename'];
-            $this->higestRow = $this->getHigestRow($file, $sheet, $column);
+            $this->highestRow = $this->getHighestRow($file, $sheet, $column);
             switch ($sheet) {
                 case 1;
                     $this->output->writeln('Trying to insert Students');
-                    if (($this->getSheetName($file, 'Insert Students')) && $this->higestRow > 0) { //
+                    if (($this->getSheetName($file, 'Insert Students')) && $this->highestRow > 0) { //
                         $import = new UsersImport($file);
                         $import->import($excelFile, 'local', $this->getSheetType($file['filename']));
                         //                            Excel::import($import, $excelFile, 'local');
@@ -341,15 +340,15 @@ class ImportStudents extends Command
                                 ->where('id', $file['id'])
                                 ->update(['insert' => 3, 'updated_at' => now()]);
                             $this->processFailedEmail($file, $user, 'Fresh Student Data Upload:Partial Success ');
-                            $this->stdOut('Insert Students', $this->higestRow);
+                            $this->stdOut('Insert Students', $this->highestRow);
                         } else {
                             DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['insert' => 1, 'updated_at' => now()]);
                             $this->processSuccessEmail($file, $user, 'Fresh Student Data Upload:Success ');
-                            $this->stdOut('Insert Students', $this->higestRow);
+                            $this->stdOut('Insert Students', $this->highestRow);
                         }
-                    } else if (($this->getSheetName($file, 'Insert Students')) && $this->higestRow > 0) {
+                    } else if (($this->getSheetName($file, 'Insert Students')) && $this->highestRow > 0) {
                         DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 2]);
@@ -358,7 +357,7 @@ class ImportStudents extends Command
                     break;
                 case 2;
                     $this->output->writeln('Trying to update Students');
-                    if (($this->getSheetName($file, 'Update Students')) && $this->higestRow > 0) {
+                    if (($this->getSheetName($file, 'Update Students')) && $this->highestRow > 0) {
                         $import = new StudentUpdate($file);
                         $import->import($excelFile, 'local', $this->getSheetType($file['filename']));
                         if ($import->failures()->count() > 0) {
@@ -367,15 +366,15 @@ class ImportStudents extends Command
                                 ->where('id', $file['id'])
                                 ->update(['update' => 3, 'is_processed' => 1, 'updated_at' => now()]);
                             $this->processFailedEmail($file, $user, 'Existing Student Data Update:Partial Success ');
-                            $this->stdOut('Update Students', $this->higestRow);
+                            $this->stdOut('Update Students', $this->highestRow);
                         } else {
                             DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['update' => 1, 'is_processed' => 1, 'updated_at' => now()]);
                             $this->processSuccessEmail($file, $user, 'Existing Student Data Update:Success ');
-                            $this->stdOut('Update Students', $this->higestRow);
+                            $this->stdOut('Update Students', $this->highestRow);
                         }
-                    } else if (($this->getSheetName($file, 'Update Students')) && $this->higestRow == 0) {
+                    } else if (($this->getSheetName($file, 'Update Students')) && $this->highestRow == 0) {
                         DB::table('uploads')
                             ->where('id', $file['id'])
                             ->update(['is_processed' => 2, 'updated_at' => now()]);
@@ -471,22 +470,14 @@ class ImportStudents extends Command
         }
     }
 
-    protected function getHigestRow($file, $sheet, $column)
+    protected function getHighestRow($file, $sheet, $column)
     {
         try {
             $reader = $this->setReader($file);
             $reader->setActiveSheetIndex($sheet);
-            $higestRow = 0;
+            $highestRow = 0;
             $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-            for ($row = 3; $row <= $highestRow; $row++) {
-                $rowData = $reader->getActiveSheet()->getCell($column . $row)->getValue();
-                if (empty($rowData) || $rowData == null) {
-                    continue;
-                } else {
-                    $higestRow += 1;
-                }
-            }
-            return $higestRow;
+            return $highestRow-1;
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
             $user = User::find($file['security_user_id']);
@@ -531,9 +522,6 @@ class ImportStudents extends Command
             gc_enable();
             gc_collect_cycles();
             $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-            //$cacheMethod = \PHPExcel_CachedObjectStorageFactory:: cache_to_phpTemp;
-            //$cacheSettings = array( ' memoryCacheSize ' => '512MB');
-            //\PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
             ini_set('memory_limit', -1);
             $failures = $e->failures();
             $reader = $this->setReader($file);
@@ -543,7 +531,7 @@ class ImportStudents extends Command
             if (count($failures) > 0) {
                 $rows = array_map('rows', $failures);
                 $rows = array_unique($rows);
-                $rowIndex =   range(3, $this->higestRow + 2);
+                $rowIndex =   range(3, $this->highestRow + 2);
                 $params = [
                     'rows' => $rows,
                     'reader' => $reader

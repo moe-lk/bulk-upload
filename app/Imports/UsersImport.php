@@ -141,7 +141,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 Institution_student::updateStudentArea($student->toArray());
 
                 $this->insertOrUpdateSubjects($row,$student,$institution);
-                
+
                 $totalStudents = Institution_class_student::getStudentsCount($this->file['institution_class_id']);
                 if ($totalStudents['total'] > $institutionClass->no_of_students) {
                     $error = \Illuminate\Validation\ValidationException::withMessages([]);
@@ -174,8 +174,8 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.birth_registrar_office_as_in_birth_certificate' => 'nullable|exists:area_administratives,name|required_if:identity_type,BC|birth_place',
             '*.birth_divisional_secretariat' => 'nullable|exists:area_administratives,name|required_with:birth_registrar_office_as_in_birth_certificate',
             '*.nationality' => 'required',
-            '*.identity_type' => 'nullable|required_with:*.identity_number',
-            '*.identity_number' => 'nullable|identity:identity_type|required_with:identity_type',
+            '*.identity_type' => 'nullable|required_with:*.identity_number|in:NIC,BC',
+            '*.identity_number' => 'nullable|identity:identity_type|required_with:*.identity_type',
             '*.education_grade' => 'required',
             '*.option_*' => 'nullable|exists:education_subjects,name',
             '*.bmi_height' => 'bail|required_with:*.bmi_weight|bmi:' . $this->file['institution_class_id'],
@@ -192,16 +192,16 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.fathers_address_area' => 'required_with:fathers_full_name|nullable|exists:area_administratives,name',
             '*.fathers_phone' => 'nullable|required_with:fathers_full_name|regex:/[0-9]{9,10}/',
             '*.fathers_nationality' => 'required_with:fathers_full_name',
-            '*.fathers_identity_type' => 'required_with:fathers_identity_number',
-            '*.fathers_identity_number' => 'nullable|required_with:fathers_identity_type|identity:fathers_identity_type',
+            '*.fathers_identity_type' => 'nullable|required_with:*.fathers_identity_number|in:NIC,BC',
+            '*.fathers_identity_number' => 'nullable|required_with:*.fathers_identity_type|identity:fathers_identity_type',
             '*.mothers_full_name' => 'nullable|regex:/^[a-zA-Z .]*$/u',
             '*.mothers_date_of_birth_yyyy_mm_dd' => 'required_with:mothers_full_name',
             '*.mothers_address' => 'required_with:mothers_full_name',
             '*.mothers_address_area' => 'required_with:mothers_full_name|nullable|exists:area_administratives,name',
             '*.mothers_phone' => 'nullable|required_with:mothers_full_name|regex:/[0-9]{9,10}/',
             '*.mothers_nationality' => "required_with:mothers_full_name",
-            '*.mothers_identity_type' => "required_with:mothers_identity_number",
-            '*.mothers_identity_number' => 'nullable|required_with:mothers_identity_type|identity:mothers_identity_type',
+            '*.mothers_identity_type' => "nullable|required_with:*.mothers_identity_number|in:NIC,BC",
+            '*.mothers_identity_number' => 'nullable|identity:mothers_identity_type',
             '*.guardians_full_name' => 'nullable|required_without_all:*.fathers_full_name,*.mothers_full_name|regex:/^[a-zA-Z .]*$/u',
             '*.guardians_gender_mf' => 'required_with:guardians_full_name',
             '*.guardians_date_of_birth_yyyy_mm_dd' => 'sometimes|required_with:guardians_full_name',
@@ -209,8 +209,8 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
             '*.guardians_address_area' => 'required_with:guardians_full_name|nullable|exists:area_administratives,name',
             '*.guardians_phone' => 'nullable|required_with:guardians_full_name|regex:/[0-9]{9,10}/',
             '*.guardians_nationality' => 'required_with:guardians_full_name',
-            '*.guardians_identity_type' => 'required_with:guardians_identity_number',
-            '*.guardians_identity_number' => 'nullable|required_with:guardians_identity_type|identity:guardians_identity_type',
+            '*.guardians_identity_type' => 'nullable|required_with:*.guardians_identity_number|in:NIC,BC',
+            '*.guardians_identity_number' => 'nullable|identity:guardians_identity_type',
         ];
     }
 }
