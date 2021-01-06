@@ -474,10 +474,15 @@ class ImportStudents extends Command
     {
         try {
             $reader = $this->setReader($file);
-            $reader->setActiveSheetIndex($sheet);
-            $highestRow = 0;
-            $highestRow =  $reader->getActiveSheet()->getHighestRow($column);
-            return $highestRow-1;
+            $highestRowCount = 0;
+            $sheet =  $reader->getSheet($sheet);
+            $highestRow = $sheet->getHighestDataRow($column); 
+            for ($row = 3; $row <= $highestRow; $row++){ 
+                $rowData = $sheet->rangeToArray('A' . $row . ':' . $column . $row,NULL,TRUE,FALSE);
+                if(isEmptyRow(reset($rowData))) { continue; } // skip empty row
+                $highestRowCount += 1;
+            }
+            return  $highestRowCount;
         } catch (\Exception $e) {
             $this->output->writeln($e->getMessage());
             $user = User::find($file['security_user_id']);
