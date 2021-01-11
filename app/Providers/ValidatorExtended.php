@@ -26,7 +26,6 @@ class ValidatorExtended extends IlluminateValidator
         "birth_place" => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         'user_unique' => 'The Birth place combination in not valid, refer the Birth Registrar office only belongs to Divisional Secretariat',
         "is_bc" => "The Birth Certificate number is not valid",
-        "nic" => "NIC number is Not valid",
         "is_student_in_class" => "The Student ID is not belong to this class",
         "bmi" => "The record must have BMI information",
         "identity" => "Identity number format should match with Identity type",
@@ -180,18 +179,19 @@ class ValidatorExtended extends IlluminateValidator
         foreach ($validator->getData() as $data) {
             switch($data[$perameters[0]]){
                 case 'BC':
-                    $valid = preg_match('/^([0-9]{3,5})$/i', $value);
+                    $valid = preg_match('/^([0-9]{11,12})/i', $value);
                     break;
                 case 'NIC':
-                    $valid = preg_match('/^([0-9]{9}[VX]|[0-9]{12})$/i', $value);
+                    $valid = preg_match('/^([0-9]{9}[VX]|([0-9]{12}))/i', $value);
                     break;
                 default:
                     $valid = true;    
             }
         }
         
-        if (!$valid) {
-            $this->_custom_messages['nic'] = $attribute . ' is not valid,  Please check the NIC number';
+        if ($valid == 0) {
+            dd($data[$perameters[0]],$valid,$value);
+            $this->_custom_messages['identity'] = $attribute . ' is not valid  Please check the NIC number';
             $this->_set_custom_stuff();
             return false;
         } else {
