@@ -235,8 +235,7 @@ class Institution_student extends Base_Model
             Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $guardian->address_area_id]);
         }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id ==  $mother->address_area_id)){
-            // dd($father->address_area_id,$mother->address_area_id,$student['student_id']);
-            $d = Security_user::where('id',$student['student_id'])
+            Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $mother->address_area_id]);
         }elseif(!is_null($mother)  && !is_null($father) && ($father->address_area_id !==  $mother->address_area_id) && !is_null($guardian)){
             Security_user::where('id',$student['student_id'])

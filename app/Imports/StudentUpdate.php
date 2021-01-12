@@ -103,7 +103,8 @@ class StudentUpdate extends Import implements  ToModel, WithStartRow, WithHeadin
                 $this->createOrUpdateGuardian($row,$student,'mother');
                 $this->createOrUpdateGuardian($row,$student,'guardian');
 
-                Institution_student::updateStudentArea($student->toArray());
+                $studentInfo['student_id'] = $studentInfo->id;
+                Institution_student::updateStudentArea($studentInfo->toArray());
                 $this->insertOrUpdateSubjects($row,$student,$institution);
                 $totalStudents = Institution_class_student::getStudentsCount($this->file['institution_class_id']);
                 Institution_class::where('id', '=', $institutionClass->id)
