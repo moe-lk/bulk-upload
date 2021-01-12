@@ -119,16 +119,16 @@ class Import
     {
         $columns = Config::get('excel.columns');
         $optional_columns = Config::get('excel.optional_columns');
-        $columns = array_diff ($columns,$optional_columns);
+        $columns = array_diff($columns, $optional_columns);
         $error = \Illuminate\Validation\ValidationException::withMessages([]);
         $this->failures = [];
         foreach ($columns as  $column) {
-                if (($column !== "") && (!in_array($column, $existingColumns))) {
-                    $this->isValidSheet = false;
-                    $this->error[] = 'Missing Column :' . $column . ' Not found';
-                    $this->failure = new Failure(3, 'remark', $this->error, [null]);
-                    $this->failures = new \Maatwebsite\Excel\Validators\ValidationException($error, [$this->failure]);
-                }
+            if (($column !== "") && (!in_array($column, $existingColumns))) {
+                $this->isValidSheet = false;
+                $this->error[] = 'Missing Column :' . $column . ' Not found';
+                $this->failure = new Failure(3, 'remark', $this->error, [null]);
+                $this->failures = new \Maatwebsite\Excel\Validators\ValidationException($error, [$this->failure]);
+            }
         }
         if (is_object($this->failures)) {
             throw $this->failures;
@@ -208,22 +208,21 @@ class Import
         $row = $this->formateDate($row, 'guardians_date_of_birth_yyyy_mm_dd');
 
         $row['admission_no'] =  str_pad($row['admission_no'], 4, '0', STR_PAD_LEFT);
-      
+
         if (array_key_exists('identity_type', $row)) {
-        if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
-            $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
-            // dd(($row['date_of_birth_yyyy_mm_dd']));
-            $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
-            if ($BirthDivision !== null) {
-                $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
-                    ->where('parent_id', '=', $BirthDivision->id)->first();
-                if ($BirthArea !== null) {
-                    $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+            if ($row['identity_type'] == 'BC' && (!empty($row['birth_divisional_secretariat'])) && ($row['identity_number'] !== null) && $row['date_of_birth_yyyy_mm_dd'] !== null) {
+                $row['identity_number'] =  str_pad($row['identity_number'], 4, '0', STR_PAD_LEFT);
+                // dd(($row['date_of_birth_yyyy_mm_dd']));
+                $BirthDivision = Area_administrative::where('name', 'like', '%' . $row['birth_divisional_secretariat'] . '%')->where('area_administrative_level_id', '=', 5)->first();
+                if ($BirthDivision !== null) {
+                    $BirthArea = Area_administrative::where('name', 'like', '%' . $row['birth_registrar_office_as_in_birth_certificate'] . '%')
+                        ->where('parent_id', '=', $BirthDivision->id)->first();
+                    if ($BirthArea !== null) {
+                        $row['identity_number'] = $BirthArea->id . '' . $row['identity_number'] . '' . substr($row['date_of_birth_yyyy_mm_dd']->format("yy"), -2) . '' . $row['date_of_birth_yyyy_mm_dd']->format("m");
+                    }
                 }
             }
-
         }
-    }
         return $row;
     }
 
@@ -331,30 +330,33 @@ class Import
         $this->updateSubjectCount($subject);
     }
 
-    public function createOrUpdateGuardian($row,$student,$param){
-        if (!empty($row[$param.'s_full_name']) && ($row[$param.'s_date_of_birth_yyyy_mm_dd'] !== null)) {
+    public function createOrUpdateGuardian($row, $student, $param)
+    {
+        if (!empty($row[$param . 's_full_name']) && ($row[$param . 's_date_of_birth_yyyy_mm_dd'] !== null)) {
             $guardian = Security_user::createOrUpdateGuardianProfile($row, $param, $this->file);
             if (!is_null($guardian)) {
                 Security_user::where('id', '=', $guardian->id)
                     ->update(['is_guardian' => 1]);
-                $guardian['guardian_relation_id'] = $this->setRelation($param,$guardian);
+                $guardian['guardian_relation_id'] = $this->setRelation($param, $guardian);
                 Student_guardian::createStudentGuardian($student, $guardian, $this->file['security_user_id']);
-            }      
-        } 
-    }
-
-    protected function setRelation($param,$guardian){
-        switch($param){
-            case 'father':
-                return 1;
-            case 'mother':  
-                return 2;  
-            case 'guardian':
-                return 3;    
+            }
         }
     }
 
-    protected function setGender($row){
+    protected function setRelation($param, $guardian)
+    {
+        switch ($param) {
+            case 'father':
+                return 1;
+            case 'mother':
+                return 2;
+            case 'guardian':
+                return 3;
+        }
+    }
+
+    protected function setGender($row)
+    {
         switch ($row['gender_mf']) {
             case 'M':
                 $row['gender_mf'] = 1;
@@ -368,18 +370,19 @@ class Import
         return $row;
     }
 
-    protected function insertOrUpdateSubjects($row,$student,$institution){
+    protected function insertOrUpdateSubjects($row, $student, $institution)
+    {
         $mandatorySubject = Institution_class_subject::getMandatorySubjects($this->file['institution_class_id']);
-                $subjects = getMatchingKeys($row);
-                $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
-                $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
-                if (!empty($allSubjects)) {
-                    $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
-                    $this->student = $student;
-                    $allSubjects = array_map(array($this,'setStudentSubjects'),$allSubjects);
-                    $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
-                    array_walk($allSubjects,array($this,'insertSubject'));
-                    array_walk($allSubjects, array($this, 'updateSubjectCount'));
-                }
+        $subjects = getMatchingKeys($row);
+        $optionalSubjects =  Institution_class_subject::getStudentOptionalSubject($subjects, $student, $row, $institution);
+        $allSubjects = array_merge_recursive($optionalSubjects, $mandatorySubject);
+        if (!empty($allSubjects)) {
+            $allSubjects = unique_multidim_array($allSubjects, 'institution_subject_id');
+            $this->student = $student;
+            $allSubjects = array_map(array($this, 'setStudentSubjects'), $allSubjects);
+            $allSubjects = unique_multidim_array($allSubjects, 'education_subject_id');
+            array_walk($allSubjects, array($this, 'insertSubject'));
+            array_walk($allSubjects, array($this, 'updateSubjectCount'));
+        }
     }
 }
