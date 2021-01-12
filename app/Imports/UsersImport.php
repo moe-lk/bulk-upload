@@ -115,7 +115,7 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                 $row = $this->setGender($row);
                 $mandatorySubject = Institution_class_subject::getMandatorySubjects($this->file['institution_class_id']);
                 $subjects = getMatchingKeys($row);
-                $student = Security_user::createOrUpdateStudentProfile($row,'create',$this->file);  
+                $studentInfo = Security_user::createOrUpdateStudentProfile($row,'create',$this->file);  
                 $academicPeriod = Academic_period::where('id', '=', $institutionClass->academic_period_id)->first();
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();
                 $assignee_id = $institutionClass->staff_id ? $institutionClass->staff_id : $this->file['security_user_id'];
@@ -128,17 +128,18 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
                     'institution_class' => $institutionClass
                 ];
 
-                Institution_student_admission::createAdmission($student->id,$row,$params,$this->file);
-                Institution_student::createOrUpdate($student->id,$row,$params,$this->file);
-                $student = Institution_class_student::createOrUpdate($student->id,$params,$this->file);
+                Institution_student_admission::createAdmission($studentInfo->id,$row,$params,$this->file);
+                Institution_student::createOrUpdate($studentInfo->id,$row,$params,$this->file);
+                $student = Institution_class_student::createOrUpdate($studentInfo->id,$params,$this->file);
                 User_special_need::createOrUpdate($student->student_id,$row,$this->file);
                 User_body_mass::createOrUpdate($student->student_id,$row,$this->file);
 
                 $this->createOrUpdateGuardian($row,$student,'father');
                 $this->createOrUpdateGuardian($row,$student,'mother');
                 $this->createOrUpdateGuardian($row,$student,'guardian');
-        
-                Institution_student::updateStudentArea($student->toArray());
+                
+                $studentInfo['student_id'] = $studentInfo->id;
+                Institution_student::updateStudentArea($studentInfo->toArray());
 
                 $this->insertOrUpdateSubjects($row,$student,$institution);
 
