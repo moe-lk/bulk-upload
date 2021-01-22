@@ -142,7 +142,7 @@ class ExaminationStudentsController extends Controller
             if (!is_null($student) && !is_null($Institution)) {
                 $student->toArray();
                 $Institution = $Institution->toArray();
-                if ($Institution['id'] !==  $student['institution_id']) {
+                if ($Institution['id'] !=  $student['institution_id']) {
                     $studentClass = Institution_class_student::where('student_id', $student['student_id'])
                         ->first();
                     Institution_class_student::where('student_id', $student['student_id'])->delete();
