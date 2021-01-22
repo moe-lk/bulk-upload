@@ -126,7 +126,7 @@ class ExaminationStudentsController extends Controller
     }
 
     /**
-     * updated wrong census no
+     * updated wrong census
      *
      * @param [type] $data
      * @return void
@@ -137,22 +137,24 @@ class ExaminationStudentsController extends Controller
             ->select('security_users.id')
             ->first();
         if (!is_null($student)) {
-            $student->toArray();
+            $student = Institution_student::where('student_id',$student['id'])->first();
             $Institution = Institution::where('code', $data['schoolid'])->first();
             if (!is_null($student) && !is_null($Institution)) {
+                $student->toArray();
                 $Institution = $Institution->toArray();
-                $studentClass = Institution_class_student::where('student_id', $student['id'])
-                    ->first();
-
-                Institution_class_student::where('student_id',$student['id'])->delete();
-                Institution_student::where('student_id', $student['id'])
-                    ->update(['institution_id' =>  $Institution['id']]);
-                $class = new Institution_class();
-                if (!is_null($studentClass)) {
-                    $class->updateClassCount($studentClass->toArray());
+                if ($Institution['id'] !==  $student['institution_id']) {
+                    $studentClass = Institution_class_student::where('student_id', $student['student_id'])
+                        ->first();
+                    Institution_class_student::where('student_id', $student['student_id'])->delete();
+                    Institution_student::where('student_id', $student['student_id'])
+                        ->update(['institution_id' =>  $Institution['id']]);
+                    $class = new Institution_class();
+                    if (!is_null($studentClass)) {
+                        $class->updateClassCount($studentClass->toArray());
+                    }
+                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+                    $output->writeln('updated student info:' . $data['nsid']);
                 }
-                $output = new \Symfony\Component\Console\Output\ConsoleOutput();
-                $output->writeln('updated student info:'.$data['nsid']);
             }
         }
     }
