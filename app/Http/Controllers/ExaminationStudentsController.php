@@ -133,27 +133,33 @@ class ExaminationStudentsController extends Controller
      */
     public function updateCensusNo($data)
     {
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $student = Security_user::where('openemis_no', $data['nsid'])
             ->select('security_users.id')
             ->first();
         if (!is_null($student)) {
-            $student = Institution_student::where('student_id',$student['id'])->first();
-            $Institution = Institution::where('code', $data['schoolid'])->first();
-            if (!is_null($student) && !is_null($Institution)) {
-                $student->toArray();
-                $Institution = $Institution->toArray();
-                if ($Institution['id'] !==  $student['institution_id']) {
+            $student = Institution_student::where('student_id',$student['id'])->get()->toArray();
+            $Institution = Institution::where('code',$data['schoolid'])->get()->toArray();
+            if (!empty($Institution)) {
+                $Institution = $Institution[0];
+                if(count($student) == 1){
+                    $student = $student[0];
+                if (((int)$Institution['id']) !=  ((int)$student['institution_id'])) {
                     $studentClass = Institution_class_student::where('student_id', $student['student_id'])
                         ->first();
                     Institution_class_student::where('student_id', $student['student_id'])->delete();
                     Institution_student::where('student_id', $student['student_id'])
                         ->update(['institution_id' =>  $Institution['id']]);
-                    $class = new Institution_class();
+                    $class = new Institution_class(); 
                     if (!is_null($studentClass)) {
                         $class->updateClassCount($studentClass->toArray());
                     }
-                    $output = new \Symfony\Component\Console\Output\ConsoleOutput();
                     $output->writeln('updated student info:' . $data['nsid']);
+                }
+                }else{
+                    Institution_student::where('institution_id','<>',$Institution['id'])->where('student_id', $student[0]['student_id'])
+                    ->delete();
+                    $output->writeln('updated student info:' .$Institution['id'] .'=='. $Institution['id']);
                 }
             }
         }
