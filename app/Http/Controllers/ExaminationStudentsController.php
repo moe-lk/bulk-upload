@@ -126,6 +126,49 @@ class ExaminationStudentsController extends Controller
     }
 
     /**
+     * updated wrong census
+     *
+     * @param [type] $data
+     * @return void
+     */
+    public function updateCensusNo($data)
+    {
+        $output = new \Symfony\Component\Console\Output\ConsoleOutput();
+        $student = Security_user::where('openemis_no', $data['nsid'])
+            ->select('security_users.id')
+            ->first();
+
+        
+        if (!is_null($student)) {
+            $student = Institution_student::where('student_id',$student['id'])->get()->toArray();
+            $Institution = Institution::where('code',$data['schoolid'])->get()->toArray();
+            if (!empty($Institution)) {
+                $Institution = $Institution[0];
+                if(count($student) == 1){
+                    $student = $student[0];
+                    
+                if (((int)$Institution['id']) !=  ((int)$student['institution_id'])) {
+                    $studentClass = Institution_class_student::where('student_id', $student['student_id'])
+                        ->first();
+                    Institution_class_student::where('student_id', $student['student_id'])->delete();
+                    Institution_student::where('student_id', $student['student_id'])
+                        ->update(['institution_id' =>  $Institution['id']]);
+                    $class = new Institution_class(); 
+                    if (!is_null($studentClass)) {
+                        $class->updateClassCount($studentClass->toArray());
+                    }
+                    $output->writeln('updated student info:' . $data['nsid']);
+                }
+                }else{
+                    Institution_student::where('institution_id','<>',$Institution['id'])->where('student_id', $student[0]['student_id'])
+                    ->delete();
+                    $output->writeln('updated student info:' .$Institution['id'] .'=='. $Institution['id']);
+                }
+            }
+        }
+    }
+
+    /**
      * Iterate over existing student's data
      *
      * @return void
@@ -137,7 +180,7 @@ class ExaminationStudentsController extends Controller
             case 'duplicate':
                 $students =  DB::table('examination_students as es')
                     ->select(DB::raw('count(*) as total'), 'e2.*')
-                    ->join('examination_students as e2', 'es.nsid','e2.nsid')
+                    ->join('examination_students as e2', 'es.nsid', 'e2.nsid')
                     ->having('total', '>', 1)
                     ->groupBy('e2.st_no')
                     ->orderBy('e2.st_no')
@@ -151,7 +194,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'empty';
                 $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid','<>','')
+                    ->orWhere('nsid', '<>', '')
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
@@ -161,8 +204,7 @@ class ExaminationStudentsController extends Controller
                 $this->output->writeln('All are generated');
                 break;
             case 'invalid';
-                $students = Examination_student::
-                    whereRaw('CHAR_LENGTH(nsid) > 11')
+                $students = Examination_student::whereRaw('CHAR_LENGTH(nsid) > 11')
                     ->get()->toArray();
                 $students = (array) json_decode(json_encode($students));
                 $this->output->writeln(count($students) . 'students remaining with wrong NSID');
@@ -171,10 +213,10 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'count':
                 $count = Examination_student::distinct('nsid')
-                ->count();
+                    ->count();
                 $all = Examination_student::select('nsid')
                     ->count();
-                $this->output->writeln( $all. 'Total Unique nsid are: ' .$count);
+                $this->output->writeln($all . 'Total Unique nsid are: ' . $count);
                 break;
             default:
                 $students = Examination_student::offset($offset)
@@ -211,9 +253,9 @@ class ExaminationStudentsController extends Controller
             case 'G11':
                 $students['taking_ol_exam'] = true;
                 break;
-            // case preg_match('13', $this->education_grade->code):
-            //     $students['taking_al_exam'] = true;
-            //     break;
+                // case preg_match('13', $this->education_grade->code):
+                //     $students['taking_al_exam'] = true;
+                //     break;
         }
         return $students;
     }
@@ -301,20 +343,20 @@ class ExaminationStudentsController extends Controller
         /**
          */
         $sis_student = $this->student->getMatches($student);
-        $doe_students =  Examination_student::where('gender',$student['gender'])
-            ->where('b_date',$student['b_date'])
-            ->where('schoolid',$student['schoolid'])
+        $doe_students =  Examination_student::where('gender', $student['gender'])
+            ->where('b_date', $student['b_date'])
+            ->where('schoolid', $student['schoolid'])
             ->count();
         $count = $this->student->getStudentCount($student);
 
         $studentData = [];
         $sis_users  = (array) json_decode(json_encode($sis_student), true);
         // if the same gender same DOE has more than one 
-        if(($doe_students > 1) || ($count > 1)){
-            $studentData = $this->searchSimilarName($student, $sis_users,false);
-        }else{
+        if (($doe_students > 1) || ($count > 1)) {
+            $studentData = $this->searchSimilarName($student, $sis_users, false);
+        } else {
             $studentData = $this->searchSimilarName($student, $sis_users);
-        }   
+        }
         return $studentData;
     }
 
@@ -325,7 +367,7 @@ class ExaminationStudentsController extends Controller
      * @param array $sis_students
      * @return array
      */
-    public function searchSimilarName($student, $sis_students,$surname_search = true)
+    public function searchSimilarName($student, $sis_students, $surname_search = true)
     {
         $highest = [];
         $minDistance = 0;
@@ -345,7 +387,7 @@ class ExaminationStudentsController extends Controller
             }
         }
 
-        if($surname_search){
+        if ($surname_search) {
             if (empty($highest)) {
                 foreach ($sis_students as $key => $value) {
                     //search name with last name
@@ -361,8 +403,8 @@ class ExaminationStudentsController extends Controller
             }
         }
 
-        if(count($matches)>1){
-            $highest =  $this->searchSimilarName($student, $sis_students,false);
+        if (count($matches) > 1) {
+            $highest =  $this->searchSimilarName($student, $sis_students, false);
         }
 
         return $highest;
@@ -405,7 +447,7 @@ class ExaminationStudentsController extends Controller
     {
         $adminUser = Security_user::where('username', 'admin')->first();
         try {
-            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.'.time().'.csv');
+            (new ExaminationStudentsExport)->store('examination/student_data_with_nsid.' . time() . '.csv');
             (new ExportReady($adminUser));
         } catch (\Throwable $th) {
             //throw $th;
