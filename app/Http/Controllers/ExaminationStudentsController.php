@@ -87,12 +87,12 @@ class ExaminationStudentsController extends Controller
      *
      * @return void
      */
-    public static function callOnClick()
+    public static function callOnClick($year,$grade)
     {
         // Import CSV to Database
         $excelFile = "/examination/exams_students.csv";
 
-        $import = new ExaminationStudentsImport();
+        $import = new ExaminationStudentsImport($year,$grade);
         try {
             $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
             if ($import->failures()->count() > 0) {

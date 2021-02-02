@@ -12,7 +12,7 @@ class ExaminationStudentSeed extends Command
      *
      * @var string
      */
-    protected $signature = 'examination:migration';
+    protected $signature = 'examination:migration {year} {grade}';
 
     /**
      * The console command description.
@@ -40,7 +40,8 @@ class ExaminationStudentSeed extends Command
     {
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
-        ExaminationStudentsController::callOnClick();
+       
+        ExaminationStudentsController::callOnClick($this->argument('year'),$this->argument('grade'));
         $output->writeln('###########################################------Finished inserting file records------###########################################');
     }
 }
