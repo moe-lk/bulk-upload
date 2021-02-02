@@ -87,12 +87,12 @@ class ExaminationStudentsController extends Controller
      *
      * @return void
      */
-    public static function callOnClick()
+    public static function callOnClick($year, $grade)
     {
         // Import CSV to Database
         $excelFile = "/examination/exams_students.csv";
 
-        $import = new ExaminationStudentsImport();
+        $import = new ExaminationStudentsImport($year, $grade);
         try {
             $import->import($excelFile, 'local', \Maatwebsite\Excel\Excel::CSV);
             if ($import->failures()->count() > 0) {
@@ -138,28 +138,28 @@ class ExaminationStudentsController extends Controller
             ->select('security_users.id')
             ->first();
         if (!is_null($student)) {
-            $student = Institution_student::where('student_id',$student['id'])->get()->toArray();
-            $Institution = Institution::where('code',$data['schoolid'])->get()->toArray();
+            $student = Institution_student::where('student_id', $student['id'])->get()->toArray();
+            $Institution = Institution::where('code', $data['schoolid'])->get()->toArray();
             if (!empty($Institution)) {
                 $Institution = $Institution[0];
-                if(count($student) == 1){
+                if (count($student) == 1) {
                     $student = $student[0];
-                if (((int)$Institution['id']) !=  ((int)$student['institution_id'])) {
-                    $studentClass = Institution_class_student::where('student_id', $student['student_id'])
-                        ->first();
-                    Institution_class_student::where('student_id', $student['student_id'])->delete();
-                    Institution_student::where('student_id', $student['student_id'])
-                        ->update(['institution_id' =>  $Institution['id']]);
-                    $class = new Institution_class(); 
-                    if (!is_null($studentClass)) {
-                        $class->updateClassCount($studentClass->toArray());
+                    if (((int)$Institution['id']) !=  ((int)$student['institution_id'])) {
+                        $studentClass = Institution_class_student::where('student_id', $student['student_id'])
+                            ->first();
+                        Institution_class_student::where('student_id', $student['student_id'])->delete();
+                        Institution_student::where('student_id', $student['student_id'])
+                            ->update(['institution_id' =>  $Institution['id']]);
+                        $class = new Institution_class();
+                        if (!is_null($studentClass)) {
+                            $class->updateClassCount($studentClass->toArray());
+                        }
+                        $output->writeln('updated student info:' . $data['nsid']);
                     }
-                    $output->writeln('updated student info:' . $data['nsid']);
-                }
-                }else{
-                    Institution_student::where('institution_id','<>',$Institution['id'])->where('student_id', $student[0]['student_id'])
-                    ->delete();
-                    $output->writeln('updated student info:' .$Institution['id'] .'=='. $Institution['id']);
+                } else {
+                    Institution_student::where('institution_id', '<>', $Institution['id'])->where('student_id', $student[0]['student_id'])
+                        ->delete();
+                    $output->writeln('updated student info:' . $Institution['id'] . '==' . $Institution['id']);
                 }
             }
         }
@@ -177,6 +177,8 @@ class ExaminationStudentsController extends Controller
             case 'duplicate':
                 $students =  DB::table('examination_students as es')
                     ->select(DB::raw('count(*) as total'), 'e2.*')
+                    ->where('grade', $this->grade)
+                    ->where('year', $this->year)
                     ->join('examination_students as e2', 'es.nsid', 'e2.nsid')
                     ->having('total', '>', 1)
                     ->groupBy('e2.st_no')
@@ -192,6 +194,8 @@ class ExaminationStudentsController extends Controller
             case 'empty';
                 $students = Examination_student::whereNull('nsid')
                     ->orWhere('nsid', '<>', '')
+                    ->where('grade', $this->grade)
+                    ->where('year', $this->year)
                     ->offset($offset)
                     ->limit($limit)
                     ->get()->toArray();
@@ -202,6 +206,8 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'invalid';
                 $students = Examination_student::whereRaw('CHAR_LENGTH(nsid) > 11')
+                    ->where('grade', $this->grade)
+                    ->where('year', $this->year)
                     ->get()->toArray();
                 $students = (array) json_decode(json_encode($students));
                 $this->output->writeln(count($students) . 'students remaining with wrong NSID');
@@ -210,6 +216,8 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'count':
                 $count = Examination_student::distinct('nsid')
+                    ->where('grade', $this->grade)
+                    ->where('year', $this->year)
                     ->count();
                 $all = Examination_student::select('nsid')
                     ->count();
@@ -217,6 +225,8 @@ class ExaminationStudentsController extends Controller
                 break;
             default:
                 $students = Examination_student::offset($offset)
+                    ->where('grade', $this->grade)
+                    ->where('year', $this->year)
                     ->limit($limit)
                     ->get()->toArray();
                 $students = (array) json_decode(json_encode($students));
