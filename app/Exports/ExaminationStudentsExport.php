@@ -14,6 +14,12 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
 {
 
     use Exportable;
+
+    public function __construct($year,$grade)
+    {
+        $this->year = $year;
+        $this->grade = $grade;
+    }
     
     public function headings(): array
     {
@@ -44,6 +50,7 @@ class ExaminationStudentsExport implements FromQuery , WithHeadings
     {
         return Examination_student::query()->whereNotNull('nsid')
         ->distinct('nsid')
-        ->whereDate('updated_at','>=',Carbon::today());
+        ->where('year',$this->year)
+        ->where('grade',$this->grade);
     }
 }
