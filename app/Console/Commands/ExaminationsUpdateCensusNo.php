@@ -42,9 +42,7 @@ class ExaminationsUpdateCensusNo extends Command
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
         $this->examinationController = new ExaminationStudentsController(2019, 'G4');
-        
         $students =  Examination_student::all()->toArray();
-        // dd($students);
         $func = $this->examinationController;
         array_walk($students,array($func,'updateCensusNo'));
 
