@@ -42,7 +42,8 @@ class ExaminationStudentsController extends Controller
 
     public function uploadFile(Request $request)
     {
-
+        ini_set('upload_max_filesize', '50M');
+        ini_set('post_max_size','50M');
         if ($request->input('submit') != null) {
 
             $file = $request->file('file');
@@ -56,7 +57,7 @@ class ExaminationStudentsController extends Controller
             $valid_extension = array("csv");
 
             // 20MB in Bytes
-            $maxFileSize = 30971520;
+            $maxFileSize = 40971520;
 
             // Check file extension
             if (in_array(strtolower($extension), $valid_extension)) {
