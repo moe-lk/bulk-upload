@@ -132,7 +132,8 @@ class Institution_class_student extends Model
                 'education_grade_id' => $admissionInfo['education_grade']->id,
                 'academic_period_id' => $admissionInfo['academic_period']->id,
                 'institution_id' => $admissionInfo['instituion']->id,
-                'student_status_id' => 1
+                'student_status_id' => 1,
+                'created_user_id' => 1
             ]);
         } catch (\Throwable $th) {
             Log::error($th);

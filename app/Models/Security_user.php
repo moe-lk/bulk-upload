@@ -208,7 +208,7 @@ class Security_user extends Model
             Log::error($th->getMessage());
             // in case of duplication of the Unique ID this will recursive.
             $sis_student['openemis_no'] = $this->uniqueUId::getUniqueAlphanumeric();
-            $this->insertExaminationStudent($student, $sis_student);
+            $this->insertExaminationStudent($sis_student);
         }
         return $studentData;
     }
