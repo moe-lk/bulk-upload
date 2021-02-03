@@ -42,7 +42,8 @@ class ExaminationStudentsController extends Controller
 
     public function uploadFile(Request $request)
     {
-
+        ini_set('upload_max_filesize', '50M');
+        ini_set('post_max_size','50M');
         if ($request->input('submit') != null) {
 
             $file = $request->file('file');
