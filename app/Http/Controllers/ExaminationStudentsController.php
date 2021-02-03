@@ -280,8 +280,10 @@ class ExaminationStudentsController extends Controller
 
         $matchedStudent = $this->getMatchingStudents($student);
 
-        // if the first match missing do complete insertion
+        //add 0 to school id 
         $student['schoolid'] = str_pad($student['schoolid'], 5, '0', STR_PAD_LEFT);
+        
+        // if the first match missing do complete insertion 
         $institution = Institution::where('code', '=', $student['schoolid'])->first();
         if (!is_null($institution)) {
 
