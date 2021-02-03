@@ -42,8 +42,6 @@ class ExaminationStudentsController extends Controller
 
     public function uploadFile(Request $request)
     {
-        ini_set('upload_max_filesize', '50M');
-        ini_set('post_max_size','50M');
         if ($request->input('submit') != null) {
 
             $file = $request->file('file');
@@ -56,8 +54,8 @@ class ExaminationStudentsController extends Controller
             // Valid File Extensions
             $valid_extension = array("csv");
 
-            // 20MB in Bytes
-            $maxFileSize = 30971520;
+            // 40MB in Bytes
+            $maxFileSize = 40971520;
 
             // Check file extension
             if (in_array(strtolower($extension), $valid_extension)) {
@@ -283,8 +281,8 @@ class ExaminationStudentsController extends Controller
         $matchedStudent = $this->getMatchingStudents($student);
 
         // if the first match missing do complete insertion
-        $institution = Institution::where('code', '=', (int)$student['schoolid'])->first();
-
+        $student['schoolid'] = str_pad($student['schoolid'], 5, '0', STR_PAD_LEFT);
+        $institution = Institution::where('code', '=', $student['schoolid'])->first();
         if (!is_null($institution)) {
 
             // ge the class lists to belong the school
