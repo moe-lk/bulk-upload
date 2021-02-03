@@ -57,7 +57,7 @@ class ExaminationStudentsController extends Controller
             $valid_extension = array("csv");
 
             // 20MB in Bytes
-            $maxFileSize = 30971520;
+            $maxFileSize = 40971520;
 
             // Check file extension
             if (in_array(strtolower($extension), $valid_extension)) {
