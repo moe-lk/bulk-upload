@@ -2,24 +2,25 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\ExaminationStudentsController;
 use Illuminate\Console\Command;
+use App\Http\Controllers\ExaminationStudentsController;
+use App\Models\Examination_student;
 
-class ExaminationStudentSeed extends Command
+class ExaminationsUpdateCensusNo extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'examination:migration {year} {grade}';
+    protected $signature = 'examination:updateCensus';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'This command to seed from  the examination data (csv) to sis deticated examination table';
+    protected $description = 'Command description';
 
     /**
      * Create a new command instance.
@@ -40,8 +41,11 @@ class ExaminationStudentSeed extends Command
     {
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         $output->writeln('###########################################------Inserting file records------###########################################');
-       
-        ExaminationStudentsController::callOnClick($this->argument('year'),$this->argument('grade'));
-        $output->writeln('###########################################------Finished inserting file records------###########################################');
+        $this->examinationController = new ExaminationStudentsController(2019, 'G4');
+        $students =  Examination_student::all()->toArray();
+        $func = $this->examinationController;
+        array_walk($students,array($func,'updateCensusNo'));
+
+                
     }
 }

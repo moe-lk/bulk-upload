@@ -22,6 +22,11 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
 {
     use Importable , SkipsFailures, SkipsErrors;
 
+    public function __construct($year,$grade)
+    {
+        $this->year = $year;
+        $this->grade = $grade;
+    }
     /**
      * @return int
      */
@@ -86,7 +91,9 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
             "medium" => $row['medium'],
             "gender" => $row['gender'],
             "b_date" =>  $row['b_date'],
-            "a_income" => $row['a_income'],
+            "a_income" => $row['a_income'] ? $row['a_income'] : 0 ,
+            "grade" => $this->grade,
+            'year' => $this->year,
             "schoolid" => $row['schoolid'],
             "spl_need" => $row['spl_need'],
             "pvt_address" => $row['pvt_address'],

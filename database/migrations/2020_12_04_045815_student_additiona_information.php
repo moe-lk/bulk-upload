@@ -1,11 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
-class AddTransferConfigurations extends Migration
+
+class StudentAdditionaInformation extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +15,6 @@ class AddTransferConfigurations extends Migration
      */
     public function up()
     {
-        //
         $data = [
             [   
                 'id' => 8004,
@@ -58,7 +58,7 @@ class AddTransferConfigurations extends Migration
             ],
             ];
 
-           DB::table('security_functions')->whereIn('id',[1022,1023,8001,8002])->delete();
+           DB::table('security_functions')->whereIn('id',[1022,1023,8004,8005,8001,8002])->delete();
            DB::table('security_functions')->insert($data);
     }
 
