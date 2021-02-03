@@ -353,6 +353,8 @@ class ExaminationStudentsController extends Controller
         $doe_students =  Examination_student::where('gender', $student['gender'])
             ->where('b_date', $student['b_date'])
             ->where('schoolid', $student['schoolid'])
+            ->where('year',$this->year)
+            ->where('grade',$this->grade)
             ->count();
         $count = $this->student->getStudentCount($student);
 
