@@ -191,8 +191,8 @@ class ExaminationStudentsController extends Controller
                 $this->output->writeln('All are generated');
                 break;
             case 'empty';
-                $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid', '<>', '')
+                $students = Examination_student::
+                    whereNull('nsid')
                     ->where('grade', $this->grade)
                     ->where('year', $this->year)
                     ->offset($offset)
@@ -440,7 +440,6 @@ class ExaminationStudentsController extends Controller
             unset($student['st_no']);
             $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
-            dd($th);
             $this->output->writeln('error');
             Log::error($th);
         }
