@@ -192,7 +192,7 @@ class ExaminationStudentsController extends Controller
                 break;
             case 'empty';
                 $students = Examination_student::
-                    whereNull('nsid')
+                     whereNull('nsid')
                     ->where('grade', $this->grade)
                     ->where('year', $this->year)
                     ->offset($offset)
@@ -246,6 +246,7 @@ class ExaminationStudentsController extends Controller
         $students['taking_g5_exam'] = false;
         $students['taking_ol_exam'] = false;
         $students['taking_al_exam'] = false;
+        $students['taking_git_exam'] = false;
         switch ($this->education_grade->code) {
             case 'G5':
                 $students['taking_g5_exam'] = true;
@@ -259,6 +260,9 @@ class ExaminationStudentsController extends Controller
             case 'G11':
                 $students['taking_ol_exam'] = true;
                 break;
+            case 'GIT':
+                $students['taking_git_exam'] = true;
+                    break;    
                 // case preg_match('13', $this->education_grade->code):
                 //     $students['taking_al_exam'] = true;
                 //     break;
@@ -434,6 +438,7 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_g5_exam']);
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
+            unset($student['taking_git_exam']);
             unset($student['total']);
             $students['updated_at'] =  now();
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
