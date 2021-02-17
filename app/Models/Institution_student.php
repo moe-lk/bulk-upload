@@ -153,10 +153,12 @@ class Institution_student extends Base_Model
                 'taking_g5_exam' => $student['taking_g5_exam'],
                 'taking_ol_exam' => $student['taking_ol_exam'],
                 'taking_al_exam' => $student['taking_al_exam'],
+                'taking_git_exam' => $student['taking_git_exam'],
                 // Set special examination center
                 'exam_center_for_special_education_g5' =>   $student['taking_g5_exam'] ? $student['sp_center'] : 0,
                 'exam_center_for_special_education_ol' =>   $student['taking_ol_exam'] ? $student['sp_center'] : 0,
                 'exam_center_for_special_education_al' =>   $student['taking_al_exam'] ? $student['sp_center'] : 0,
+                'exam_center_for_special_education_git' =>   $student['taking_git_exam'] ? $student['sp_center'] : 0,
                 'income_at_g5' => $student['a_income'],
                 'education_grade_id' => $admissionInfo['education_grade']->id,
                 'academic_period_id' => $admissionInfo['academic_period']->id,
