@@ -247,26 +247,24 @@ class ExaminationStudentsController extends Controller
         $students['taking_ol_exam'] = false;
         $students['taking_al_exam'] = false;
         $students['taking_git_exam'] = false;
-        switch ($this->education_grade->code) {
-            case 'G5':
-                $students['taking_g5_exam'] = true;
-                break;
-            case 'G4':
-                $students['taking_g5_exam'] = true;
-                break;
-            case 'G10':
-                $students['taking_ol_exam'] = true;
-                break;
-            case 'G11':
-                $students['taking_ol_exam'] = true;
-                break;
-            case 'GIT':
-                $students['taking_git_exam'] = true;
-                    break;    
-                // case preg_match('13', $this->education_grade->code):
-                //     $students['taking_al_exam'] = true;
-                //     break;
-        }
+            switch ($students['grade']) {
+                case 'G5':
+                    $students['taking_g5_exam'] = true;
+                    break;
+                case 'G4':
+                    $students['taking_g5_exam'] = true;
+                    break;
+                case 'G10':
+                    $students['taking_ol_exam'] = true;
+                    break;
+                case 'G11':
+                    $students['taking_ol_exam'] = true;
+                    break;
+                case 'GIT':
+                    $students['taking_git_exam'] = true;
+                    break;
+            }
+       
         return $students;
     }
 
@@ -293,11 +291,14 @@ class ExaminationStudentsController extends Controller
             $institutionClass = Institution_class::where(
                 [
                     'institution_id' => $institution->id,
-                    'academic_period_id' => $this->academic_period->id,
-                    'education_grade_id' => $this->education_grade->id
+                    'academic_period_id' => $this->academic_period->id
                 ]
-            )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
+            )
+            ->where( 'education_grade_id','in', [$this->student->education_garde_id])
+            ->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
+            $this->education_grade = Education_grade::where('id', '=', $this->student->education_garde_id)->first();
+            
             // set search variables 
             $admissionInfo = [
                 'instituion_class' => $institutionClass,
@@ -312,18 +313,18 @@ class ExaminationStudentsController extends Controller
 
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
-                $sis_student['student_id'] =  $student['id'];
-
+                $sis_student['student_id'] =  $student['id' ];
                 $student = $this->setIsTakingExam($student);
-                if (count($institutionClass) == 1) {
+                 if (count($institutionClass) == 1) {
                     $admissionInfo['instituion_class'] = $institutionClass[0];
-                    Institution_student::createExaminationData($student, $admissionInfo);
+                     Institution_student::createExaminationData($student, $admissionInfo);
                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_class_student::createExaminationData($student, $admissionInfo);
                 } else {
-                    Institution_student_admission::createExaminationData($student, $admissionInfo);
+                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_student::createExaminationData($student, $admissionInfo);
                 }
+                
                 $this->updateStudentId($student, $sis_student);
                 // update the matched student's data    
             } else {
