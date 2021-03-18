@@ -297,7 +297,12 @@ class ExaminationStudentsController extends Controller
             ->where( 'education_grade_id','in', [$this->student->education_garde_id])
             ->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
-            $this->education_grade = Education_grade::where('id', '=', $this->student->education_garde_id)->first();
+
+            if(!is_null($this->student->education_garde_id)){
+                $this->education_grade = Education_grade::where('id', '=', $this->student->education_garde_id)->first();
+            }else{
+                $this->student->education_garde_id = $this->education_grade->id;
+            }
             
             // set search variables 
             $admissionInfo = [
@@ -314,6 +319,7 @@ class ExaminationStudentsController extends Controller
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
                 $sis_student['student_id'] =  $student['id' ];
+
                 $student = $this->setIsTakingExam($student);
                  if (count($institutionClass) == 1) {
                     $admissionInfo['instituion_class'] = $institutionClass[0];
@@ -464,7 +470,6 @@ class ExaminationStudentsController extends Controller
             (new ExportReady($adminUser));
         } catch (\Throwable $th) {
             //throw $th;
-            dd($th);
         }
         return back()->withSuccess('Export started!');
     }
@@ -478,7 +483,7 @@ class ExaminationStudentsController extends Controller
 
     public function downloadProcessedFile()
     {
-        $file_path = storage_path() . '/app/examination/student_data_with_nsid.csv';
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.1616052465.csv';
         return Response::download($file_path);
     }
 }
