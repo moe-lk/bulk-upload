@@ -64,5 +64,7 @@ RUN chgrp -R www-data storage/  && \
 
 RUN composer install
 
+RUN sudo groupadd docker
+RUN sudo usermod -aG docker devuser
 
 EXPOSE 80
