@@ -67,7 +67,7 @@ RUN composer install
 RUN sudo groupadd docker
 RUN sudo usermod -aG docker devuser
 
-RUN chmod -R 775 storage
-RUN chmod -R 775 bootstrap/cache
+RUN sudo chown -R devuser:www-data storage
+RUN sudo chown -R devuser:www-data bootstrap/cache
 
 EXPOSE 80
