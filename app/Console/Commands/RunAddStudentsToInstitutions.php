@@ -44,6 +44,7 @@ class RunAddStudentsToInstitutions extends Command
      */
     public function handle()
     {
+        DB::enableQueryLog();
         // dd('test');
         $institution = Institution::where([
             'id' => $this->argument('institution')
@@ -52,15 +53,17 @@ class RunAddStudentsToInstitutions extends Command
         if(!is_null($institution)){
 
             // dd($institution);
+            
             try {
                 $this->info('adding missing students to the institution ' . $institution->name);
                 $approvedstudent = DB::table('institution_student_admission')->select('*')
                                     ->join('institutions', 'institution_id', '=', 'institutions.id')
                                     ->leftJoin('institution_students', 'student_id', '=', 'institution_students.student_id')
                                     ->whereIn('status_id',[121,122,123,124])
-                                    ->where('institution_id',$institution->id)->get()->toArray();
-                // dd($approvedstudent);
+                                    ->where('institutions.id',$institution->id)->get()->toArray();
+                dd(DB::getQueryLog());
                 $approvedstudent = array_chunk($approvedstudent, 50);
+                // dd($approvedstudent);
                 array_walk($approvedstudent, array($this, 'addStudents'));
             }catch (\Exception $e) {
                 Log::error($e);
