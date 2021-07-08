@@ -8,6 +8,7 @@ use App\Models\Institution_class_subject;
 use App\Models\Institution_student_admission;
 use App\Models\Institution_student;
 use App\Models\Institution;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class RunAddStudentsToInstitutions extends Command
@@ -53,11 +54,12 @@ class RunAddStudentsToInstitutions extends Command
             // dd($institution);
             try {
                 $this->info('adding missing students to the institution ' . $institution->name);
-                $approvedstudent = Institution_student_admission::select('institution_student_admission.*')->join('institutions', 'institution_id', '=', 'institutions.id')->leftJoin('institution_students', 'student_id', '=', 'institution_students.student_id')->where([
-                    // 'status_id' => 121,122,123,124, // 
-                    'institution_id' => $institution->id
-                ])->get()->toArray();
-                dd($approvedstudent);
+                $approvedstudent = DB::table('institution_student_admission')->select('*')
+                                    ->join('institutions', 'institution_id', '=', 'institutions.id')
+                                    ->leftJoin('institution_students', 'student_id', '=', 'institution_students.student_id')
+                                    ->whereIn('status_id',[121,122,123,124])
+                                    ->where('institution_id',$institution->id)->get()->toArray();
+                // dd($approvedstudent);
                 $approvedstudent = array_chunk($approvedstudent, 50);
                 array_walk($approvedstudent, array($this, 'addStudents'));
             }catch (\Exception $e) {
