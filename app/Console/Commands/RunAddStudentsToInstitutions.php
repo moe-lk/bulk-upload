@@ -44,48 +44,51 @@ class RunAddStudentsToInstitutions extends Command
      */
     public function handle()
     {
-        DB::enableQueryLog();
+        
         // dd('test');
         $institution = Institution::where([
             'id' => $this->argument('institution')
         ])->first();
 
+        // dd($institution);
         if(!is_null($institution)){
-
-            // dd($institution);
-            
+            DB::enableQueryLog();
+            // dd($institution->id);
             try {
                 $this->info('adding missing students to the institution ' . $institution->name);
-                $approvedstudent = DB::table('institution_student_admission')->select('*')
-                                    ->join('institutions', 'institution_id', '=', 'institutions.id')
-                                    ->leftJoin('institution_students', 'student_id', '=', 'institution_students.student_id')
+                $approvedstudent = Institution_student_admission::select('*')
+                                    // ->join('institutions', 'institution_id', '=', 'institutions.id')
+                                    ->leftJoin('institution_students', 'institution_student_admission.student_id', '=', 'institution_students.student_id')
                                     ->whereIn('status_id',[121,122,123,124])
-                                    ->where('institutions.id',$institution->id)->get()->toArray();
-                dd(DB::getQueryLog());
-                $approvedstudent = array_chunk($approvedstudent, 50);
-                // dd($approvedstudent);
-                array_walk($approvedstudent, array($this, 'addStudents'));
+                                    ->where('institution_student_admission.institution_id',$institution->id)->get()->toArray();
+                // dd(DB::getQueryLog());
+                // $approvedstudent = array_chunk($approvedstudent, 50);
+                // dd($approvedstudent['student_id']);
+                dd(array_walk($approvedstudent, array($this, 'addStudents')));
+
             }catch (\Exception $e) {
                 Log::error($e);
-            }
-        
+            }       
         }
     }
 
     protected function addStudents($approvedstudent){
-        array_walk($approvedstudent,array($this,'addStudent'));
+        array_walk($approvedstudent,array($this,'addStudent')); 
+        // dd($approvedstudent);
     }
 
     protected function addStudent($approvedstudent){
+        
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         Log::info($approvedstudent);
 
         sleep(1);
         if(!(Institution_student::isDuplicated($approvedstudent) > 0)){
+            // dd($approvedstudent);
             $this->count += 1;
             $this->student = $approvedstudent ;
             try{
-               Institution_student::insert([
+                $inserted = Institution_student::insert([
                    'student_status_id' => 1,
                    'student_id' => $approvedstudent['student_id'],
                    'education_grade_id' => $approvedstudent['education_grade_id'],
@@ -97,8 +100,8 @@ class RunAddStudentsToInstitutions extends Command
                    'institution_id' => $approvedstudent['institution_id'],
                    'admission_id' => $approvedstudent['admission_id'],
                    'created_user_id' => $approvedstudent['created_user_id'],
-               ]);
-
+               ])->toSql();
+               dd($inserted);
                if(!is_null($approvedstudent['institution_class_id'])){
                    Institution_class_student::insert([
                        'student_id' => $approvedstudent['student_id'],
