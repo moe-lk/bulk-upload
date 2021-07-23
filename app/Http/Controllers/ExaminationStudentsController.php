@@ -191,8 +191,8 @@ class ExaminationStudentsController extends Controller
                 $this->output->writeln('All are generated');
                 break;
             case 'empty';
-                $students = Examination_student::whereNull('nsid')
-                    ->orWhere('nsid', '<>', '')
+                $students = Examination_student::
+                     whereNull('nsid')
                     ->where('grade', $this->grade)
                     ->where('year', $this->year)
                     ->offset($offset)
@@ -246,23 +246,25 @@ class ExaminationStudentsController extends Controller
         $students['taking_g5_exam'] = false;
         $students['taking_ol_exam'] = false;
         $students['taking_al_exam'] = false;
-        switch ($this->education_grade->code) {
-            case 'G5':
-                $students['taking_g5_exam'] = true;
-                break;
-            case 'G4':
-                $students['taking_g5_exam'] = true;
-                break;
-            case 'G10':
-                $students['taking_ol_exam'] = true;
-                break;
-            case 'G11':
-                $students['taking_ol_exam'] = true;
-                break;
-                // case preg_match('13', $this->education_grade->code):
-                //     $students['taking_al_exam'] = true;
-                //     break;
-        }
+        $students['taking_git_exam'] = false;
+            switch ($students['grade']) {
+                case 'G5':
+                    $students['taking_g5_exam'] = true;
+                    break;
+                case 'G4':
+                    $students['taking_g5_exam'] = true;
+                    break;
+                case 'G10':
+                    $students['taking_ol_exam'] = true;
+                    break;
+                case 'G11':
+                    $students['taking_ol_exam'] = true;
+                    break;
+                case 'GIT':
+                    $students['taking_git_exam'] = true;
+                    break;
+            }
+       
         return $students;
     }
 
@@ -291,11 +293,19 @@ class ExaminationStudentsController extends Controller
             $institutionClass = Institution_class::where(
                 [
                     'institution_id' => $institution->id,
-                    'academic_period_id' => $this->academic_period->id,
-                    'education_grade_id' => $this->education_grade->id
+                    'academic_period_id' => $this->academic_period->id
                 ]
-            )->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
+            )
+            ->where( 'education_grade_id','in', [$this->student->education_garde_id])
+            ->join('institution_class_grades', 'institution_classes.id', 'institution_class_grades.institution_class_id')->get()->toArray();
 
+
+            if(!is_null($this->student->education_garde_id)){
+                $this->education_grade = Education_grade::where('id', '=', $this->student->education_garde_id)->first();
+            }else{
+                $this->student->education_garde_id = $this->education_grade->id;
+            }
+            
             // set search variables 
             $admissionInfo = [
                 'instituion_class' => $institutionClass,
@@ -310,18 +320,19 @@ class ExaminationStudentsController extends Controller
 
                 //TODO implement insert student to admission table
                 $student['id'] = $sis_student['id'];
-                $sis_student['student_id'] =  $student['id'];
+                $sis_student['student_id'] =  $student['id' ];
 
                 $student = $this->setIsTakingExam($student);
-                if (count($institutionClass) == 1) {
+                 if (count($institutionClass) == 1) {
                     $admissionInfo['instituion_class'] = $institutionClass[0];
-                    Institution_student::createExaminationData($student, $admissionInfo);
+                     Institution_student::createExaminationData($student, $admissionInfo);
                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_class_student::createExaminationData($student, $admissionInfo);
                 } else {
-                    Institution_student_admission::createExaminationData($student, $admissionInfo);
+                     Institution_student_admission::createExaminationData($student, $admissionInfo);
                     Institution_student::createExaminationData($student, $admissionInfo);
                 }
+                
                 $this->updateStudentId($student, $sis_student);
                 // update the matched student's data    
             } else {
@@ -436,13 +447,13 @@ class ExaminationStudentsController extends Controller
             unset($student['taking_g5_exam']);
             unset($student['taking_al_exam']);
             unset($student['taking_ol_exam']);
+            unset($student['taking_git_exam']);
             unset($student['total']);
             $students['updated_at'] =  now();
             $this->examination_student->where('st_no', $student['st_no'])->update($student);
             unset($student['st_no']);
             $this->output->writeln('Updated  to NSID' . $sis_student['openemis_no']);
         } catch (\Exception $th) {
-            dd($th);
             $this->output->writeln('error');
             Log::error($th);
         }
@@ -461,7 +472,6 @@ class ExaminationStudentsController extends Controller
             (new ExportReady($adminUser));
         } catch (\Throwable $th) {
             //throw $th;
-            dd($th);
         }
         return back()->withSuccess('Export started!');
     }
@@ -475,7 +485,8 @@ class ExaminationStudentsController extends Controller
 
     public function downloadProcessedFile()
     {
-        $file_path = storage_path() . '/app/examination/student_data_with_nsid.8606052465.csv';
+
+        $file_path = storage_path() . '/app/examination/student_data_with_nsid.1625482133.csv';
         return Response::download($file_path);
     }
 }
