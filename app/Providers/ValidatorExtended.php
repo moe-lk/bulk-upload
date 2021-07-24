@@ -179,7 +179,7 @@ class ValidatorExtended extends IlluminateValidator
         foreach ($validator->getData() as $data) {
             switch($data[$perameters[0]]){
                 case 'BC':
-                    $valid = preg_match('/^([0-9]{11,12})/i', $value);
+                    $valid = preg_match('/^([0-9]{3,5})/i', $value);
                     break;
                 case 'NIC':
                     $valid = preg_match('/^([0-9]{9}[VX]|([0-9]{12}))/i', $value);
@@ -190,7 +190,6 @@ class ValidatorExtended extends IlluminateValidator
         }
         
         if ($valid == 0) {
-            dd($data[$perameters[0]],$valid,$value);
             $this->_custom_messages['identity'] = $attribute . ' is not valid  Please check the NIC number';
             $this->_set_custom_stuff();
             return false;

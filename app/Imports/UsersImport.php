@@ -113,8 +113,6 @@ class UsersImport extends Import implements ToModel, WithStartRow, WithHeadingRo
 
             if (!empty($institutionClass)) {
                 $row = $this->setGender($row);
-                $mandatorySubject = Institution_class_subject::getMandatorySubjects($this->file['institution_class_id']);
-                $subjects = getMatchingKeys($row);
                 $studentInfo = Security_user::createOrUpdateStudentProfile($row,'create',$this->file);  
                 $academicPeriod = Academic_period::where('id', '=', $institutionClass->academic_period_id)->first();
                 $institutionGrade = Institution_class_grade::where('institution_class_id', '=', $institutionClass->id)->first();

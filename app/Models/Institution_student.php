@@ -244,7 +244,7 @@ class Institution_student extends Base_Model
             ->update(['address_area_id' => $guardian->address_area_id]);
         }elseif(!is_null($father) && $father->address == $student['address']){
             Security_user::where('id',$student['student_id'])
-            ->update(['address_area_id' => $guardian->address_area_id]);
+            ->update(['address_area_id' => $father->address_area_id]);
         }elseif(!is_null($mother) && $mother->address == $student['address']){
             Security_user::where('id',$student['student_id'])
             ->update(['address_area_id' => $mother->address_area_id]);
