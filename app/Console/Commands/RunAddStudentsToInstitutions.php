@@ -76,7 +76,7 @@ class RunAddStudentsToInstitutions extends Command
     protected function addStudent($approvedstudent){
         $output = new \Symfony\Component\Console\Output\ConsoleOutput();
         Log::info($approvedstudent);
-        sleep(1);
+//         sleep(1);
         if((Institution_student::isDuplicated($approvedstudent) == 0)){
             dd($approvedstudent);
             $this->count += 1;
