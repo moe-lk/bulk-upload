@@ -117,5 +117,6 @@ class RunAddStudentsToInstitutions extends Command
         #                                                  #
         ####################################################' );
     }
+    $output->writeln('operation Complete');
 }
-$output->writeln('operation Complete');
+
