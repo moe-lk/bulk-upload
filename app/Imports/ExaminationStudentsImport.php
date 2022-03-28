@@ -83,7 +83,7 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
      */
     public function model(array $row)
     {
-       
+       try {
         $insertData = array(
             'st_no' => $row['st_no'],
             'stu_no' => $row['stu_no'],
@@ -102,6 +102,9 @@ class ExaminationStudentsImport implements ToModel, WithStartRow, WithHeadingRow
             "sp_center" => $row['sp_center']
         );
         Examination_student::insertData($insertData);
+       } catch (\Throwable $th) {
+        //    dd($row);
+       }
     }
 
     public function rules(): array
